@@ -1,13 +1,19 @@
-import numpy as np
+# import numpy as np
 import collections as ct
 import tabulate as tb
 from typing import List
+from string import ascii_uppercase as cols
 
 BLACK = "B"
 WHITE = "W"
-
 EMPTY = ' '
+MARKS = '?!'
+
+
 PseudoBoard = ct.namedtuple("PseudoBoard", ("w", "h", "board", "bool", "err"))
+
+def tile_to_coords(t: str):
+    return int(t[1]) - 1, cols.index(t[0]) - 1
 
 class Tile:
     def __init__(self, color, x=None, y=None):
@@ -38,6 +44,9 @@ class Square:
         top = self.tiles[n:]
         self.tiles = self.tiles[:n]
         return top
+
+    def copy(self):
+        return Square(self.x, self.y, tiles=self.tiles[:])
 
     def __eq__(self, other):
         if other == EMPTY:
@@ -75,37 +84,41 @@ class Board:
     Move n_tiles from old_square to
     new_square. 
     """
-    def move(self, old_square: Square, new_square: Square, n_tiles: int, first=False):
+    def move_single(self, old_square, new_square, n_tiles: int, first=False):
+        if not isinstance(old_square, Square):
+            old_square = self.get(*old_square)
+        if not isinstance(new_square, Square):
+            new_square = self.get(*new_square)
+
         new_board = self.copy_board()
         if abs(old_square.x - new_square.x == 1) ^ \
             abs(old_square.y - new_square.y == 1):
             if n_tiles <= len(old_square.tiles) - int(first):
-                new_board[new_square.y][new_square.x] = Board.copy_square(new_square)\
+                new_board[new_square.y][new_square.x] = new_square.copy()\
                     .extend(old_square.remove_top(n_tiles))
+                new_board[old_square.y][old_square.x] = old_square.copy()
+                return PseudoBoard(self.w, self.h, new_board, True, None)
+        return PseudoBoard(self.w, self.h, new_board, False, "Tile cannot be moved")
 
     def force(self, pb: PseudoBoard):
         self.board = pb.board
         self.board = self.copy_board()
 
     def __repr__(self):
-        cols = list(range(1, self.w + 1))
-        rows = list('ABCDEFGHIJKLMNOPQRSTUVWXYZ'[:self.h])
-        return tb.tabulate(self.board, tablefmt="plain", headers=cols, showindex=rows)
+        return tb.tabulate(self.board, tablefmt="plain",
+                           headers=list(range(1, self.w + 1)),
+                           showindex=list(cols[:self.h]))
 
     def get(self, x:int, y:int) -> Square:
         return self.board[y][x]
 
     def copy_board(self):
-        return [[Board.copy_square(s)
+        return [[s.copy()
                 for s in r] for r in self.board]
-
-    @classmethod
-    def copy_square(self, s: Square) -> Square:
-        return Square(s.x, s.y, tiles=s.tiles)
 
 b = Board(5, 5)
 t = Tile(BLACK)
-b.force(b.place(t, 1, 2))
+b.place(t, 1, 2)
 b.force(b.place(Tile(WHITE), 1, 3))
-b.move(b.get(1, 3), b.get(1, 2), 1)
+b.force(b.move_single((1, 3), (1, 2), 1))
 print(b)
