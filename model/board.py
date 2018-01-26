@@ -2,26 +2,31 @@
 import collections as ct
 import tabulate as tb
 from typing import List
-from string import ascii_uppercase as cols
+from string import ascii_lowercase as cols
 
 BLACK = "B"
 WHITE = "W"
 EMPTY = ' '
 MARKS = '?!'
 
+dirs = '+-<>'
+UP, DOWN, LEFT, RIGHT = dirs
+stones = 'FCS'
+FLAT, CAP, STAND = stones
 
 PseudoBoard = ct.namedtuple("PseudoBoard", ("w", "h", "board", "bool", "err"))
 
 def tile_to_coords(t: str):
-    return int(t[1]) - 1, cols.index(t[0]) - 1
+    return int(t[1]) - 1, cols.index(t[0])
+
 
 class Tile:
-    def __init__(self, color, x=None, y=None):
-        self.color = color
+    def __init__(self, color, stone='F', x=None, y=None):
+        self.color, self.stone = color, stone
         self.x, self.y = x, y
 
     def __repr__(self):
-        return self.color
+        return '%s{%s}' % (self.color, self.stone)
 
 class Square:
     def __init__(self, x, y, tiles=None):
@@ -47,6 +52,18 @@ class Square:
 
     def copy(self):
         return Square(self.x, self.y, tiles=self.tiles[:])
+
+    def next(self, dir):
+        # TODO: checks on boundaries
+        if dir == LEFT: # and self.y != 0:
+            return self.x, self.y - 1
+        if dir == RIGHT:
+            return self.x, self.y + 1
+        if dir == DOWN:
+            return self.x - 1, self.y
+        if dir == UP:
+            return self.x + 1, self.y
+        return "what"
 
     def __eq__(self, other):
         if other == EMPTY:
@@ -86,23 +103,91 @@ class Board:
     """
     def move_single(self, old_square, new_square, n_tiles: int, first=False):
         if not isinstance(old_square, Square):
-            old_square = self.get(*old_square)
+            if isinstance(new_square, tuple):
+                old_square = self.get(*old_square)
+            elif isinstance(new_square, str):
+                old_square = self.get(*tile_to_coords(old_square))
         if not isinstance(new_square, Square):
-            new_square = self.get(*new_square)
+            if isinstance(new_square, tuple):
+                new_square = self.get(*new_square)
+            elif isinstance(new_square, str):
+                new_square = self.get(*old_square.next(new_square))
+            else:
+                raise TypeError("new_square must be Square, tuple, or str, got: %s" % new_square.__class__)
 
         new_board = self.copy_board()
-        if abs(old_square.x - new_square.x == 1) ^ \
-            abs(old_square.y - new_square.y == 1):
-            if n_tiles <= len(old_square.tiles) - int(first):
+        if n_tiles <= len(old_square.tiles) - int(not first):
+            valid = False
+            flatten = False
+            if len(new_square.tiles) == 0:
+                valid = True
+            else:
+                new_stone = new_square.tiles[-1].stone
+                old_stone = old_square.tiles[-1].stone
+                if old_stone == CAP:
+                    if new_stone == FLAT:
+                        valid = True
+                    elif new_stone == STAND and n_tiles == 1:
+                        valid = True
+                        flatten = True
+                elif new_stone == FLAT:
+                    valid = True
+            if valid:
                 new_board[new_square.y][new_square.x] = new_square.copy()\
                     .extend(old_square.remove_top(n_tiles))
+                if flatten: new_square.tiles[-1].stone = FLAT
+
                 new_board[old_square.y][old_square.x] = old_square.copy()
                 return PseudoBoard(self.w, self.h, new_board, True, None)
-        return PseudoBoard(self.w, self.h, new_board, False, "Tile cannot be moved")
+            return PseudoBoard(self.w, self.h, new_board, False, f"Tile is not flat: stone == {new_square.tiles[-1].stone}")
+        return PseudoBoard(self.w, self.h, new_board, False, f"Too many tiles: {n_tiles} > {len(old_square.tiles) - int(first)}")
 
-    def force(self, pb: PseudoBoard):
-        self.board = pb.board
-        self.board = self.copy_board()
+    def move(self, old_square, dir, ns_tiles):
+        first = True
+        for n in ns_tiles:
+            yield self.move_single(old_square, dir, n, first=first)
+            first = False
+
+    def parse_move(self, move, curr_player):
+        move_dir = None
+        for dir in dirs:
+            if dir in move:
+                move_dir = dir
+                move = move.split(dir)
+                break
+
+        if move_dir == None:
+            if len(move) == 2:
+                move = 'F' + move
+            return self.place(Tile(curr_player, stone=move[0]),
+                              *tile_to_coords(move[1:]))
+
+        else:
+            # Move
+            ns = move[1]
+
+            t = move[0]
+            if t[0] not in cols:
+                ns += t[0]
+                t = t[1:]
+
+            if ns == '': ns = '1'
+            ns = list(map(int, ns))
+            return self.move(t, move_dir, ns)
+        return "Not a valid move!"
+
+
+
+    def force(self, pbs):
+        if isinstance(pbs, PseudoBoard):
+            self.force([pbs])
+        else:
+            for pb in pbs:
+                if pb.err != None:
+                    print('Error:', pb.err)
+                else:
+                  self.board = pb.board
+                  self.board = self.copy_board()
 
     def __repr__(self):
         return tb.tabulate(self.board, tablefmt="plain",
@@ -116,9 +201,27 @@ class Board:
         return [[s.copy()
                 for s in r] for r in self.board]
 
-b = Board(5, 5)
-t = Tile(BLACK)
-b.place(t, 1, 2)
-b.force(b.place(Tile(WHITE), 1, 3))
-b.force(b.move_single((1, 3), (1, 2), 1))
-print(b)
+def load_moves_from_file(filename):
+    with open(filename) as file:
+        ptn = file.read().split("\n")
+        size = int(ptn[4][7])
+        b = Board(size, size)
+        curr_player = WHITE
+        for iturn, turn in enumerate(ptn[7:]):
+            for imove, move in enumerate(turn.split(" ")[1:]): # Exclude the round number
+                if iturn == 0:
+                    curr_player = [BLACK, WHITE][imove]
+                elif iturn == 1 and imove == 0:
+                    curr_player = WHITE
+
+                b.force(b.parse_move(move, curr_player))
+                print(move)
+                print(b)
+
+                if curr_player == BLACK:
+                    curr_player = WHITE
+                else:
+                    curr_player = BLACK
+    return b
+
+print(load_moves_from_file("/Users/chervjay/Documents/GitHub/Bredon/BeginnerBot vs rassar 18.1.26 11.42.ptn"))
