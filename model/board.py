@@ -142,11 +142,17 @@ class Board:
             return PseudoBoard(self.w, self.h, new_board, False, f"Tile is not flat: stone == {new_square.tiles[-1].stone}")
         return PseudoBoard(self.w, self.h, new_board, False, f"Too many tiles: {n_tiles} > {len(old_square.tiles) - int(first)}")
 
-    def move(self, old_square, dir, ns_tiles):
-        first = True
-        for n in ns_tiles:
-            yield self.move_single(old_square, dir, n, first=first)
-            first = False
+    def move(self, old_square, dir, ns_moves, ns_total):
+        # print(ns_moves, ns_total)
+        sq = self.get(*tile_to_coords(old_square))
+        n_move = ns_total
+        yield self.move_single(sq, dir, n_move, first=True)
+        ns_moves = ns_moves[1:]
+        n_move = sum(ns_moves)
+        for n in ns_moves:
+            sq = self.get(*sq.next(dir))
+            yield self.move_single(sq, dir, n_move, first=False)
+            n_move -= n
 
     def parse_move(self, move, curr_player):
         move_dir = None
@@ -168,15 +174,14 @@ class Board:
 
             t = move[0]
             if t[0] not in cols:
-                ns += t[0]
+                total = int(t[0])
                 t = t[1:]
+            else:
+                total = 1
 
-            if ns == '': ns = '1'
+            #if ns == '': ns = '1'
             ns = list(map(int, ns))
-            return self.move(t, move_dir, ns)
-        return "Not a valid move!"
-
-
+            return self.move(t, move_dir, ns, total)
 
     def force(self, pbs):
         if isinstance(pbs, PseudoBoard):
@@ -208,6 +213,7 @@ def load_moves_from_file(filename):
         b = Board(size, size)
         curr_player = WHITE
         for iturn, turn in enumerate(ptn[7:]):
+            if 'R' in turn: break
             for imove, move in enumerate(turn.split(" ")[1:]): # Exclude the round number
                 if iturn == 0:
                     curr_player = [BLACK, WHITE][imove]
@@ -222,6 +228,7 @@ def load_moves_from_file(filename):
                     curr_player = WHITE
                 else:
                     curr_player = BLACK
-    return b
+    return b # , turn
 
 print(load_moves_from_file("/Users/chervjay/Documents/GitHub/Bredon/BeginnerBot vs rassar 18.1.26 11.42.ptn"))
+# print(load_moves_from_file("/Users/chervjay/Documents/GitHub/Bredon/You vs You 18.1.26 15.42.ptn"))
