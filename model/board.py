@@ -221,8 +221,8 @@ def load_moves_from_file(filename):
                     curr_player = WHITE
 
                 b.force(b.parse_move(move, curr_player))
-                print(move)
-                print(b)
+                # print(move)
+                # print(b)
 
                 if curr_player == BLACK:
                     curr_player = WHITE
@@ -230,5 +230,5 @@ def load_moves_from_file(filename):
                     curr_player = BLACK
     return b # , turn
 
-print(load_moves_from_file("/Users/chervjay/Documents/GitHub/Bredon/BeginnerBot vs rassar 18.1.26 11.42.ptn"))
+# print(load_moves_from_file("/Users/chervjay/Documents/GitHub/Bredon/BeginnerBot vs rassar 18.1.26 11.42.ptn"))
 # print(load_moves_from_file("/Users/chervjay/Documents/GitHub/Bredon/You vs You 18.1.26 15.42.ptn"))
