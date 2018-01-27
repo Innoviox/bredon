@@ -16,6 +16,7 @@ FLAT, CAP, STAND = stones
 
 PseudoBoard = ct.namedtuple("PseudoBoard", ("w", "h", "board", "bool", "err"))
 
+
 def tile_to_coords(t: str):
     return int(t[1]) - 1, cols.index(t[0])
 
@@ -27,6 +28,7 @@ class Tile:
 
     def __repr__(self):
         return '%s{%s}' % (self.color, self.stone)
+
 
 class Square:
     def __init__(self, x, y, tiles=None):
@@ -53,15 +55,15 @@ class Square:
     def copy(self):
         return Square(self.x, self.y, tiles=self.tiles[:])
 
-    def next(self, dir):
+    def next(self, direction):
         # TODO: checks on boundaries
-        if dir == LEFT: # and self.y != 0:
+        if direction == LEFT:  # and self.y != 0:
             return self.x, self.y - 1
-        if dir == RIGHT:
+        if direction == RIGHT:
             return self.x, self.y + 1
-        if dir == DOWN:
+        if direction == DOWN:
             return self.x - 1, self.y
-        if dir == UP:
+        if direction == UP:
             return self.x + 1, self.y
         return "what"
 
@@ -75,10 +77,10 @@ class Square:
 
 
 class Board:
-    def __init__(self, w: int, h: int, board = None):
+    def __init__(self, w: int, h: int, board=None):
         self.w, self.h = w, h
         self.board = [[Square(x, y) for x in range(w)]
-                               for y in range(h)] if board is None else board
+                      for y in range(h)] if board is None else board
 
     """
     Attempt to place the tile.
@@ -89,6 +91,7 @@ class Board:
     @param y
     @return nt was it placed?, board state
     """
+
     def place(self, tile: Tile, x: int, y: int):
         new_board = self.copy_board()
         if self.board[y][x] != EMPTY and \
@@ -101,6 +104,7 @@ class Board:
     Move n_tiles from old_square to
     new_square. 
     """
+
     def move_single(self, old_square, new_square, n_tiles: int, first=False):
         if not isinstance(old_square, Square):
             if isinstance(new_square, tuple):
@@ -133,33 +137,30 @@ class Board:
                 elif new_stone == FLAT:
                     valid = True
             if valid:
-                new_board[new_square.y][new_square.x] = new_square.copy()\
+                new_board[new_square.y][new_square.x] = new_square.copy() \
                     .extend(old_square.remove_top(n_tiles))
                 if flatten: new_square.tiles[-1].stone = FLAT
 
                 new_board[old_square.y][old_square.x] = old_square.copy()
                 return PseudoBoard(self.w, self.h, new_board, True, None)
-            return PseudoBoard(self.w, self.h, new_board, False, f"Tile is not flat: stone == {new_square.tiles[-1].stone}")
-        return PseudoBoard(self.w, self.h, new_board, False, f"Too many tiles: {n_tiles} > {len(old_square.tiles) - int(first)}")
+            return PseudoBoard(self.w, self.h, new_board, False,
+                               f"Tile is not flat: stone == {new_square.tiles[-1].stone}")
+        return PseudoBoard(self.w, self.h, new_board, False,
+                           f"Too many tiles: {n_tiles} > {len(old_square.tiles) - int(first)}")
 
-    def move(self, old_square, dir, ns_moves, ns_total):
-        # print(ns_moves, ns_total)
+    def move(self, old_square, direction, ns_moves, ns_total):
         sq = self.get(*tile_to_coords(old_square))
-        n_move = ns_total
-        yield self.move_single(sq, dir, n_move, first=True)
-        ns_moves = ns_moves[1:]
-        n_move = sum(ns_moves)
-        for n in ns_moves:
-            sq = self.get(*sq.next(dir))
-            yield self.move_single(sq, dir, n_move, first=False)
-            n_move -= n
+        yield self.move_single(sq, direction, ns_total, first=True)
+        for n in range(1, len(ns_moves)):
+            sq = self.get(*sq.next(direction))
+            yield self.move_single(sq, direction, sum(ns_moves[n:]), first=False)
 
     def parse_move(self, move, curr_player):
         move_dir = None
-        for dir in dirs:
-            if dir in move:
-                move_dir = dir
-                move = move.split(dir)
+        for direction in dirs:
+            if direction in move:
+                move_dir = direction
+                move = move.split(direction)
                 break
 
         if move_dir == None:
@@ -179,9 +180,7 @@ class Board:
             else:
                 total = 1
 
-            #if ns == '': ns = '1'
-            ns = list(map(int, ns))
-            return self.move(t, move_dir, ns, total)
+            return self.move(t, move_dir, list(map(int, ns)), total)
 
     def force(self, pbs):
         if isinstance(pbs, PseudoBoard):
@@ -191,20 +190,21 @@ class Board:
                 if pb.err != None:
                     print('Error:', pb.err)
                 else:
-                  self.board = pb.board
-                  self.board = self.copy_board()
+                    self.board = pb.board
+                    self.board = self.copy_board()
 
     def __repr__(self):
         return tb.tabulate(self.board, tablefmt="plain",
                            headers=list(range(1, self.w + 1)),
                            showindex=list(cols[:self.h]))
 
-    def get(self, x:int, y:int) -> Square:
+    def get(self, x: int, y: int) -> Square:
         return self.board[y][x]
 
     def copy_board(self):
         return [[s.copy()
-                for s in r] for r in self.board]
+                 for s in r] for r in self.board]
+
 
 def load_moves_from_file(filename):
     with open(filename) as file:
@@ -214,7 +214,7 @@ def load_moves_from_file(filename):
         curr_player = WHITE
         for iturn, turn in enumerate(ptn[7:]):
             if 'R' in turn: break
-            for imove, move in enumerate(turn.split(" ")[1:]): # Exclude the round number
+            for imove, move in enumerate(turn.split(" ")[1:]):  # Exclude the round number
                 if iturn == 0:
                     curr_player = [BLACK, WHITE][imove]
                 elif iturn == 1 and imove == 0:
@@ -228,7 +228,7 @@ def load_moves_from_file(filename):
                     curr_player = WHITE
                 else:
                     curr_player = BLACK
-    return b # , turn
+    return b  # , turn
 
-# print(load_moves_from_file("/Users/chervjay/Documents/GitHub/Bredon/BeginnerBot vs rassar 18.1.26 11.42.ptn"))
+print(load_moves_from_file("/Users/chervjay/Documents/GitHub/Bredon/BeginnerBot vs rassar 18.1.26 11.42.ptn"))
 # print(load_moves_from_file("/Users/chervjay/Documents/GitHub/Bredon/You vs You 18.1.26 15.42.ptn"))
