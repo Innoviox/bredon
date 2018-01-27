@@ -215,20 +215,23 @@ def load_moves_from_file(filename):
         for iturn, turn in enumerate(ptn[7:]):
             if 'R' in turn: break
             for imove, move in enumerate(turn.split(" ")[1:]):  # Exclude the round number
-                if iturn == 0:
-                    curr_player = [BLACK, WHITE][imove]
-                elif iturn == 1 and imove == 0:
-                    curr_player = WHITE
+                if move:
+                    if iturn == 0:
+                        curr_player = [BLACK, WHITE][imove]
+                    elif iturn == 1 and imove == 0:
+                        curr_player = WHITE
 
-                b.force(b.parse_move(move, curr_player))
-                # print(move)
-                # print(b)
+                    print(move)
+                    b.force(b.parse_move(move, curr_player))
 
-                if curr_player == BLACK:
-                    curr_player = WHITE
-                else:
-                    curr_player = BLACK
+                    print(b)
+
+                    if curr_player == BLACK:
+                        curr_player = WHITE
+                    else:
+                        curr_player = BLACK
     return b  # , turn
 
-print(load_moves_from_file("/Users/chervjay/Documents/GitHub/Bredon/BeginnerBot vs rassar 18.1.26 11.42.ptn"))
+# print(load_moves_from_file("/Users/chervjay/Documents/GitHub/Bredon/BeginnerBot vs rassar 18.1.26 11.42.ptn"))
 # print(load_moves_from_file("/Users/chervjay/Documents/GitHub/Bredon/You vs You 18.1.26 15.42.ptn"))
+print(load_moves_from_file("rassar vs IntuitionBot 18.1.26 21.40.ptn"))
