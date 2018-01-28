@@ -1,4 +1,4 @@
-# import numpy as np
+import numpy as np
 import collections as ct
 import tabulate as tb
 from typing import List
@@ -25,6 +25,18 @@ class Tile:
     def __init__(self, color, stone='F', x=None, y=None):
         self.color, self.stone = color, stone
         self.x, self.y = x, y
+
+    def next(self, direction):
+        # TODO: checks on boundaries
+        if direction == LEFT:  # and self.y != 0:
+            return self.x, self.y - 1
+        if direction == RIGHT:
+            return self.x, self.y + 1
+        if direction == DOWN:
+            return self.x - 1, self.y
+        if direction == UP:
+            return self.x + 1, self.y
+        return "what"
 
     def __repr__(self):
         return '%s{%s}' % (self.color, self.stone)
@@ -70,10 +82,14 @@ class Square:
     def __eq__(self, other):
         if other == EMPTY:
             return bool(self.tiles)
-        return self.tiles == other.tiles
+        if isinstance(other, Square):
+            return self.tiles == other.tiles
+        if isinstance(other, Tile) and self.tiles:
+            return self.tiles[-1] == other
+        return False
 
     def __repr__(self):
-        return ''.join(str(t) for t in self.tiles)
+        return ''.join(str(t) for t in self.tiles)  # + f'@{self.x, self.y}'
 
 
 class Board:
@@ -139,7 +155,8 @@ class Board:
             if valid:
                 new_board[new_square.y][new_square.x] = new_square.copy() \
                     .extend(old_square.remove_top(n_tiles))
-                if flatten: new_square.tiles[-1].stone = FLAT
+                if flatten:
+                    new_square.tiles[-1].stone = FLAT
 
                 new_board[old_square.y][old_square.x] = old_square.copy()
                 return PseudoBoard(self.w, self.h, new_board, True, None)
@@ -163,7 +180,7 @@ class Board:
                 move = move.split(direction)
                 break
 
-        if move_dir == None:
+        if move_dir is None:
             if len(move) == 2:
                 move = 'F' + move
             return self.place(Tile(curr_player, stone=move[0]),
@@ -187,16 +204,48 @@ class Board:
             self.force([pbs])
         else:
             for pb in pbs:
-                if pb.err != None:
+                if pb.err is not None:
                     print('Error:', pb.err)
                 else:
                     self.board = pb.board
                     self.board = self.copy_board()
 
-    def __repr__(self):
-        return tb.tabulate(self.board, tablefmt="plain",
-                           headers=list(range(1, self.w + 1)),
-                           showindex=list(cols[:self.h]))
+    def road(self) -> bool:
+        new_board = np.array(self.copy_board())
+        for r, row in enumerate(new_board):
+            for c, col in enumerate(row):
+                if col.tiles:
+                    tile = col.tiles[-1]
+                    new_board[r, c] = tile if tile.stone in [FLAT, CAP] else None
+                else:
+                    new_board[r, c] = None
+        print(new_board)
+        for board in (new_board, new_board.T):
+            for tile in board[0]:
+                if tile is not None:
+                    conns = self.get_connections(tile, tile, new_board)
+                    if any(tile.y == self.h - 1 for tile in conns):
+                        return True
+        return False
+
+    def get_connections(self, tile: Tile, origtile: Tile, board) -> List[Tile]:
+        if tile is None: return []
+        conns = [tile]
+        for dir in dirs:
+            try:
+                t = board[tile.next(dir)]
+                # print(t, type(t), tile, type(tile), origtile, type(origtile))
+                if t != origtile and t not in conns and t.color == origtile.color:
+                    print("yay!")
+                    conns.extend(self.get_connections(board[tile.next(dir)], origtile, board))
+                else:
+                    print(t, origtile, conns, t.color, origtile.color)
+            except IndexError as e:
+                pass  # print(e)
+            except AttributeError as e:
+                pass  # print(e)
+        print(conns)
+        return conns
 
     def get(self, x: int, y: int) -> Square:
         return self.board[y][x]
@@ -204,6 +253,11 @@ class Board:
     def copy_board(self):
         return [[s.copy()
                  for s in r] for r in self.board]
+
+    def __repr__(self):
+        return tb.tabulate(self.board, tablefmt="plain",
+                           headers=list(range(1, self.w + 1)),
+                           showindex=list(cols[:self.h]))
 
 
 def load_moves_from_file(filename):
@@ -213,7 +267,8 @@ def load_moves_from_file(filename):
         b = Board(size, size)
         curr_player = WHITE
         for iturn, turn in enumerate(ptn[7:]):
-            if 'R' in turn: break
+            if 'R' in turn:
+                break
             for imove, move in enumerate(turn.split(" ")[1:]):  # Exclude the round number
                 if move:
                     if iturn == 0:
@@ -225,12 +280,14 @@ def load_moves_from_file(filename):
                     b.force(b.parse_move(move, curr_player))
 
                     print(b)
+                    print("Road?:", b.road())
 
                     if curr_player == BLACK:
                         curr_player = WHITE
                     else:
                         curr_player = BLACK
     return b  # , turn
+
 
 # print(load_moves_from_file("/Users/chervjay/Documents/GitHub/Bredon/BeginnerBot vs rassar 18.1.26 11.42.ptn"))
 # print(load_moves_from_file("/Users/chervjay/Documents/GitHub/Bredon/You vs You 18.1.26 15.42.ptn"))
