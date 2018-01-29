@@ -39,7 +39,7 @@ class Tile:
         return "what"
 
     def __repr__(self):
-        return '%s{%s}' % (self.color, self.stone) + f'@{self.x, self.y}'
+        return '%s{%s}' % (self.color, self.stone) # + f'@{self.x, self.y}'
 
 
 class Square:
@@ -211,22 +211,16 @@ class Board:
                     new_board[r, c] = tile if tile.stone in [FLAT, CAP] else None
                 else:
                     new_board[r, c] = None
-        # print(new_board)
         for board in (new_board, new_board.T):
             for tile in board[0]:
                 if tile is not None:
                     conns = self.get_connections(tile, tile, new_board, [])
-                    # print("Conns", conns)
-                    # if any(tile.y == self.h - 1 for tile in conns):
                     if conns[-1].y - conns[0].y == self.h - 1 or \
                         conns[-1].x - conns[0].x == self.w - 1:
-                        # print(conns)
                         return True
         return False
 
     def get_connections(self, tile: Tile, origtile: Tile, board, tiles) -> List[Tile]:
-        # rint(f"Reading tile: {tile} @{tile.y, tile.x}")
-        # print(tiles)
         if tile is None: return []
         tiles.append(tile)
         conns = [tile]
@@ -235,19 +229,14 @@ class Board:
                 x, y = tile.next(dir)
                 if 0 <= x < self.w and 0 <= y < self.h:
                     t = board[y, x]
-                    # print("\t", y, x, t)
-                    # print(t, type(t), tile, type(tile), origtile, type(origtile))
                     if t != origtile and t not in conns and t not in tiles and t.color == origtile.color:
-                        # print("yay!")
                         conns.extend(self.get_connections(t, origtile, board, tiles))
                     else:
                         pass
-                    # print(t, origtile, conns, t.color, origtile.color)
             except IndexError as e:
                 pass  # print(e)
             except AttributeError as e:
                 pass  # print(e)
-        # print(conns)
         return conns
 
     def get(self, x: int, y: int) -> Square:
