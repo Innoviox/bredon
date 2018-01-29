@@ -20,6 +20,8 @@ PseudoBoard = ct.namedtuple("PseudoBoard", ("w", "h", "board", "bool", "err"))
 def tile_to_coords(t: str):
     return int(t[1]) - 1, cols.index(t[0])
 
+def coords_to_tile(x: int, y: int):
+    return cols[y] + str(x + 1)
 
 class Tile:
     def __init__(self, color, stone='F', x=None, y=None):
@@ -39,7 +41,7 @@ class Tile:
         return "what"
 
     def __repr__(self):
-        return '%s{%s}' % (self.color, self.stone) # + f'@{self.x, self.y}'
+        return '%s{%s}' % (self.color, self.stone) # + f'@{coords_to_tile(self.x, self.y)}'
 
 
 class Square:
@@ -81,7 +83,7 @@ class Square:
         return False
 
     def __repr__(self):
-        return ''.join(str(t) for t in self.tiles)  # + f'@{self.x, self.y}'
+        return ''.join(str(t) for t in self.tiles) # + f'@{coords_to_tile(self.x, self.y)}'
 
 
 class Board:
