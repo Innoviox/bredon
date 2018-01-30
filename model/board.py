@@ -67,7 +67,7 @@ class Square:
         return top
 
     def copy(self):
-        return Square(self.x, self.y, tiles=self.tiles[:])
+        return Square(self.x, self.y, tiles=[Tile(t.color, stone=t.stone, x=t.x, y=t.y) for t in self.tiles])
 
     def next(self, direction):
         if self.tiles:
@@ -75,7 +75,6 @@ class Square:
 
     def __eq__(self, other):
         if other == EMPTY:
-            # print("checking against empty !", bool(self.tiles))
             return not bool(self.tiles)
         if isinstance(other, Square):
             return self.tiles == other.tiles
@@ -119,16 +118,20 @@ class Board:
     def move_single(self, old_square, new_square, n_tiles: int, first=False):
         if not isinstance(old_square, Square):
             if isinstance(new_square, tuple):
-                old_square = self.get(*old_square)
+                old_square = self.get(*old_square).copy()
             elif isinstance(new_square, str):
-                old_square = self.get(*tile_to_coords(old_square))
+                old_square = self.get(*tile_to_coords(old_square)).copy()
+        else:
+            old_square = old_square.copy()
         if not isinstance(new_square, Square):
             if isinstance(new_square, tuple):
-                new_square = self.get(*new_square)
+                new_square = self.get(*new_square).copy()
             elif isinstance(new_square, str):
-                new_square = self.get(*old_square.next(new_square))
+                new_square = self.get(*old_square.next(new_square)).copy()
             else:
                 raise TypeError("new_square must be Square, tuple, or str, got: %s" % new_square.__class__)
+        else:
+            new_square = new_square.copy()
 
         new_board = self.copy_board()
         if n_tiles <= len(old_square.tiles) - int(not first):
@@ -204,6 +207,21 @@ class Board:
                 else:
                     self.board = pb.board
                     self.board = self.copy_board()
+
+    def valid(self, pbs):
+        if isinstance(pbs, PseudoBoard):
+            return self.valid([pbs])
+        print('W')
+        print(self)
+        print('W')
+        for i in pbs:
+            print('V')
+            print(self)
+            print('V')
+            if i.err is not None:
+                return False
+        return True
+        # return all(i.err is None for i in pbs)
 
     def road(self) -> bool:
         new_board = np.array(self.copy_board())

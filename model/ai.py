@@ -11,8 +11,9 @@ def sums(n):
     return (list(map(sub, it.chain(s, e), it.chain(b, s))) for s in splits)
 
 class StaticMoveAI(object):
-    def __init__(self, board):
+    def __init__(self, board, curr_player):
         self.board = board
+        self.curr_player = curr_player
 
     def generate_all_moves(self):
         for y in range(self.board.h):
@@ -24,6 +25,10 @@ class StaticMoveAI(object):
                 else:
                     # TODO: Check legality(?) of move strings
                     for direction in dirs:
+                        # print(self.board)
+                        # print(y, x)
+                        # print("I am sure that tile does not equal empty.", tile == EMPTY)
+                        # print(tile, direction, tile.next(direction), bool(tile.tiles), tile == EMPTY)
                         x1, y1 = tile.next(direction)
                         if 0 <= x1 < self.board.w and 0 <= y1 < self.board.h:
                             for i in range(1, len(tile.tiles) + 1):
@@ -35,6 +40,12 @@ class StaticMoveAI(object):
                                             yield str(i) + s + direction
                                         else:
                                             yield str(i) + s + direction + ''.join(map(str, move_amounts))
+
+    def valid(self, move):
+        return self.board.valid(self.board.parse_move(move, self.curr_player))
+
+    def generate_valid_moves(self):
+        return filter(self.valid, self.generate_all_moves())
 
     def pick_move(self):
         ...
