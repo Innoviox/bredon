@@ -70,8 +70,15 @@ class Square:
         return Square(self.x, self.y, tiles=[Tile(t.color, stone=t.stone, x=t.x, y=t.y) for t in self.tiles])
 
     def next(self, direction):
-        if self.tiles:
-            return self.tiles[-1].next(direction)
+        if direction == LEFT:  # and self.y != 0:
+            return self.x, self.y - 1
+        if direction == RIGHT:
+            return self.x, self.y + 1
+        if direction == DOWN:
+            return self.x - 1, self.y
+        if direction == UP:
+            return self.x + 1, self.y
+        return "what"
 
     def __eq__(self, other):
         if other == EMPTY:
@@ -118,21 +125,20 @@ class Board:
     def move_single(self, old_square, new_square, n_tiles: int, first=False):
         if not isinstance(old_square, Square):
             if isinstance(new_square, tuple):
-                old_square = self.get(*old_square).copy()
+                old_square = self.get(*old_square)  #.copy()
             elif isinstance(new_square, str):
-                old_square = self.get(*tile_to_coords(old_square)).copy()
-        else:
-            old_square = old_square.copy()
+                old_square = self.get(*tile_to_coords(old_square))  #.copy()
+
         if not isinstance(new_square, Square):
             if isinstance(new_square, tuple):
-                new_square = self.get(*new_square).copy()
+                new_square = self.get(*new_square)  #.copy()
             elif isinstance(new_square, str):
-                new_square = self.get(*old_square.next(new_square)).copy()
+                new_square = self.get(*old_square.next(new_square))  #.copy()
             else:
                 raise TypeError("new_square must be Square, tuple, or str, got: %s" % new_square.__class__)
-        else:
-            new_square = new_square.copy()
 
+        new_square = new_square.copy()
+        old_square = old_square.copy()
         new_board = self.copy_board()
         if n_tiles <= len(old_square.tiles) - int(not first):
             valid = False
@@ -161,7 +167,7 @@ class Board:
             return PseudoBoard(self.w, self.h, new_board, False,
                                f"Tile is not flat: stone == {new_square.tiles[-1].stone}")
         return PseudoBoard(self.w, self.h, new_board, False,
-                           f"Too many tiles: {n_tiles} > {len(old_square.tiles) - int(first)}")
+                           f"Too many tiles: {n_tiles} > {len(old_square.tiles) - int(not first)}")
 
     def move(self, old_square, direction, ns_moves, ns_total):
         sq = self.get(*tile_to_coords(old_square))
@@ -204,23 +210,22 @@ class Board:
             for pb in pbs:
                 if pb.err is not None:
                     print('Error:', pb.err)
+                    return pb.err
                 else:
                     self.board = pb.board
                     self.board = self.copy_board()
 
     def valid(self, pbs):
-        if isinstance(pbs, PseudoBoard):
-            return self.valid([pbs])
-        print('W')
-        print(self)
-        print('W')
-        for i in pbs:
-            print('V')
-            print(self)
-            print('V')
-            if i.err is not None:
-                return False
-        return True
+        new_board = Board(self.w, self.h, board=self.copy_board())
+        return new_board.force(pbs) is None
+        # if isinstance(pbs, PseudoBoard):
+        #     return self.valid([pbs])
+        # try:
+
+        #     if
+        #      return True
+        # except IndexError:
+        #     return False
         # return all(i.err is None for i in pbs)
 
     def road(self) -> bool:
@@ -289,11 +294,11 @@ def load_moves_from_file(filename):
                     elif iturn == 1 and imove == 0:
                         curr_player = WHITE
 
-                    print(move)
+                    # print(move)
                     b.force(b.parse_move(move, curr_player))
 
-                    print(b)
-                    print("Road?:", b.road())
+                    # print(b)
+                    # print("Road?:", b.road())
 
                     if curr_player == BLACK:
                         curr_player = WHITE

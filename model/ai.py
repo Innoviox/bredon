@@ -45,7 +45,16 @@ class StaticMoveAI(object):
         return self.board.valid(self.board.parse_move(move, self.curr_player))
 
     def generate_valid_moves(self):
-        return filter(self.valid, self.generate_all_moves())
+        # return filter(self.valid, self.generate_all_moves())
+        for m in self.generate_all_moves():
+            print("\t", m)
+            if self.valid(m):
+                yield m
+            else:
+                try:
+                    for i in self.board.parse_move(m, self.curr_player):
+                        print(i.err)
+                except: pass
 
     def pick_move(self):
         ...
