@@ -75,7 +75,8 @@ class Square:
 
     def __eq__(self, other):
         if other == EMPTY:
-            return bool(self.tiles)
+            # print("checking against empty !", bool(self.tiles))
+            return not bool(self.tiles)
         if isinstance(other, Square):
             return self.tiles == other.tiles
         if isinstance(other, Tile) and self.tiles:
@@ -104,7 +105,7 @@ class Board:
 
     def place(self, tile: Tile, x: int, y: int):
         new_board = self.copy_board()
-        if self.board[y][x] != EMPTY and \
+        if self.board[y][x] == EMPTY and \
                 tile.x is None and tile.y is None:
             new_board[y][x].add(tile)
             return PseudoBoard(self.w, self.h, new_board, True, None)
@@ -285,4 +286,4 @@ def load_moves_from_file(filename):
 
 # print(load_moves_from_file("/Users/chervjay/Documents/GitHub/Bredon/BeginnerBot vs rassar 18.1.26 11.42.ptn"))
 # print(load_moves_from_file("/Users/chervjay/Documents/GitHub/Bredon/You vs You 18.1.26 15.42.ptn"))
-print(load_moves_from_file("rassar vs IntuitionBot 18.1.26 21.40.ptn"))
+# print(load_moves_from_file("rassar vs IntuitionBot 18.1.26 21.40.ptn"))
