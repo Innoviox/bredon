@@ -14,8 +14,16 @@ UP, DOWN, LEFT, RIGHT = dirs
 stones = 'FCS'
 FLAT, CAP, STAND = stones
 
-PseudoBoard = ct.namedtuple("PseudoBoard", ("w", "h", "board", "bool", "err"))
+PseudoBoard = ct.namedtuple("PseudoBoard", ("w", "h", "board", "bool", "err", "type"))
 
+sizes = {
+    3: [10, 0],
+    4: [15, 0],
+    5: [21, 1],
+    6: [30, 1],
+    7: [40, 2],
+    8: [50, 2]
+}
 
 def tile_to_coords(t: str):
     return int(t[1]) - 1, cols.index(t[0])
@@ -90,7 +98,7 @@ class Square:
         return False
 
     def __repr__(self):
-        return ''.join(str(t) for t in self.tiles) + f'@{coords_to_tile(self.x, self.y)}'
+        return ''.join(str(t) for t in self.tiles) # + f'@{coords_to_tile(self.x, self.y)}'
 
 
 class Board:
@@ -98,6 +106,7 @@ class Board:
         self.w, self.h = w, h
         self.board = [[Square(x, y) for x in range(w)]
                       for y in range(h)] if board is None else board
+        self.stones, self.caps = sizes[w]
 
     """
     Attempt to place the tile.
@@ -114,8 +123,8 @@ class Board:
         if self.board[y][x] == EMPTY and \
                 tile.x is None and tile.y is None:
             new_board[y][x].add(tile)
-            return PseudoBoard(self.w, self.h, new_board, True, None)
-        return PseudoBoard(self.w, self.h, new_board, False, "Tile cannot be placed there")
+            return PseudoBoard(self.w, self.h, new_board, True, None, "place")
+        return PseudoBoard(self.w, self.h, new_board, False, "Tile cannot be placed there", None)
 
     """
     Move n_tiles from old_square to
@@ -169,11 +178,11 @@ class Board:
                     new_square.tiles[-1].stone = FLAT
 
                 new_board[old_square.y][old_square.x] = old_square.copy()
-                return PseudoBoard(self.w, self.h, new_board, True, None)
+                return PseudoBoard(self.w, self.h, new_board, True, None, "move")
             return PseudoBoard(self.w, self.h, new_board, False,
-                               f"Tile is not flat: stone == {new_square.tiles[-1].stone}")
+                               f"Tile is not flat: stone == {new_square.tiles[-1].stone}", None)
         return PseudoBoard(self.w, self.h, new_board, False,
-                           f"Too many tiles: {n_tiles} > {len(old_square.tiles) - int(not first)}")
+                           f"Too many tiles: {n_tiles} > {len(old_square.tiles) - int(not first)}", None)
 
     def move(self, old_square, direction, ns_moves, ns_total):
         def _run(fn):
@@ -233,6 +242,9 @@ class Board:
                     self.board = pb.board
                     # print(self.board)
                     self.board = self.copy_board()
+
+    def force_str(self, s, curr_player):
+        return self.force(self.parse_move(s, curr_player))
 
     def valid(self, pbs):
         new_board = self.copy()
