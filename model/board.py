@@ -90,7 +90,7 @@ class Square:
         return False
 
     def __repr__(self):
-        return ''.join(str(t) for t in self.tiles) # + f'@{coords_to_tile(self.x, self.y)}'
+        return ''.join(str(t) for t in self.tiles) + f'@{coords_to_tile(self.x, self.y)}'
 
 
 class Board:
@@ -123,11 +123,15 @@ class Board:
     """
 
     def move_single(self, old_square, new_square, n_tiles: int, first=False):
+        # print("Verbose running of move_single with args:", old_square, new_square, n_tiles, first)
+        # print("Board state:", self.board)
         if not isinstance(old_square, Square):
             if isinstance(new_square, tuple):
                 old_square = self.get(*old_square)  #.copy()
             elif isinstance(new_square, str):
                 old_square = self.get(*tile_to_coords(old_square))  #.copy()
+        else:
+            old_square = self.get(old_square.x, old_square.y)
 
         if not isinstance(new_square, Square):
             if isinstance(new_square, tuple):
@@ -136,6 +140,8 @@ class Board:
                 new_square = self.get(*old_square.next(new_square))  #.copy()
             else:
                 raise TypeError("new_square must be Square, tuple, or str, got: %s" % new_square.__class__)
+        else:
+            new_square = self.get(new_square.x, new_square.y)
 
         new_square = new_square.copy()
         old_square = old_square.copy()
@@ -170,11 +176,21 @@ class Board:
                            f"Too many tiles: {n_tiles} > {len(old_square.tiles) - int(not first)}")
 
     def move(self, old_square, direction, ns_moves, ns_total):
-        sq = self.get(*tile_to_coords(old_square))
-        yield self.move_single(sq, direction, ns_total, first=True)
+        def _run(fn):
+            try:
+                pb = fn()
+                copy.force(pb)
+                return pb
+            except IndexError as e:
+                return PseudoBoard(self.w, self.h, [], False, e)
+
+        copy = self.copy()
+        sq = copy.get(*tile_to_coords(old_square))
+        yield _run(lambda:copy.move_single(sq, direction, ns_total, first=True))
         for n in range(1, len(ns_moves)):
-            sq = self.get(*sq.next(direction))
-            yield self.move_single(sq, direction, sum(ns_moves[n:]), first=False)
+            sq = copy.get(*sq.next(direction))
+            # rint("Board state 2:", copy.board)
+            yield _run(lambda:copy.move_single(sq, direction, sum(ns_moves[n:]), first=False))
 
     def parse_move(self, move, curr_player):
         move_dir = None
@@ -209,14 +225,17 @@ class Board:
         else:
             for pb in pbs:
                 if pb.err is not None:
-                    print('Error:', pb.err)
+                    # print('Error:', pb.err)
                     return pb.err
                 else:
+                    # print("Confirmed move", pb)
+                    # print(self.board)
                     self.board = pb.board
+                    # print(self.board)
                     self.board = self.copy_board()
 
     def valid(self, pbs):
-        new_board = Board(self.w, self.h, board=self.copy_board())
+        new_board = self.copy()
         return new_board.force(pbs) is None
         # if isinstance(pbs, PseudoBoard):
         #     return self.valid([pbs])
@@ -271,6 +290,9 @@ class Board:
     def copy_board(self):
         return [[s.copy()
                  for s in r] for r in self.board]
+
+    def copy(self):
+        return Board(self.w, self.h, board=self.copy_board())
 
     def __repr__(self):
         return tb.tabulate(self.board, tablefmt="plain",
