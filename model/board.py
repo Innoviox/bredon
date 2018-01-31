@@ -31,22 +31,26 @@ def tile_to_coords(t: str):
 def coords_to_tile(x: int, y: int):
     return cols[y] + str(x + 1)
 
+def next(obj, direction):
+    # TODO: checks on boundaries
+    if hasattr(obj, 'x') and hasattr(obj, 'y'):
+        if direction == LEFT:  # and self.y != 0:
+            return obj.x, obj.y - 1
+        if direction == RIGHT:
+            return obj.x, obj.y + 1
+        if direction == DOWN:
+            return obj.x - 1, obj.y
+        if direction == UP:
+            return obj.x + 1, obj.y
+    raise TypeError("Object must have an x and y attribute")
+
 class Tile:
     def __init__(self, color, stone='F', x=None, y=None):
         self.color, self.stone = color, stone
         self.x, self.y = x, y
 
     def next(self, direction):
-        # TODO: checks on boundaries
-        if direction == LEFT:  # and self.y != 0:
-            return self.x, self.y - 1
-        if direction == RIGHT:
-            return self.x, self.y + 1
-        if direction == DOWN:
-            return self.x - 1, self.y
-        if direction == UP:
-            return self.x + 1, self.y
-        return "what"
+        return next(self, direction)
 
     def __repr__(self):
         return '%s{%s}' % (self.color, self.stone) # + f'@{coords_to_tile(self.x, self.y)}'
@@ -78,15 +82,7 @@ class Square:
         return Square(self.x, self.y, tiles=[Tile(t.color, stone=t.stone, x=t.x, y=t.y) for t in self.tiles])
 
     def next(self, direction):
-        if direction == LEFT:  # and self.y != 0:
-            return self.x, self.y - 1
-        if direction == RIGHT:
-            return self.x, self.y + 1
-        if direction == DOWN:
-            return self.x - 1, self.y
-        if direction == UP:
-            return self.x + 1, self.y
-        return "what"
+        return next(self, direction)
 
     def __eq__(self, other):
         if other == EMPTY:
