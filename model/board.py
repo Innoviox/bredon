@@ -55,6 +55,15 @@ class Tile:
     def __repr__(self):
         return '%s{%s}' % (self.color, self.stone) # + f'@{coords_to_tile(self.x, self.y)}'
 
+    def __eq__(self, other):
+        if isinstance(other, Tile):
+            return (self.color, self.stone, self.x, self.y) == \
+                   (other.color, other.stone, other.x, other.y)
+        elif isinstance(other, Square):
+            return other.tiles and self == other.tiles[-1]
+        elif isinstance(other, tuple):
+            return (self.color, self.stone) == tuple
+        return False
 
 class Square:
     def __init__(self, x, y, tiles=None):
@@ -255,6 +264,21 @@ class Board:
         #     return False
         # return all(i.err is None for i in pbs)
 
+    def winner(self, players):
+        r = self.road()
+        if r:
+            return r
+        elif all(sq != EMPTY for row in self.board for sq in row) or \
+            any(player.out_of_tiles() for player in players):
+            return self.flat_win()
+        return None
+
+    def flat_win(self):
+        def _sum(color):
+            return sum(1 for row in self.board for sq in row if sq.tiles and sq.tiles[-1] == (color, FLAT))
+        w, b = _sum(WHITE), _sum(BLACK)
+        return False if w == b else WHITE if w > b else BLACK
+
     def road(self) -> bool:
         new_board = np.array(self.copy_board())
         for r, row in enumerate(new_board):
@@ -270,7 +294,7 @@ class Board:
                     conns = self.get_connections(tile, tile, new_board, [])
                     if conns[-1].y - conns[0].y == self.h - 1 or \
                         conns[-1].x - conns[0].x == self.w - 1:
-                        return True
+                        return tile.color
         return False
 
     def get_connections(self, tile: Tile, origtile: Tile, board, tiles) -> List[Tile]:

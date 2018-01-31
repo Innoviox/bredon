@@ -39,3 +39,5 @@ class Player(object):
         else:
             self.board.force(move)
 
+    def out_of_tiles(self):
+        return self.caps > self.board.caps and self.stones > self.board.stones

@@ -55,7 +55,21 @@ class StaticAI(Player):
 
 class RandomAI(StaticAI):
     def pick_move(self):
-        move = random.choice(list(self.generate_valid_moves()))
-        # self.switch_player()
-        return move
+        return random.choice(list(self.generate_valid_moves()))
 
+class LookAhead1AI(StaticAI):
+    def pick_move(self):
+        moves = self.generate_valid_moves()
+
+        lost = []
+        wins = []
+        cont = []
+
+
+        if wins:
+            return random.choice(wins)
+        elif cont:
+            return random.choice(cont)
+        else:
+            print("I lose!")
+            return random.choice(lost)
