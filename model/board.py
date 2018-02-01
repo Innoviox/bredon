@@ -196,14 +196,13 @@ class Board:
                 copy.force(pb)
                 return pb
             except IndexError as e:
-                return PseudoBoard(self.w, self.h, [], False, e)
+                return PseudoBoard(self.w, self.h, [], False, e, None)
 
         copy = self.copy()
         sq = copy.get(*tile_to_coords(old_square))
         yield _run(lambda:copy.move_single(sq, direction, ns_total, first=True))
         for n in range(1, len(ns_moves)):
             sq = copy.get(*sq.next(direction))
-            # rint("Board state 2:", copy.board)
             yield _run(lambda:copy.move_single(sq, direction, sum(ns_moves[n:]), first=False))
 
     def parse_move(self, move, curr_player):
@@ -246,7 +245,7 @@ class Board:
                     # print(self.board)
                     self.board = pb.board
                     # print(self.board)
-                    self.board = self.copy_board()
+                    # self.board = self.copy_board()
 
     def force_str(self, s, curr_player):
         return self.force(self.parse_move(s, curr_player))

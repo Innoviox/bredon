@@ -68,23 +68,26 @@ class LookAhead1AI(StaticAI):
         lost = []
         wins = []
         cont = []
-
+        checked = []
         for move in moves:
             board_after = self.board.copy()
             board_after.force_str(move, self.color)
-
+            l = False
             if board_after.winner([self, self.ai]) ==self:
                 wins.append(move)
                 break
             else:
                 self.ai.board = board_after
                 for ai_move in self.ai.generate_valid_moves():
-                    board_after_ai: Board = self.ai.board.copy()
-                    board_after_ai.force_str(ai_move, self.ai.color)
-                    if board_after_ai.winner([self, self.ai]) == self.ai.color:
-                        lost.append(move)
-                        break
-            if not lost:
+                    if ai_move not in checked:
+                        board_after_ai = self.ai.board.copy()
+                        board_after_ai.force_str(ai_move, self.ai.color)
+                        if board_after_ai.winner([self, self.ai]) == self.ai.color:
+                            lost.append(move)
+                            l = True
+                            break
+                    checked.append(ai_move)
+            if not l:
                 cont.append(move)
 
         print("Wins:", wins)
