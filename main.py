@@ -1,12 +1,13 @@
-from model.board import Board, WHITE, BLACK
-from model.ai import RandomAI
+from model.board import Board, WHITE, BLACK, load_moves_from_file as lmff
+from model.ai import RandomAI, LookAhead1AI
+
 
 board = Board(5, 5)  # load_moves_from_file("You vs You 18.1.29 20.43.ptn")
 board.force(board.parse_move("a5", BLACK))
 board.force(board.parse_move("e5", WHITE))
 
 
-ai = RandomAI(board, WHITE)
+ai = LookAhead1AI(board, WHITE)
 while 1:
     while 1:
         ai_move = ai.pick_move()

@@ -46,8 +46,8 @@ class StaticAI(Player):
     def generate_valid_moves(self):
         return filter(self.valid, self.generate_all_moves())
 
-    def switch_player(self):
-        self.color = [BLACK, WHITE][self.color == BLACK]
+    def other_color(self):
+        return [BLACK, WHITE][self.color == BLACK]
 
     def pick_move(self):
         raise NotImplementedError()
@@ -58,6 +58,10 @@ class RandomAI(StaticAI):
         return random.choice(list(self.generate_valid_moves()))
 
 class LookAhead1AI(StaticAI):
+    def __init__(self, board, color):
+        super().__init__(board, color)
+        self.ai = StaticAI(board, self.other_color())
+
     def pick_move(self):
         moves = self.generate_valid_moves()
 
@@ -65,6 +69,27 @@ class LookAhead1AI(StaticAI):
         wins = []
         cont = []
 
+        for move in moves:
+            board_after = self.board.copy()
+            board_after.force_str(move, self.color)
+
+            if board_after.winner([self, self.ai]) ==self:
+                wins.append(move)
+                break
+            else:
+                self.ai.board = board_after
+                for ai_move in self.ai.generate_valid_moves():
+                    board_after_ai: Board = self.ai.board.copy()
+                    board_after_ai.force_str(ai_move, self.ai.color)
+                    if board_after_ai.winner([self, self.ai]) == self.ai.color:
+                        lost.append(move)
+                        break
+            if not lost:
+                cont.append(move)
+
+        print("Wins:", wins)
+        print("Cont:", cont)
+        print("Lost:", lost)
 
         if wins:
             return random.choice(wins)
