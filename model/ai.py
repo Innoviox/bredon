@@ -57,6 +57,7 @@ class RandomAI(StaticAI):
     def pick_move(self):
         return random.choice(list(self.generate_valid_moves()))
 
+
 class LookAhead1AI(StaticAI):
     def __init__(self, board, color):
         super().__init__(board, color)
@@ -73,7 +74,7 @@ class LookAhead1AI(StaticAI):
             board_after = self.board.copy()
             board_after.force_str(move, self.color)
             l = False
-            if board_after.winner([self, self.ai]) ==self:
+            if board_after.winner([self, self.ai]) == self:
                 wins.append(move)
                 break
             else:
@@ -97,7 +98,47 @@ class LookAhead1AI(StaticAI):
         if wins:
             return random.choice(wins)
         elif cont:
-            return random.choice(cont)
+            return self.choose(cont)
         else:
             print("I lose!")
             return random.choice(lost)
+
+    def choose(self, moves):
+        # TODO: Implement heuristic
+        return random.choice(moves)
+
+
+class DeterministicAI(StaticAI):
+    def pick_move(self):
+        ends = {BLACK: [], WHITE: []}
+
+        def _pick(ai, i, moves=[]):
+            if i > 100:
+                return
+            # print(ai.board)
+            try:
+                for m in ai.generate_valid_moves():
+                    # print("Executing: ", m)
+                    # print("Old board: \n", ai.board)
+                    b = ai.board.copy()
+                    b.force_str(m, ai.color)
+                    # print("New board: \n", b)
+                    # input()
+                    bw = b.winner([self, ai])
+                    if bw is not None:
+                        # print(bw, "wins!")
+                        ends[bw].append(moves)
+                        moves = []
+                    else:
+                        # print("No winner.")
+                        moves.append(m)
+                        new_ai = DeterministicAI(b, self.other_color())
+                        _pick(new_ai, i + 1)
+            except Exception as e:
+                print(ends['B'][0])
+        _pick(self, 0)
+        print(ends)
+
+    def choose(self, moves):
+        # TODO: Implement heuristic
+        return random.choice(moves)
