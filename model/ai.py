@@ -24,10 +24,6 @@ class StaticAI(Player):
                 else:
                     if tile.tiles[0].color == self.color:
                         for direction in dirs:
-                            # print(self.board)
-                            # print(y, x)
-                            # print("I am sure that tile does not equal empty.", tile == EMPTY)
-                            # print(tile, direction, tile.next(direction), bool(tile.tiles), tile == EMPTY)
                             x1, y1 = tile.next(direction)
                             if 0 <= x1 < self.board.w and 0 <= y1 < self.board.h:
                                 for i in range(1, len(tile.tiles) + 1):
@@ -108,37 +104,24 @@ class LookAhead1AI(StaticAI):
         return random.choice(moves)
 
 
-class DeterministicAI(StaticAI):
+class AI(StaticAI):
     def pick_move(self):
-        ends = {BLACK: [], WHITE: []}
+        if not self.will_lose():
+            self.build()
+        else:
+            self.block()
 
-        def _pick(ai, i, moves=[]):
-            if i > 100:
-                return
-            # print(ai.board)
-            try:
-                for m in ai.generate_valid_moves():
-                    # print("Executing: ", m)
-                    # print("Old board: \n", ai.board)
-                    b = ai.board.copy()
-                    b.force_str(m, ai.color)
-                    # print("New board: \n", b)
-                    # input()
-                    bw = b.winner([self, ai])
-                    if bw is not None:
-                        # print(bw, "wins!")
-                        ends[bw].append(moves)
-                        moves = []
-                    else:
-                        # print("No winner.")
-                        moves.append(m)
-                        new_ai = DeterministicAI(b, self.other_color())
-                        _pick(new_ai, i + 1)
-            except Exception as e:
-                print(ends['B'][0])
-        _pick(self, 0)
-        print(ends)
+    def will_lose(self):
+        opponent = StaticAI(self.board, self.other_color())
+        for m in opponent.generate_valid_moves():
+            board_after = opponent.board.copy()
+            board_after.force_str(m, opponent.color)
+            if board_after.winner([self, opponent]) == opponent.color:
+                return True
+        return False
 
-    def choose(self, moves):
-        # TODO: Implement heuristic
-        return random.choice(moves)
+    def build(self):
+        pass
+
+    def block(self):
+        pass
