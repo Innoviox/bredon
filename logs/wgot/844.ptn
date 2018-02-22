@@ -1,0 +1,22 @@
+[Site "PlayTak.com"]
+[Event "Online Play"]
+[Date "2016.04.10"]
+[Time "16:49:25"]
+[Player1 "Anon"]
+[Player2 "Anon"]
+[Clock ""]
+[Result "R-0"]
+[Size "5"]
+
+1. a5 a1
+2. b1 d1
+3. c1 d2
+4. e1 1d1>1
+5. d1 e2
+6. e3 d3
+7. c2 b3
+8. 1c2>1 1d3-1
+9. d3 Sc3
+10. c2 b2
+11. 1d3-1 Cd3
+12. 2d2>2
