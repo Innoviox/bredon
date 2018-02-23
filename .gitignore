@@ -113,6 +113,5 @@ ENV/
 .Trashes
 ehthumbs.db
 Thumbs.db
-logs/.DS_Store
-logs/.DS_Store
 *.ptn
+*.DS_Store

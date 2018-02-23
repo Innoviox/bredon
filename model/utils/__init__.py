@@ -411,3 +411,27 @@ class Player(object):
 
     def out_of_tiles(self):
         return self.caps > self.board.caps and self.stones > self.board.stones
+
+    def generate_all_moves(self):
+        for y in range(self.board.h):
+            for x in range(self.board.w):
+                s = coords_to_tile(x, y)
+                tile = self.board.get(x, y)
+                if tile == EMPTY:
+                    yield s
+                    for stone in 'CS':
+                        yield stone + s
+                else:
+                    if tile.tiles[0].color == self.color:
+                        for direction in dirs:
+                            x1, y1 = tile.next(direction)
+                            if 0 <= x1 < self.board.w and 0 <= y1 < self.board.h:
+                                for i in range(1, len(tile.tiles) + 1):
+                                    if i == 1 and len(tile.tiles) == 1:
+                                        yield s + direction
+                                    else:
+                                        for move_amounts in sums(i):
+                                            if len(move_amounts) == 1 and move_amounts[0] == i:
+                                                yield str(i) + s + direction
+                                            else:
+                                                yield str(i) + s + direction + ''.join(map(str, move_amounts))
