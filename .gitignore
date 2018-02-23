@@ -103,3 +103,16 @@ ENV/
 #Pycharm
 .idea
 .idea/workspace.xml
+
+# OS generated files #
+######################
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+logs/.DS_Store
+logs/.DS_Store
+*.ptn
