@@ -1,8 +1,13 @@
 import numpy as np
 import collections as ct
+import itertools as it
+
 import tabulate as tb
-from typing import List
 from string import ascii_lowercase as cols
+
+from operator import sub
+
+from typing import List
 
 BLACK = "B"
 WHITE = "W"
@@ -26,6 +31,13 @@ sizes = {
 }
 
 
+### Utility Functions ###
+
+def sums(n):
+    b, mid, e = [0], list(range(1, n)), [n]
+    splits = (d for i in range(n) for d in it.combinations(mid, i))
+    return (list(map(sub, it.chain(s, e), it.chain(b, s))) for s in splits)
+
 def tile_to_coords(t: str):
     return int(t[1]) - 1, cols.index(t[0])
 
@@ -46,6 +58,8 @@ def next(obj, direction):
         if direction == UP:
             return obj.x + 1, obj.y
     raise TypeError("Object must have an x and y attribute")
+
+###
 
 
 class Tile:

@@ -1,13 +1,7 @@
 import random
-import itertools as it
-from operator import sub
+
 
 from .utils import Player, coords_to_tile, EMPTY, dirs, BLACK, WHITE
-
-def sums(n):
-    b, mid, e = [0], list(range(1, n)), [n]
-    splits = (d for i in range(n) for d in it.combinations(mid, i))
-    return (list(map(sub, it.chain(s, e), it.chain(b, s))) for s in splits)
 
 class StaticAI(Player):
     def valid(self, move):
