@@ -1,10 +1,8 @@
 import random
-from typing import List
 import itertools as it
 from operator import sub
 
-from .board import Board, cols, tile_to_coords, coords_to_tile, EMPTY, dirs, BLACK, WHITE
-from .player import Player
+from .utils import Player, coords_to_tile, EMPTY, dirs, BLACK, WHITE
 
 def sums(n):
     b, mid, e = [0], list(range(1, n)), [n]

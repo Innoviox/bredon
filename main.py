@@ -1,6 +1,5 @@
-from model.board import Board, WHITE, BLACK, load_moves_from_file as lmff
-from model.ai import RandomAI, LookAhead1AI
-from model.player import Player
+from model.utils import Player, Board, WHITE, BLACK
+from model.ai import LookAhead1AI
 
 board = Board(5, 5)  # load_moves_from_file("You vs You 18.1.29 20.43.ptn")
 board.force(board.parse_move("a5", BLACK))

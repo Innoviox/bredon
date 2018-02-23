@@ -25,11 +25,14 @@ sizes = {
     8: [50, 2]
 }
 
+
 def tile_to_coords(t: str):
     return int(t[1]) - 1, cols.index(t[0])
 
+
 def coords_to_tile(x: int, y: int):
     return cols[y] + str(x + 1)
+
 
 def next(obj, direction):
     # TODO: checks on boundaries
@@ -44,6 +47,7 @@ def next(obj, direction):
             return obj.x + 1, obj.y
     raise TypeError("Object must have an x and y attribute")
 
+
 class Tile:
     def __init__(self, color, stone='F', x=None, y=None):
         self.color, self.stone = color, stone
@@ -53,7 +57,7 @@ class Tile:
         return next(self, direction)
 
     def __repr__(self):
-        return '%s{%s}' % (self.color, self.stone) # + f'@{coords_to_tile(self.x, self.y)}'
+        return '%s{%s}' % (self.color, self.stone)  # + f'@{coords_to_tile(self.x, self.y)}'
 
     def __eq__(self, other):
         if isinstance(other, Tile):
@@ -64,6 +68,7 @@ class Tile:
         elif isinstance(other, tuple):
             return (self.color, self.stone) == tuple
         return False
+
 
 class Square:
     def __init__(self, x, y, tiles=None):
@@ -103,7 +108,7 @@ class Square:
         return False
 
     def __repr__(self):
-        return ''.join(str(t) for t in self.tiles) # + f'@{coords_to_tile(self.x, self.y)}'
+        return ''.join(str(t) for t in self.tiles)  # + f'@{coords_to_tile(self.x, self.y)}'
 
 
 class Board:
@@ -116,7 +121,7 @@ class Board:
     """
     Attempt to place the tile.
     Returns a PseudoBoard object.
-    
+
     @param tile
     @param x
     @param y
@@ -141,17 +146,17 @@ class Board:
         # print("Board state:", self.board)
         if not isinstance(old_square, Square):
             if isinstance(new_square, tuple):
-                old_square = self.get(*old_square)  #.copy()
+                old_square = self.get(*old_square)  # .copy()
             elif isinstance(new_square, str):
-                old_square = self.get(*tile_to_coords(old_square))  #.copy()
+                old_square = self.get(*tile_to_coords(old_square))  # .copy()
         else:
             old_square = self.get(old_square.x, old_square.y)
 
         if not isinstance(new_square, Square):
             if isinstance(new_square, tuple):
-                new_square = self.get(*new_square)  #.copy()
+                new_square = self.get(*new_square)  # .copy()
             elif isinstance(new_square, str):
-                new_square = self.get(*old_square.next(new_square))  #.copy()
+                new_square = self.get(*old_square.next(new_square))  # .copy()
             else:
                 raise TypeError("new_square must be Square, tuple, or str, got: %s" % new_square.__class__)
         else:
@@ -200,10 +205,10 @@ class Board:
 
         copy = self.copy()
         sq = copy.get(*tile_to_coords(old_square))
-        yield _run(lambda:copy.move_single(sq, direction, ns_total, first=True))
+        yield _run(lambda: copy.move_single(sq, direction, ns_total, first=True))
         for n in range(1, len(ns_moves)):
             sq = copy.get(*sq.next(direction))
-            yield _run(lambda:copy.move_single(sq, direction, sum(ns_moves[n:]), first=False))
+            yield _run(lambda: copy.move_single(sq, direction, sum(ns_moves[n:]), first=False))
 
     def parse_move(self, move, curr_player):
         move_dir = None
@@ -268,13 +273,14 @@ class Board:
         if r:
             return r
         elif all(sq != EMPTY for row in self.board for sq in row) or \
-            any(player.out_of_tiles() for player in players):
+                any(player.out_of_tiles() for player in players):
             return self.flat_win()
         return None
 
     def flat_win(self):
         def _sum(color):
             return sum(1 for row in self.board for sq in row if sq.tiles and sq.tiles[-1] == (color, FLAT))
+
         w, b = _sum(WHITE), _sum(BLACK)
         return False if w == b else WHITE if w > b else BLACK
 
@@ -292,7 +298,7 @@ class Board:
                 if tile is not None:
                     conns = self.get_connections(tile, tile, new_board, [])
                     if conns[-1].y - conns[0].y == self.h - 1 or \
-                        conns[-1].x - conns[0].x == self.w - 1:
+                            conns[-1].x - conns[0].x == self.w - 1:
                         return tile.color
         return False
 
@@ -363,3 +369,45 @@ def load_moves_from_file(filename):
 # print(load_moves_from_file("/Users/chervjay/Documents/GitHub/Bredon/BeginnerBot vs rassar 18.1.26 11.42.ptn"))
 # print(load_moves_from_file("/Users/chervjay/Documents/GitHub/Bredon/You vs You 18.1.26 15.42.ptn"))
 # print(load_moves_from_file("rassar vs IntuitionBot 18.1.26 21.40.ptn"))
+
+class Player(object):
+    def __init__(self, board, color):
+        self.board = board
+        self.color = color
+        self.stones, self.caps = 0, 0
+
+    def do(self, m):
+        move = self.board.parse_move(m, self.color)
+        if isinstance(move, PseudoBoard):
+            if move.bool:
+                stone_type = FLAT if len(m) == 2 else m[0]
+                stone, cap = False, False
+                if stone_type in [FLAT, STAND]:
+                    self.stones += 1
+                    stone = True
+                else:
+                    self.caps += 1
+                    cap = True
+                caps, stones = self.caps > self.board.caps, self.stones > self.board.stones
+                if stones and caps:
+                    self.stones -= stone
+                    self.caps -= cap
+                    # TODO: End the game
+                    self.board.end_game()
+                elif (stones and stone) or (caps and cap):
+                    self.stones -= stone
+                    self.caps -= cap
+                    raise ValueError(f"Not enough pieces left")
+                                     # f"\tStones played: {self.stones}, Total: {self.board.stones}"
+                                     # f"\tCaps played: {self.caps}, Total: {self.board.caps}"
+                                     # f"Stone: {stone}, Cap: {cap}")
+                else:
+                    self.board.force(move)
+            else:
+                # Move is illegal
+                raise ValueError("Illegal Move")
+        else:
+            self.board.force(move)
+
+    def out_of_tiles(self):
+        return self.caps > self.board.caps and self.stones > self.board.stones
