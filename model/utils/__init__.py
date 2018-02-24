@@ -1,6 +1,7 @@
 import numpy as np
 import collections as ct
 import itertools as it
+import dataclasses as dc
 
 import tabulate as tb
 from string import ascii_lowercase as cols
@@ -61,6 +62,12 @@ def next(obj, direction):
 
 ###
 
+@dc.dataclass
+class Move:
+    stone: str = 'F'
+    col: str
+    row: int
+    moves: List[int] = []
 
 class Tile:
     def __init__(self, color, stone='F', x=None, y=None):
