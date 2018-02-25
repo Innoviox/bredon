@@ -47,7 +47,7 @@ def coords_to_tile(x: int, y: int):
     return cols[y] + str(x + 1)
 
 
-def next(obj, direction):
+def _next(obj, direction):
     # TODO: checks on boundaries
     if hasattr(obj, 'x') and hasattr(obj, 'y'):
         if direction == LEFT:  # and self.y != 0:
@@ -64,18 +64,20 @@ def next(obj, direction):
 
 @dc.dataclass
 class Move:
-    stone: str = 'F'
-    col: str = 'A'
-    row: int = 1
-    moves: List[int] = dc.field(default_factory=list)
+    total: int  = 1
+    stone: str  = FLAT
+    col  : str  = None
+    row  : int  = None
+    moves: list = dc.field(default_factory=list)
+    direc: str  = None
+
+    def get_square(self):
+        return self.col + str(self.row)
 
 class Tile:
     def __init__(self, color, stone='F', x=None, y=None):
         self.color, self.stone = color, stone
         self.x, self.y = x, y
-
-    def next(self, direction):
-        return next(self, direction)
 
     def __repr__(self):
         return '%s{%s}' % (self.color, self.stone)  # + f'@{coords_to_tile(self.x, self.y)}'
@@ -89,7 +91,6 @@ class Tile:
         elif isinstance(other, tuple):
             return (self.color, self.stone) == tuple
         return False
-
 
 class Square:
     def __init__(self, x, y, tiles=None):
@@ -116,9 +117,6 @@ class Square:
     def copy(self):
         return Square(self.x, self.y, tiles=[Tile(t.color, stone=t.stone, x=t.x, y=t.y) for t in self.tiles])
 
-    def next(self, direction):
-        return next(self, direction)
-
     def __eq__(self, other):
         if other == EMPTY:
             return not bool(self.tiles)
@@ -131,6 +129,8 @@ class Square:
     def __repr__(self):
         return ''.join(str(t) for t in self.tiles)  # + f'@{coords_to_tile(self.x, self.y)}'
 
+Tile.next = _next
+Square.next = _next
 
 class Board:
     def __init__(self, w: int, h: int, board=None):
@@ -148,8 +148,9 @@ class Board:
     @param y
     @return nt was it placed?, board state
     """
-
-    def place(self, tile: Tile, x: int, y: int):
+    def place(self, move: Move, curr_player):
+        tile = Tile(curr_player, stone=move.stone)
+        x, y = tile_to_coords(move.get_square())
         new_board = self.copy_board()
         if self.board[y][x] == EMPTY and \
                 tile.x is None and tile.y is None:
@@ -161,7 +162,6 @@ class Board:
     Move n_tiles from old_square to
     new_square. 
     """
-
     def move_single(self, old_square, new_square, n_tiles: int, first=False):
         # print("Verbose running of move_single with args:", old_square, new_square, n_tiles, first)
         # print("Board state:", self.board)
@@ -215,7 +215,7 @@ class Board:
         return PseudoBoard(self.w, self.h, new_board, False,
                            f"Too many tiles: {n_tiles} > {len(old_square.tiles) - int(not first)}", None)
 
-    def move(self, old_square, direction, ns_moves, ns_total):
+    def move(self, move: Move):
         def _run(fn):
             try:
                 pb = fn()
@@ -225,38 +225,17 @@ class Board:
                 return PseudoBoard(self.w, self.h, [], False, e, None)
 
         copy = self.copy()
-        sq = copy.get(*tile_to_coords(old_square))
-        yield _run(lambda: copy.move_single(sq, direction, ns_total, first=True))
-        for n in range(1, len(ns_moves)):
-            sq = copy.get(*sq.next(direction))
-            yield _run(lambda: copy.move_single(sq, direction, sum(ns_moves[n:]), first=False))
+        sq = copy.get(*tile_to_coords(move.get_square()))
+        yield _run(lambda: copy.move_single(sq, move.direc, move.total, first=True))
+        for n in range(1, len(move.moves)):
+            sq = copy.get(*sq.next(move.direc))
+            yield _run(lambda: copy.move_single(sq, move.direc, sum(move.moves[n:]), first=False))
 
-    def parse_move(self, move, curr_player):
-        move_dir = None
-        for direction in dirs:
-            if direction in move:
-                move_dir = direction
-                move = move.split(direction)
-                break
-
-        if move_dir is None:
-            if len(move) == 2:
-                move = 'F' + move
-            return self.place(Tile(curr_player, stone=move[0]),
-                              *tile_to_coords(move[1:]))
-
+    def parse_move(self, move: Move, curr_player):
+        if move.direc is None:
+            return self.place(move, curr_player)
         else:
-            # Move
-            ns = move[1]
-
-            t = move[0]
-            if t[0] not in cols:
-                total = int(t[0])
-                t = t[1:]
-            else:
-                total = 1
-
-            return self.move(t, move_dir, list(map(int, ns)), total)
+            return self.move(move)
 
     def force(self, pbs):
         if isinstance(pbs, PseudoBoard):
@@ -397,11 +376,12 @@ class Player(object):
         self.color = color
         self.stones, self.caps = 0, 0
 
-    def do(self, m):
+    def do(self, m: Move):
         move = self.board.parse_move(m, self.color)
         if isinstance(move, PseudoBoard):
             if move.bool:
-                stone_type = FLAT if len(m) == 2 else m[0]
+                # stone_type = FLAT if len(m) == 2 else m[0]
+                stone_type = m.stone
                 stone, cap = False, False
                 if stone_type in [FLAT, STAND]:
                     self.stones += 1
@@ -436,12 +416,15 @@ class Player(object):
     def generate_all_moves(self):
         for y in range(self.board.h):
             for x in range(self.board.w):
-                s = coords_to_tile(x, y)
+                # s = coords_to_tile(x, y)
+                c, r = coords_to_tile(x, y)
                 tile = self.board.get(x, y)
                 if tile == EMPTY:
-                    yield s
-                    for stone in 'CS':
-                        yield stone + s
+                    # yield s
+                    # for stone in 'CS':
+                    #     yield stone + s
+                    for stone in stones:
+                        yield Move(stone=stone, col=c, row=r)
                 else:
                     if tile.tiles[0].color == self.color:
                         for direction in dirs:
@@ -449,10 +432,13 @@ class Player(object):
                             if 0 <= x1 < self.board.w and 0 <= y1 < self.board.h:
                                 for i in range(1, len(tile.tiles) + 1):
                                     if i == 1 and len(tile.tiles) == 1:
-                                        yield s + direction
+                                        # yield s + direction
+                                        yield Move(col=c, row=r, direc=direction)
                                     else:
                                         for move_amounts in sums(i):
                                             if len(move_amounts) == 1 and move_amounts[0] == i:
-                                                yield str(i) + s + direction
+                                                # yield str(i) + s + direction
+                                                yield Move(total=i, col=c, row=r, direc=direction)
                                             else:
-                                                yield str(i) + s + direction + ''.join(map(str, move_amounts))
+                                                # yield str(i) + s + direction + ''.join(map(str, move_amounts))
+                                                yield Move(total=i, col=c, row=r, moves=move_amounts, direc=direction)

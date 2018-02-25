@@ -1,9 +1,9 @@
-from model.utils import Player, Board, WHITE, BLACK
+from model.utils import Player, Board, WHITE, BLACK, Move
 from model.ai import LookAhead1AI
 
 board = Board(5, 5)  # load_moves_from_file("You vs You 18.1.29 20.43.ptn")
-board.force(board.parse_move("a5", BLACK))
-board.force(board.parse_move("e5", WHITE))
+board.force(board.parse_move(Move(col='a', row=5), BLACK))
+board.force(board.parse_move(Move(col='e', row=5), WHITE))
 
 
 ai = LookAhead1AI(board, WHITE)
