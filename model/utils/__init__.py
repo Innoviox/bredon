@@ -59,8 +59,6 @@ def _next(obj, direction):
             return obj.x + 1, obj.y
     raise TypeError("Object must have an x and y attribute")
 
-###
-
 
 @dc.dataclass
 class Move:
@@ -132,8 +130,7 @@ class Square:
         return ''.join(str(t) for t in self.tiles)  # + f'@{coords_to_tile(self.x, self.y)}'
 
 
-Tile.next = _next
-Square.next = _next
+Square.next = Tile.next = _next
 
 
 class Board:
@@ -171,17 +168,17 @@ class Board:
         # print("Board state:", self.board)
         if not isinstance(old_square, Square):
             if isinstance(new_square, tuple):
-                old_square = self.get(*old_square)  # .copy()
+                old_square = self.get(*old_square)
             elif isinstance(new_square, str):
-                old_square = self.get(*tile_to_coords(old_square))  # .copy()
+                old_square = self.get(*tile_to_coords(old_square))
         else:
             old_square = self.get(old_square.x, old_square.y)
 
         if not isinstance(new_square, Square):
             if isinstance(new_square, tuple):
-                new_square = self.get(*new_square)  # .copy()
+                new_square = self.get(*new_square)
             elif isinstance(new_square, str):
-                new_square = self.get(*old_square.next(new_square))  # .copy()
+                new_square = self.get(*old_square.next(new_square))
             else:
                 raise TypeError("new_square must be Square, tuple, or str, got: %s" % new_square.__class__)
         else:
@@ -247,14 +244,9 @@ class Board:
         else:
             for pb in pbs:
                 if pb.err is not None:
-                    # print('Error:', pb.err)
                     return pb.err
                 else:
-                    # print("Confirmed move", pb)
-                    # print(self.board)
                     self.board = pb.board
-                    # print(self.board)
-                    # self.board = self.copy_board()
 
     def force_str(self, s, curr_player):
         return self.force(self.parse_move(s, curr_player))
@@ -262,15 +254,6 @@ class Board:
     def valid(self, pbs):
         new_board = self.copy()
         return new_board.force(pbs) is None
-        # if isinstance(pbs, PseudoBoard):
-        #     return self.valid([pbs])
-        # try:
-
-        #     if
-        #      return True
-        # except IndexError:
-        #     return False
-        # return all(i.err is None for i in pbs)
 
     def winner(self, players):
         r = self.road()
@@ -320,10 +303,8 @@ class Board:
                         conns.extend(self.get_connections(t, origtile, board, tiles))
                     else:
                         pass
-            except IndexError as e:
-                pass  # print(e)
-            except AttributeError as e:
-                pass  # print(e)
+            except IndexError or AttributeError:
+                pass
         return conns
 
     def get(self, x: int, y: int) -> Square:
@@ -340,6 +321,7 @@ class Board:
         return tb.tabulate(self.board, tablefmt="plain",
                            headers=list(range(1, self.w + 1)),
                            showindex=list(cols[:self.h]))
+
 
 def str_to_move(move: str) -> Move:
     move_dir = None
@@ -363,7 +345,8 @@ def str_to_move(move: str) -> Move:
         c, r = t
         return Move(total=total, col=c, row=r, direc=move_dir, moves=list(map(int, ns)))
 
-def load_moves_from_file(filename):
+
+def load_moves_from_file(filename, out=False):
     with open(filename) as file:
         ptn = file.read().split("\n")
         size = int(ptn[4][7])
@@ -379,23 +362,20 @@ def load_moves_from_file(filename):
                     elif iturn == 1 and imove == 0:
                         curr_player = WHITE
 
-                    # print(move)
-                    # print(str_to_move(move))
                     b.force(b.parse_move(str_to_move(move), curr_player))
 
-                    # print(b)
-                    # print("Road?:", b.road())
+                    if out:
+                        print(move)
+                        print(str_to_move(move))
+                        print(b)
+                        print("Road?:", b.road())
 
                     if curr_player == BLACK:
                         curr_player = WHITE
                     else:
                         curr_player = BLACK
-    return b  # , turn
+    return b
 
-
-# print(load_moves_from_file("/Users/chervjay/Documents/GitHub/Bredon/BeginnerBot vs rassar 18.1.26 11.42.ptn"))
-# print(load_moves_from_file("/Users/chervjay/Documents/GitHub/Bredon/You vs You 18.1.26 15.42.ptn"))
-# print(load_moves_from_file("rassar vs IntuitionBot 18.1.26 21.40.ptn"))
 
 class Player(object):
     def __init__(self, board, color):
@@ -407,7 +387,6 @@ class Player(object):
         move = self.board.parse_move(m, self.color)
         if isinstance(move, PseudoBoard):
             if move.bool:
-                # stone_type = FLAT if len(m) == 2 else m[0]
                 stone_type = m.stone
                 stone, cap = False, False
                 if stone_type in [FLAT, STAND]:
@@ -416,7 +395,7 @@ class Player(object):
                 else:
                     self.caps += 1
                     cap = True
-                caps, stones = self.caps > self.board.caps, self.stones > self.board.stones
+                    caps, stones = self.caps > self.board.caps, self.stones > self.board.stones
                 if stones and caps:
                     self.stones -= stone
                     self.caps -= cap
@@ -443,13 +422,9 @@ class Player(object):
     def generate_all_moves(self):
         for y in range(self.board.h):
             for x in range(self.board.w):
-                # s = coords_to_tile(x, y)
                 c, r = coords_to_tile(x, y)
                 tile = self.board.get(x, y)
                 if tile == EMPTY:
-                    # yield s
-                    # for stone in 'CS':
-                    #     yield stone + s
                     for stone in stones:
                         yield Move(stone=stone, col=c, row=r)
                 else:
@@ -459,13 +434,10 @@ class Player(object):
                             if 0 <= x1 < self.board.w and 0 <= y1 < self.board.h:
                                 for i in range(1, len(tile.tiles) + 1):
                                     if i == 1 and len(tile.tiles) == 1:
-                                        # yield s + direction
                                         yield Move(col=c, row=r, direc=direction)
                                     else:
                                         for move_amounts in sums(i):
                                             if len(move_amounts) == 1 and move_amounts[0] == i:
-                                                # yield str(i) + s + direction
                                                 yield Move(total=i, col=c, row=r, direc=direction)
                                             else:
-                                                # yield str(i) + s + direction + ''.join(map(str, move_amounts))
                                                 yield Move(total=i, col=c, row=r, moves=move_amounts, direc=direction)
