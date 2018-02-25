@@ -65,9 +65,9 @@ def next(obj, direction):
 @dc.dataclass
 class Move:
     stone: str = 'F'
-    col: str
-    row: int
-    moves: List[int] = []
+    col: str = 'A'
+    row: int = 1
+    moves: List[int] = dc.field(default_factory=list)
 
 class Tile:
     def __init__(self, color, stone='F', x=None, y=None):
