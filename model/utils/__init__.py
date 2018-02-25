@@ -65,11 +65,14 @@ def _next(obj, direction):
 @dc.dataclass
 class Move:
     total: int  = 1
-    stone: str  = None
+    stone: str  = FLAT
     col  : str  = None
     row  : int  = None
     moves: list = dc.field(default_factory=list)
     direc: str  = None
+
+    def get_square(self):
+        return self.col + str(self.row)
 
 class Tile:
     def __init__(self, color, stone='F', x=None, y=None):
@@ -228,34 +231,18 @@ class Board:
             sq = copy.get(*sq.next(direction))
             yield _run(lambda: copy.move_single(sq, direction, sum(ns_moves[n:]), first=False))
 
-    def parse_move(self, move, curr_player):
-        move_dir = None
-        for direction in dirs:
-            # if direction in move:
-            if direction == move.direc:
-                move_dir = direction
-                move = move.split(direction)
-                break
+    def parse_move(self, move: Move, curr_player):
+        move_dir = move.direc
 
         if move_dir is None:
-            if len(move) == 2:
-                # move = 'F' + move
-                move.stone = 'F'
             return self.place(Tile(curr_player, stone=move.stone),
-                              *tile_to_coords(move.col + str(move.row)))
-
+                              *tile_to_coords(move.get_square()))
         else:
             # Move
-            ns = move[1]
-
-            t = move[0]
-            if t[0] not in cols:
-                total = int(t[0])
-                t = t[1:]
-            else:
-                total = 1
-
-            return self.move(t, move_dir, list(map(int, ns)), total)
+            return self.move(move.get_square(),
+                             move_dir,
+                             list(map(int, move.moves)),
+                             1 if move.total is None else move.total)
 
     def force(self, pbs):
         if isinstance(pbs, PseudoBoard):
@@ -396,11 +383,12 @@ class Player(object):
         self.color = color
         self.stones, self.caps = 0, 0
 
-    def do(self, m):
+    def do(self, m: Move):
         move = self.board.parse_move(m, self.color)
         if isinstance(move, PseudoBoard):
             if move.bool:
-                stone_type = FLAT if len(m) == 2 else m[0]
+                # stone_type = FLAT if len(m) == 2 else m[0]
+                stone_type = m.stone
                 stone, cap = False, False
                 if stone_type in [FLAT, STAND]:
                     self.stones += 1
