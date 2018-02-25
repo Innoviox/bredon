@@ -47,7 +47,7 @@ def coords_to_tile(x: int, y: int):
     return cols[y] + str(x + 1)
 
 
-def next(obj, direction):
+def _next(obj, direction):
     # TODO: checks on boundaries
     if hasattr(obj, 'x') and hasattr(obj, 'y'):
         if direction == LEFT:  # and self.y != 0:
@@ -64,18 +64,17 @@ def next(obj, direction):
 
 @dc.dataclass
 class Move:
-    stone: str = 'F'
-    col: str = 'A'
-    row: int = 1
-    moves: List[int] = dc.field(default_factory=list)
+    total: int  = 1
+    stone: str  = None
+    col  : str  = None
+    row  : int  = None
+    moves: list = dc.field(default_factory=list)
+    direc: str  = None
 
 class Tile:
     def __init__(self, color, stone='F', x=None, y=None):
         self.color, self.stone = color, stone
         self.x, self.y = x, y
-
-    def next(self, direction):
-        return next(self, direction)
 
     def __repr__(self):
         return '%s{%s}' % (self.color, self.stone)  # + f'@{coords_to_tile(self.x, self.y)}'
@@ -89,7 +88,6 @@ class Tile:
         elif isinstance(other, tuple):
             return (self.color, self.stone) == tuple
         return False
-
 
 class Square:
     def __init__(self, x, y, tiles=None):
@@ -116,9 +114,6 @@ class Square:
     def copy(self):
         return Square(self.x, self.y, tiles=[Tile(t.color, stone=t.stone, x=t.x, y=t.y) for t in self.tiles])
 
-    def next(self, direction):
-        return next(self, direction)
-
     def __eq__(self, other):
         if other == EMPTY:
             return not bool(self.tiles)
@@ -131,6 +126,8 @@ class Square:
     def __repr__(self):
         return ''.join(str(t) for t in self.tiles)  # + f'@{coords_to_tile(self.x, self.y)}'
 
+Tile.next = _next
+Square.next = _next
 
 class Board:
     def __init__(self, w: int, h: int, board=None):
@@ -234,16 +231,18 @@ class Board:
     def parse_move(self, move, curr_player):
         move_dir = None
         for direction in dirs:
-            if direction in move:
+            # if direction in move:
+            if direction == move.direc:
                 move_dir = direction
                 move = move.split(direction)
                 break
 
         if move_dir is None:
             if len(move) == 2:
-                move = 'F' + move
-            return self.place(Tile(curr_player, stone=move[0]),
-                              *tile_to_coords(move[1:]))
+                # move = 'F' + move
+                move.stone = 'F'
+            return self.place(Tile(curr_player, stone=move.stone),
+                              *tile_to_coords(move.col + str(move.row)))
 
         else:
             # Move
@@ -436,12 +435,15 @@ class Player(object):
     def generate_all_moves(self):
         for y in range(self.board.h):
             for x in range(self.board.w):
-                s = coords_to_tile(x, y)
+                # s = coords_to_tile(x, y)
+                c, r = coords_to_tile(x, y)
                 tile = self.board.get(x, y)
                 if tile == EMPTY:
-                    yield s
-                    for stone in 'CS':
-                        yield stone + s
+                    # yield s
+                    # for stone in 'CS':
+                    #     yield stone + s
+                    for stone in stones:
+                        yield Move(stone=stone, col=c, row=r)
                 else:
                     if tile.tiles[0].color == self.color:
                         for direction in dirs:
@@ -449,10 +451,13 @@ class Player(object):
                             if 0 <= x1 < self.board.w and 0 <= y1 < self.board.h:
                                 for i in range(1, len(tile.tiles) + 1):
                                     if i == 1 and len(tile.tiles) == 1:
-                                        yield s + direction
+                                        # yield s + direction
+                                        yield Move(col=c, row=r, direc=direction)
                                     else:
                                         for move_amounts in sums(i):
                                             if len(move_amounts) == 1 and move_amounts[0] == i:
-                                                yield str(i) + s + direction
+                                                # yield str(i) + s + direction
+                                                yield Move(total=i, col=c, row=r, direc=direction)
                                             else:
-                                                yield str(i) + s + direction + ''.join(map(str, move_amounts))
+                                                # yield str(i) + s + direction + ''.join(map(str, move_amounts))
+                                                yield Move(total=i, col=c, row=r, moves=move_amounts, direc=direction)
