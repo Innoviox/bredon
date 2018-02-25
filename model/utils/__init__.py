@@ -148,8 +148,9 @@ class Board:
     @param y
     @return nt was it placed?, board state
     """
-
-    def place(self, tile: Tile, x: int, y: int):
+    def place(self, move: Move, curr_player):
+        tile = Tile(curr_player, stone=move.stone)
+        x, y = tile_to_coords(move.get_square())
         new_board = self.copy_board()
         if self.board[y][x] == EMPTY and \
                 tile.x is None and tile.y is None:
@@ -161,7 +162,6 @@ class Board:
     Move n_tiles from old_square to
     new_square. 
     """
-
     def move_single(self, old_square, new_square, n_tiles: int, first=False):
         # print("Verbose running of move_single with args:", old_square, new_square, n_tiles, first)
         # print("Board state:", self.board)
@@ -215,7 +215,7 @@ class Board:
         return PseudoBoard(self.w, self.h, new_board, False,
                            f"Too many tiles: {n_tiles} > {len(old_square.tiles) - int(not first)}", None)
 
-    def move(self, old_square, direction, ns_moves, ns_total):
+    def move(self, move: Move):
         def _run(fn):
             try:
                 pb = fn()
@@ -225,24 +225,17 @@ class Board:
                 return PseudoBoard(self.w, self.h, [], False, e, None)
 
         copy = self.copy()
-        sq = copy.get(*tile_to_coords(old_square))
-        yield _run(lambda: copy.move_single(sq, direction, ns_total, first=True))
-        for n in range(1, len(ns_moves)):
-            sq = copy.get(*sq.next(direction))
-            yield _run(lambda: copy.move_single(sq, direction, sum(ns_moves[n:]), first=False))
+        sq = copy.get(*tile_to_coords(move.get_square()))
+        yield _run(lambda: copy.move_single(sq, move.direc, move.total, first=True))
+        for n in range(1, len(move.moves)):
+            sq = copy.get(*sq.next(move.direc))
+            yield _run(lambda: copy.move_single(sq, move.direc, sum(move.moves[n:]), first=False))
 
     def parse_move(self, move: Move, curr_player):
-        move_dir = move.direc
-
-        if move_dir is None:
-            return self.place(Tile(curr_player, stone=move.stone),
-                              *tile_to_coords(move.get_square()))
+        if move.direc is None:
+            return self.place(move, curr_player)
         else:
-            # Move
-            return self.move(move.get_square(),
-                             move_dir,
-                             list(map(int, move.moves)),
-                             1 if move.total is None else move.total)
+            return self.move(move)
 
     def force(self, pbs):
         if isinstance(pbs, PseudoBoard):
