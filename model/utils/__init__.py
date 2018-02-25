@@ -32,12 +32,11 @@ sizes = {
 }
 
 
-### Utility Functions ###
-
 def sums(n):
     b, mid, e = [0], list(range(1, n)), [n]
     splits = (d for i in range(n) for d in it.combinations(mid, i))
     return (list(map(sub, it.chain(s, e), it.chain(b, s))) for s in splits)
+
 
 def tile_to_coords(t: str):
     return int(t[1]) - 1, cols.index(t[0])
@@ -62,17 +61,19 @@ def _next(obj, direction):
 
 ###
 
+
 @dc.dataclass
 class Move:
-    total: int  = 1
-    stone: str  = FLAT
-    col  : str  = None
-    row  : int  = None
+    total: int = 1
+    stone: str = FLAT
+    col: str = None
+    row: int = None
     moves: list = dc.field(default_factory=list)
-    direc: str  = None
+    direc: str = None
 
     def get_square(self):
         return self.col + str(self.row)
+
 
 class Tile:
     def __init__(self, color, stone='F', x=None, y=None):
@@ -91,6 +92,7 @@ class Tile:
         elif isinstance(other, tuple):
             return (self.color, self.stone) == tuple
         return False
+
 
 class Square:
     def __init__(self, x, y, tiles=None):
@@ -129,8 +131,10 @@ class Square:
     def __repr__(self):
         return ''.join(str(t) for t in self.tiles)  # + f'@{coords_to_tile(self.x, self.y)}'
 
+
 Tile.next = _next
 Square.next = _next
+
 
 class Board:
     def __init__(self, w: int, h: int, board=None):
@@ -303,12 +307,13 @@ class Board:
         return False
 
     def get_connections(self, tile: Tile, origtile: Tile, board, tiles) -> List[Tile]:
-        if tile is None: return []
+        if tile is None:
+            return []
         tiles.append(tile)
         conns = [tile]
-        for dir in dirs:
+        for direction in dirs:
             try:
-                x, y = tile.next(dir)
+                x, y = tile.next(direction)
                 if 0 <= x < self.w and 0 <= y < self.h:
                     t = board[y, x]
                     if t != origtile and t not in conns and t not in tiles and t.color == origtile.color:
@@ -336,6 +341,27 @@ class Board:
                            headers=list(range(1, self.w + 1)),
                            showindex=list(cols[:self.h]))
 
+def str_to_move(move: str) -> Move:
+    move_dir = None
+    for direction in dirs:
+        if direction in move:
+            move_dir = direction
+            move = move.split(direction)
+            break
+
+    if move_dir is None:
+        stone, c, r = move.zfill(3)
+        return Move(stone=FLAT if stone == 0 else stone, col=c, row=r)
+    else:
+        ns = move[1]
+        t = move[0]
+        if t[0] not in cols:
+            total = int(t[0])
+            t = t[1:]
+        else:
+            total = 1
+        c, r = t
+        return Move(total=total, col=c, row=r, direc=move_dir, moves=list(map(int, ns)))
 
 def load_moves_from_file(filename):
     with open(filename) as file:
@@ -354,7 +380,7 @@ def load_moves_from_file(filename):
                         curr_player = WHITE
 
                     # print(move)
-                    b.force(b.parse_move(move, curr_player))
+                    b.force(b.parse_move(str_to_move(move), curr_player))
 
                     # print(b)
                     # print("Road?:", b.road())
