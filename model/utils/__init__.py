@@ -351,7 +351,7 @@ def str_to_move(move: str) -> Move:
 
     if move_dir is None:
         stone, c, r = move.zfill(3)
-        return Move(stone=FLAT if stone == 0 else stone, col=c, row=r)
+        return Move(stone=FLAT if stone == '0' else stone, col=c, row=r)
     else:
         ns = move[1]
         t = move[0]
@@ -380,6 +380,7 @@ def load_moves_from_file(filename):
                         curr_player = WHITE
 
                     # print(move)
+                    # print(str_to_move(move))
                     b.force(b.parse_move(str_to_move(move), curr_player))
 
                     # print(b)
