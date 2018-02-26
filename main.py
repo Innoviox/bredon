@@ -26,5 +26,10 @@ while 1:
     # my_move = board.parse_move()
     # while not board.valid(my_move):
     #     my_move = board.parse_move(input("Enter move: "), BLACK)
-    p.do(str_to_move(input("Enter move: ")))
+    while 1:
+        try:
+            p.do(str_to_move(input("Enter move: ")))
+            break
+        except Exception as e:
+            print("Error:", e)
     print(board)

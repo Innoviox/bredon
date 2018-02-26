@@ -402,8 +402,10 @@ class Player(object):
                 c, r = coords_to_tile(x, y)
                 tile = self.board.get(x, y)
                 if tile == EMPTY:
-                    for stone in stones:
+                    for stone in FLAT + STAND:
                         yield Move(stone=stone, col=c, row=r)
+                    if self.caps < self.board.caps:
+                        yield Move(stone=CAP, col=c, row=r)
                 else:
                     if tile.tiles[0].color == self.color:
                         for direction in dirs:
