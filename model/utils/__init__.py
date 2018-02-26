@@ -59,6 +59,8 @@ def _next(obj, direction):
             return obj.x + 1, obj.y
     raise TypeError("Object must have an x and y attribute")
 
+def flip_color(color):
+    return "WB"["BW".index(color)]
 
 @dc.dataclass
 class Move:
@@ -115,7 +117,7 @@ class Square:
         return top
 
     def copy(self):
-        return Square(self.x, self.y, tiles=[Tile(t.color, stone=t.stone, x=t.x, y=t.y) for t in self.tiles])
+        return Square(self.x, self.y, tiles=self.tiles[:]) # [Tile(t.color, stone=t.stone, x=t.x, y=t.y) for t in self.tiles])
 
     def __eq__(self, other):
         if other == EMPTY:
@@ -283,12 +285,21 @@ class Board:
                     new_board[r, c] = None
         return new_board
 
-    def road(self) -> bool:
-        new_board = self.strip_board()
+    def road(self, stripped=None) -> bool:
+        if stripped is None:
+            new_board = self.strip_board()
+        else:
+            new_board = stripped
         for board in (new_board, new_board.T):
             for tile in board[0]:
                 if tile is not None:
-                    conns = self.get_connections(tile, tile, new_board, [])
+                    conns = self.get_connections(tile, tile, board, [])
+                    if conns[-1].y - conns[0].y == self.h - 1 or \
+                            conns[-1].x - conns[0].x == self.w - 1:
+                        return tile.color
+            for tile in board[-1]:
+                if tile is not None:
+                    conns = self.get_connections(tile, tile, board, [])
                     if conns[-1].y - conns[0].y == self.h - 1 or \
                             conns[-1].x - conns[0].x == self.w - 1:
                         return tile.color
@@ -337,6 +348,7 @@ class Board:
         def _evaluate(_color):
             e = 0
             if self.road() == _color:
+                # print("ROAD")
                 return 1234567890
             for row in self.board:
                 for sq in row:
@@ -344,9 +356,11 @@ class Board:
                         t = sq.tiles[-1]
                         if t.color == _color:
                             e += str(sq).count(_color)
-                            e += len(list(filter(lambda tile: tile.stone in 'F', self.get_connections(t, t, s_board, []))))
+                            a = len(list(filter(lambda tile: tile.stone in 'F', self.get_connections(t, t, s_board, []))))
+                            if a > 1:
+                                e += a
             return e
-        return _evaluate(color) - _evaluate("WB"["BW".index(color)])
+        return _evaluate(color) - _evaluate(flip_color(color))
 
     def execute(self, move, color):
         new_board = self.copy()
@@ -396,7 +410,7 @@ class Player(object):
     def out_of_tiles(self):
         return self.caps > self.board.caps and self.stones > self.board.stones
 
-    def generate_all_moves(self):
+    def generate_all_moves(self, color):
         for y in range(self.board.h):
             for x in range(self.board.w):
                 c, r = coords_to_tile(x, y)
@@ -407,7 +421,7 @@ class Player(object):
                     if self.caps < self.board.caps:
                         yield Move(stone=CAP, col=c, row=r)
                 else:
-                    if tile.tiles[0].color == self.color:
+                    if tile.tiles[0].color == color:
                         for direction in dirs:
                             x1, y1 = tile.next(direction)
                             if 0 <= x1 < self.board.w and 0 <= y1 < self.board.h:
