@@ -22,15 +22,17 @@ class RandomAI(StaticAI):
         return random.choice(list(self.generate_valid_moves()))
 
 class MinimaxAI(StaticAI):
+    def __init__(self, board, color, depth=3):
+        super().__init__(board, color)
+        self.depth = depth
 
     def pick_move(self):
-        depth = 2
         moves = self.generate_valid_moves()
         best_eval = -np.inf
         best_move = None
         for move in moves:
             new_board = self.board.execute(move, self.color)
-            result = self.minimax(depth - 1, new_board, -np.inf, np.inf, True, self.color)
+            result = self.minimax(self.depth - 1, new_board, -np.inf, np.inf, True, self.color)
             if result >= best_eval:
                 best_eval = result
                 best_move = move
@@ -42,14 +44,14 @@ class MinimaxAI(StaticAI):
         # print(board.evaluate(color))
         if depth == 0:
             # print("\t", "returning")
-            return -board.evaluate(color), None
+            return -board.evaluate(color)
         moves = self.generate_valid_moves()
         b_eval = None
         if maximising:
             b_eval = -np.inf
             for move in moves:
                 new_board = board.execute(move, color)
-                b_eval = max(b_eval, self.minimax(depth - 1, new_board, alpha, beta, not maximising, "WB"["BW".index(color)])[0])
+                b_eval = max(b_eval, self.minimax(depth - 1, new_board, alpha, beta, not maximising, "WB"["BW".index(color)]))
                 alpha = max(alpha, b_eval)
                 if beta <= alpha:
                     break
@@ -57,7 +59,7 @@ class MinimaxAI(StaticAI):
             b_eval = np.inf
             for move in moves:
                 new_board = board.execute(move, color)
-                b_eval = min(b_eval, self.minimax(depth - 1, new_board, alpha, beta, not maximising, "WB"["BW".index(color)])[0])
+                b_eval = min(b_eval, self.minimax(depth - 1, new_board, alpha, beta, not maximising, "WB"["BW".index(color)]))
                 beta = min(beta, b_eval)
                 if beta <= alpha:
                     break
