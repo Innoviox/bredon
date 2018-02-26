@@ -1,7 +1,7 @@
 import random
 
 
-from .utils import Player, coords_to_tile, EMPTY, dirs, BLACK, WHITE
+from .utils import Player, coords_to_tile, EMPTY, dirs, BLACK, WHITE, np
 
 class StaticAI(Player):
     def valid(self, move):
@@ -21,75 +21,44 @@ class RandomAI(StaticAI):
     def pick_move(self):
         return random.choice(list(self.generate_valid_moves()))
 
-
-class LookAhead1AI(StaticAI):
-    def __init__(self, board, color):
-        super().__init__(board, color)
-        self.ai = StaticAI(board, self.other_color())
+class MinimaxAI(StaticAI):
 
     def pick_move(self):
+        depth = 2
         moves = self.generate_valid_moves()
-
-        lost = []
-        wins = []
-        cont = []
-        checked = []
+        best_eval = -np.inf
+        best_move = None
         for move in moves:
-            board_after = self.board.copy()
-            board_after.force_str(move, self.color)
-            l = False
-            if board_after.winner([self, self.ai]) == self:
-                wins.append(move)
-                break
-            else:
-                self.ai.board = board_after
-                for ai_move in self.ai.generate_valid_moves():
-                    if ai_move not in checked:
-                        board_after_ai = self.ai.board.copy()
-                        board_after_ai.force_str(ai_move, self.ai.color)
-                        if board_after_ai.winner([self, self.ai]) == self.ai.color:
-                            lost.append(move)
-                            l = True
-                            break
-                    checked.append(ai_move)
-            if not l:
-                cont.append(move)
+            new_board = self.board.execute(move, self.color)
+            result = self.minimax(depth - 1, new_board, -np.inf, np.inf, True, self.color)
+            if result >= best_eval:
+                best_eval = result
+                best_move = move
+        return best_move
 
-        print("Wins:", wins)
-        print("Cont:", cont)
-        print("Lost:", lost)
-
-        if wins:
-            return random.choice(wins)
-        elif cont:
-            return self.choose(cont)
+    def minimax(self, depth, board, alpha, beta, maximising, color):
+        # print("Minimaxing on", depth, maximising)
+        # print(board)
+        # print(board.evaluate(color))
+        if depth == 0:
+            # print("\t", "returning")
+            return -board.evaluate(color), None
+        moves = self.generate_valid_moves()
+        b_eval = None
+        if maximising:
+            b_eval = -np.inf
+            for move in moves:
+                new_board = board.execute(move, color)
+                b_eval = max(b_eval, self.minimax(depth - 1, new_board, alpha, beta, not maximising, "WB"["BW".index(color)])[0])
+                alpha = max(alpha, b_eval)
+                if beta <= alpha:
+                    break
         else:
-            print("I lose!")
-            return random.choice(lost)
-
-    def choose(self, moves):
-        # TODO: Implement heuristic
-        return random.choice(moves)
-
-
-class AI(StaticAI):
-    def pick_move(self):
-        if not self.will_lose():
-            self.build()
-        else:
-            self.block()
-
-    def will_lose(self):
-        opponent = StaticAI(self.board, self.other_color())
-        for m in opponent.generate_valid_moves():
-            board_after = opponent.board.copy()
-            board_after.force_str(m, opponent.color)
-            if board_after.winner([self, opponent]) == opponent.color:
-                return True
-        return False
-
-    def build(self):
-        pass
-
-    def block(self):
-        pass
+            b_eval = np.inf
+            for move in moves:
+                new_board = board.execute(move, color)
+                b_eval = min(b_eval, self.minimax(depth - 1, new_board, alpha, beta, not maximising, "WB"["BW".index(color)])[0])
+                beta = min(beta, b_eval)
+                if beta <= alpha:
+                    break
+        return b_eval

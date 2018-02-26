@@ -67,7 +67,7 @@ class Move:
     col: str = None
     row: int = None
     moves: list = dc.field(default_factory=list)
-    direc: str = None
+    direction: str = None
 
     def get_square(self):
         return self.col + str(self.row)
@@ -164,8 +164,6 @@ class Board:
     new_square. 
     """
     def move_single(self, old_square, new_square, n_tiles: int, first=False):
-        # print("Verbose running of move_single with args:", old_square, new_square, n_tiles, first)
-        # print("Board state:", self.board)
         if not isinstance(old_square, Square):
             if isinstance(new_square, tuple):
                 old_square = self.get(*old_square)
@@ -227,13 +225,13 @@ class Board:
 
         copy = self.copy()
         sq = copy.get(*tile_to_coords(move.get_square()))
-        yield _run(lambda: copy.move_single(sq, move.direc, move.total, first=True))
+        yield _run(lambda: copy.move_single(sq, move.direction, move.total, first=True))
         for n in range(1, len(move.moves)):
-            sq = copy.get(*sq.next(move.direc))
-            yield _run(lambda: copy.move_single(sq, move.direc, sum(move.moves[n:]), first=False))
+            sq = copy.get(*sq.next(move.direction))
+            yield _run(lambda: copy.move_single(sq, move.direction, sum(move.moves[n:]), first=False))
 
     def parse_move(self, move: Move, curr_player):
-        if move.direc is None:
+        if move.direction is None:
             return self.place(move, curr_player)
         else:
             return self.move(move)
@@ -248,8 +246,11 @@ class Board:
                 else:
                     self.board = pb.board
 
-    def force_str(self, s, curr_player):
+    def force_move(self, s, curr_player):
         return self.force(self.parse_move(s, curr_player))
+
+    def force_str(self, s, curr_player):
+        return self.force(self.parse_move(str_to_move(s), curr_player))
 
     def valid(self, pbs):
         new_board = self.copy()
@@ -271,7 +272,7 @@ class Board:
         w, b = _sum(WHITE), _sum(BLACK)
         return False if w == b else WHITE if w > b else BLACK
 
-    def road(self) -> bool:
+    def strip_board(self):
         new_board = np.array(self.copy_board())
         for r, row in enumerate(new_board):
             for c, col in enumerate(row):
@@ -280,6 +281,10 @@ class Board:
                     new_board[r, c] = tile if tile.stone in [FLAT, CAP] else None
                 else:
                     new_board[r, c] = None
+        return new_board
+
+    def road(self) -> bool:
+        new_board = self.strip_board()
         for board in (new_board, new_board.T):
             for tile in board[0]:
                 if tile is not None:
@@ -298,8 +303,8 @@ class Board:
             try:
                 x, y = tile.next(direction)
                 if 0 <= x < self.w and 0 <= y < self.h:
-                    t = board[y, x]
-                    if t != origtile and t not in conns and t not in tiles and t.color == origtile.color:
+                    t = board[y][x]
+                    if t is not None and t != origtile and t not in conns and t not in tiles and t.color == origtile.color:
                         conns.extend(self.get_connections(t, origtile, board, tiles))
                     else:
                         pass
@@ -322,59 +327,31 @@ class Board:
                            headers=list(range(1, self.w + 1)),
                            showindex=list(cols[:self.h]))
 
+    def evaluate(self, color):
+        '''
+        Evaluate a board
+        :param color: which color is playing
+        :return: float evaluation
+        '''
+        s_board = self.strip_board()
+        def _evaluate(_color):
+            e = 0
+            if self.road() == _color:
+                return 1234567890
+            for row in self.board:
+                for sq in row:
+                    if sq.tiles:
+                        t = sq.tiles[-1]
+                        if t.color == _color:
+                            e += str(sq).count(_color)
+                            e += len(list(filter(lambda tile: tile.stone in 'F', self.get_connections(t, t, s_board, []))))
+            return e
+        return _evaluate(color) - _evaluate("WB"["BW".index(color)])
 
-def str_to_move(move: str) -> Move:
-    move_dir = None
-    for direction in dirs:
-        if direction in move:
-            move_dir = direction
-            move = move.split(direction)
-            break
-
-    if move_dir is None:
-        stone, c, r = move.zfill(3)
-        return Move(stone=FLAT if stone == '0' else stone, col=c, row=r)
-    else:
-        ns = move[1]
-        t = move[0]
-        if t[0] not in cols:
-            total = int(t[0])
-            t = t[1:]
-        else:
-            total = 1
-        c, r = t
-        return Move(total=total, col=c, row=r, direc=move_dir, moves=list(map(int, ns)))
-
-
-def load_moves_from_file(filename, out=False):
-    with open(filename) as file:
-        ptn = file.read().split("\n")
-        size = int(ptn[4][7])
-        b = Board(size, size)
-        curr_player = WHITE
-        for iturn, turn in enumerate(ptn[7:]):
-            if 'R' in turn:
-                break
-            for imove, move in enumerate(turn.split(" ")[1:]):  # Exclude the round number
-                if move:
-                    if iturn == 0:
-                        curr_player = [BLACK, WHITE][imove]
-                    elif iturn == 1 and imove == 0:
-                        curr_player = WHITE
-
-                    b.force(b.parse_move(str_to_move(move), curr_player))
-
-                    if out:
-                        print(move)
-                        print(str_to_move(move))
-                        print(b)
-                        print("Road?:", b.road())
-
-                    if curr_player == BLACK:
-                        curr_player = WHITE
-                    else:
-                        curr_player = BLACK
-    return b
+    def execute(self, move, color):
+        new_board = self.copy()
+        new_board.force_move(move, color)
+        return new_board
 
 
 class Player(object):
@@ -395,13 +372,13 @@ class Player(object):
                 else:
                     self.caps += 1
                     cap = True
-                    caps, stones = self.caps > self.board.caps, self.stones > self.board.stones
-                if stones and caps:
+                caps, _stones = self.caps > self.board.caps, self.stones > self.board.stones
+                if _stones and caps:
                     self.stones -= stone
                     self.caps -= cap
                     # TODO: End the game
                     self.board.end_game()
-                elif (stones and stone) or (caps and cap):
+                elif (_stones and stone) or (caps and cap):
                     self.stones -= stone
                     self.caps -= cap
                     raise ValueError(f"Not enough pieces left")
@@ -434,10 +411,64 @@ class Player(object):
                             if 0 <= x1 < self.board.w and 0 <= y1 < self.board.h:
                                 for i in range(1, len(tile.tiles) + 1):
                                     if i == 1 and len(tile.tiles) == 1:
-                                        yield Move(col=c, row=r, direc=direction)
+                                        yield Move(col=c, row=r, direction=direction)
                                     else:
                                         for move_amounts in sums(i):
                                             if len(move_amounts) == 1 and move_amounts[0] == i:
-                                                yield Move(total=i, col=c, row=r, direc=direction)
+                                                yield Move(total=i, col=c, row=r, direction=direction)
                                             else:
-                                                yield Move(total=i, col=c, row=r, moves=move_amounts, direc=direction)
+                                                yield Move(total=i, col=c, row=r, moves=move_amounts, direction=direction)
+
+
+def str_to_move(move: str) -> Move:
+    move_dir = None
+    for direction in dirs:
+        if direction in move:
+            move_dir = direction
+            move = move.split(direction)
+            break
+
+    if move_dir is None:
+        stone, c, r = move.zfill(3)
+        return Move(stone=FLAT if stone == '0' else stone, col=c, row=r)
+    else:
+        ns = move[1]
+        t = move[0]
+        if t[0] not in cols:
+            total = int(t[0])
+            t = t[1:]
+        else:
+            total = 1
+        c, r = t
+        return Move(total=total, col=c, row=r, direction=move_dir, moves=list(map(int, ns)))
+
+
+def load_moves_from_file(filename, out=False):
+    with open(filename) as file:
+        ptn = file.read().split("\n")
+        size = int(ptn[4][7])
+        b = Board(size, size)
+        curr_player = WHITE
+        for iturn, turn in enumerate(ptn[7:]):
+            if 'R' in turn:
+                break
+            for imove, move in enumerate(turn.split(" ")[1:]):  # Exclude the round number
+                if move:
+                    if iturn == 0:
+                        curr_player = [BLACK, WHITE][imove]
+                    elif iturn == 1 and imove == 0:
+                        curr_player = WHITE
+
+                    b.force(b.parse_move(str_to_move(move), curr_player))
+
+                    if out:
+                        print(move)
+                        print(str_to_move(move))
+                        print(b)
+                        print("Road?:", b.road())
+
+                    if curr_player == BLACK:
+                        curr_player = WHITE
+                    else:
+                        curr_player = BLACK
+    return b

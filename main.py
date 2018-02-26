@@ -7,7 +7,7 @@ board.force(board.parse_move(Move(col='a', row=5), BLACK))
 board.force(board.parse_move(Move(col='e', row=5), WHITE))
 
 
-ai = LookAhead1AI(board, WHITE)
+ai = MinimaxAI(board, WHITE)
 p = Player(board, BLACK)
 
 while 1:
@@ -26,5 +26,5 @@ while 1:
     # my_move = board.parse_move()
     # while not board.valid(my_move):
     #     my_move = board.parse_move(input("Enter move: "), BLACK)
-    p.do(input("Enter move: "))
+    p.do(str_to_move(input("Enter move: ")))
     print(board)
