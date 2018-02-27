@@ -10,8 +10,9 @@ from operator import sub
 
 from typing import List
 
-BLACK = "B"
-WHITE = "W"
+COLORS = "BW"
+BLACK, WHITE = COLORS
+COLORS_REV = ''.join(reversed(COLORS))
 EMPTY = ' '
 MARKS = '?!'
 
@@ -60,7 +61,7 @@ def _next(obj, direction):
     raise TypeError("Object must have an x and y attribute")
 
 def flip_color(color):
-    return "WB"["BW".index(color)]
+    return COLORS_REV[COLORS.index(color)]
 
 @dc.dataclass
 class Move:
@@ -99,7 +100,7 @@ class Tile:
         self.x, self.y = x, y
 
     def __repr__(self):
-        return '%s{%s}' % (self.color, self.stone) # + f'@{coords_to_tile(self.x, self.y)}'
+        return '%s{%s}' % (self.color, self.stone) + f'@{coords_to_tile(self.x, self.y)}'
 
     def __eq__(self, other):
         if isinstance(other, Tile):
@@ -116,16 +117,20 @@ class Square:
     def __init__(self, x, y, tiles=None):
         self.x, self.y = x, y
         self.tiles = [] if tiles is None else tiles
+        self.fix()
 
+    def fix(self):
+        for tile in self.tiles:
+            tile.x, tile.y = self.x, self.y 
+            
     def add(self, tile: Tile):
         self.tiles.append(tile)
-        tile.x, tile.y = self.x, self.y
+        self.fix()
         return self
 
     def extend(self, tiles: List[Tile]):
         self.tiles.extend(tiles)
-        for tile in tiles:
-            tile.x, tile.y = self.x, self.y
+        self.fix()
         return self
 
     def remove_top(self, n_tiles: int) -> List[Tile]:
@@ -134,6 +139,19 @@ class Square:
         self.tiles = self.tiles[:n]
         return top
 
+    def connections(self, board):
+        conns = 0 
+        for direction in dirs:
+            x, y = self.next(direction)
+            try:
+                t_next = board[x][y].tiles[-1]
+                t = self.tiles[-1]
+                if t_next is not None and t is not None and t_next.color == t.color and t_next.stone in 'FC' and t.stone in 'FC':
+                    conns += 1
+            except IndexError:
+                pass
+        return conns
+      
     def copy(self):
         return Square(self.x, self.y, tiles=self.tiles[:]) # [Tile(t.color, stone=t.stone, x=t.x, y=t.y) for t in self.tiles])
 
@@ -292,56 +310,32 @@ class Board:
         w, b = _sum(WHITE), _sum(BLACK)
         return False if w == b else WHITE if w > b else BLACK
 
-    def strip_board(self):
-        new_board = np.array(self.copy_board())
-        for r, row in enumerate(new_board):
-            for c, col in enumerate(row):
-                if col.tiles:
-                    tile = col.tiles[-1]
-                    new_board[r, c] = tile if tile.stone in [FLAT, CAP] else None
-                else:
-                    new_board[r, c] = None
-        return new_board
-
-    def road(self, stripped=None) -> bool:
-        if stripped is None:
-            new_board = self.strip_board()
-        else:
-            new_board = stripped
-        for board in (new_board, new_board.T):
-            for tile in board[0]:
-                if tile is not None:
-                    conns = self.get_connections(tile, tile, board, [])
-                    if conns[-1].y - conns[0].y == self.h - 1 or \
-                            conns[-1].x - conns[0].x == self.w - 1:
-                        return tile.color
-            for tile in board[-1]:
-                if tile is not None:
-                    conns = self.get_connections(tile, tile, board, [])
-                    if conns[-1].y - conns[0].y == self.h - 1 or \
-                            conns[-1].x - conns[0].x == self.w - 1:
-                        return tile.color
+    def road(self, out=False):
+        np_board = np.array(self.board)
+        for board in (np_board, np.transpose(np_board)):
+            for color in COLORS:
+                road = self.compress_left(color, board, out=out)
+                if out:
+                    print(road)
+                if all(len(road[i]) > 0 for i in range(self.h)):
+                    return color 
         return False
-
-    def get_connections(self, tile: Tile, origtile: Tile, board, tiles) -> List[Tile]:
-        if tile is None:
-            return []
-        tiles.append(tile)
-        conns = [tile]
-        for direction in dirs:
-            try:
-                x, y = tile.next(direction)
-                if 0 <= x < self.w and 0 <= y < self.h:
-                    t = board[y][x]
-                    t.x, t.y = x, y
-                    if t != origtile and t not in conns and t not in tiles and t.color == origtile.color:
-                        conns.extend(self.get_connections(t, origtile, board, tiles))
-            except IndexError:
-                pass
-            except AttributeError:
-                pass
-        return conns
-
+    
+    def compress_left(self, color, board, out=False):
+        if out:
+            print("Compressing", color)
+            print(board)
+        compressed = [[] for i in range(self.h)]
+        for r, row in enumerate(board):
+            for sq in row:
+                if sq.tiles and sq.tiles[-1].color == color:
+                    conns = sq.connections(board)
+                    if out:
+                        print(sq, conns)
+                    if conns > 1 or ((r == 0 or r == self.h - 1) and conns > 0):
+                        compressed[r].append(sq)
+        return compressed 
+      
     def get(self, x: int, y: int) -> Square:
         return self.board[y][x]
 
@@ -363,10 +357,9 @@ class Board:
         :param color: which color is playing
         :return: float evaluation
         '''
-        s_board = self.strip_board()
         def _evaluate(_color):
             e = 0
-            if self.road(stripped=s_board) == _color:
+            if self.road() == _color:
                 return 1234567890
             for row in self.board:
                 for sq in row:
@@ -375,7 +368,7 @@ class Board:
                         if t.color == _color:
                             e += 1
                             e += sum(1 for i in sq.tiles if i.color == color and i.stone in 'CF')
-                            a = len(list(filter(lambda tile: tile.stone in 'F', self.get_connections(t, t, s_board, []))))
+                            a = sq.connections(self.board)
                             if a > 1:
                                 e += a
             return e
