@@ -75,10 +75,7 @@ class Move:
         return self.col + str(self.row)
 
     def __repr__(self):
-        r = "Move("
-        for k, v in self.__dict__.items():
-            r += k + '=' + str(v) + ', '
-        return r[:-2] + ")"
+        return 'Move(' + ', '.join([f"{k}={v!r}" for k, v in self.__dict__.items()]) + ')'
 
     def __str__(self):
         ptn = ""
