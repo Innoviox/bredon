@@ -312,12 +312,12 @@ class Board:
 
     def road(self, out=False):
         np_board = np.array(self.board)
-        for board in (np_board, np_board.T):
+        for board in (np_board, np.transpose(np_board)):
             for color in COLORS:
                 road = self.compress_left(color, board, out=out)
                 if out:
                     print(road)
-                if all(len(road[i]) > 9 for i in range(self.h)):
+                if all(len(road[i]) > 0 for i in range(self.h)):
                     return color 
         return False
     
