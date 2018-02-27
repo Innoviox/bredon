@@ -79,19 +79,10 @@ class Move:
         return 'Move(' + ', '.join([f"{k}={v!r}" for k, v in self.__dict__.items()]) + ')'
 
     def __str__(self):
-        ptn = ""
         if not self.direction:
-            if self.stone != FLAT:
-                ptn += self.stone
-            ptn += self.col
-            ptn += str(self.row)
+            return (self.stone + self.get_square()).strip(FLAT)
         else:
-            ptn += str(self.total)
-            ptn += self.col
-            ptn += str(self.row)
-            ptn += ''.join(map(str, self.moves))
-            ptn += self.direction
-        return ptn
+            return str(self.total) + self.get_square() + ''.join(map(str, self.moves)) + self.direction
 
 
 class Tile:
@@ -351,7 +342,7 @@ class Board:
                            headers=list(range(1, self.w + 1)),
                            showindex=list(cols[:self.h]))
 
-    def evaluate(self, color):
+    def evaluate(self, color, out=False):
         '''
         Evaluate a board
         :param color: which color is playing
@@ -360,19 +351,20 @@ class Board:
         def _evaluate(_color):
             e = 0
             if self.road() == _color:
+                # print("ROAD")
                 return 1234567890
             for row in self.board:
                 for sq in row:
                     if sq.tiles:
                         t = sq.tiles[-1]
                         if t.color == _color:
-                            e += 1
-                            e += sum(1 for i in sq.tiles if i.color == color and i.stone in 'CF')
-                            a = sq.connections(self.board)
-                            if a > 1:
-                                e += a
+                            if out:
+                                print(sq, sum(1 for i in sq.tiles if i.color == color and i.stone in 'CF') ** 1.5, (sq.connections(self.board) + 1) ** 2)
+                            # e += 1
+                            e += sum(1 for i in sq.tiles if i.color == color and i.stone in 'CF') ** 1.5
+                            e += (sq.connections(self.board) + 1) ** 2
             return e
-        return _evaluate(color) - _evaluate(flip_color(color))
+        return _evaluate(color) - _evaluate(flip_color(color)) * 2
 
     def execute(self, move, color):
         new_board = self.copy()

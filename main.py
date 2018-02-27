@@ -3,8 +3,8 @@ from model import *
 # board = load_moves_from_file("games/sarras vs takkybot 18.1.27 14.15.ptn")
 # print(board)
 board = Board(4, 4)  # load_moves_from_file("You vs You 18.1.29 20.43.ptn")
-board.force(board.parse_move(Move(col='a', row=3), BLACK))
-board.force(board.parse_move(Move(col='c', row=3), WHITE))
+board.force(board.parse_move(Move(col='a', row=1), BLACK))
+board.force(board.parse_move(Move(col='d', row=4), WHITE))
 '''
 board.force_str("c2", WHITE)
 board.force_str("c1", WHITE)
@@ -16,8 +16,8 @@ print(board.road())
 # print(new_board)
 # print(new_board.evaluate(WHITE))
 # input()
-ai = MinimaxAI(board, WHITE, depth=2)
-ai2 = MinimaxAI(board, BLACK, depth=2)
+ai = MinimaxAI(board, WHITE, depth=3)
+ai2 = MinimaxAI(board, BLACK, depth=3)
 # p = Player(board, BLACK)
 ptn = ""
 i = 1
@@ -26,14 +26,14 @@ while not board.winner([ai, ai2]):
     ai_move = ai.pick_move()
     print(repr(ai_move))
     ai.do(ai_move)
-    print(board)
+    input(board)
     ptn += str(ai_move) + " "
     # input(board._road())
 
     ai_move = ai2.pick_move()
     print(ai_move)
     ai2.do(ai_move)
-    print(board)
+    input(board)
     ptn += str(ai_move)
 
     ptn += "\n"
