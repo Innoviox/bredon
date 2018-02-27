@@ -314,12 +314,52 @@ class Board:
             try:
                 x, y = tile.next(direction)
                 if 0 <= x < self.w and 0 <= y < self.h:
-                    t = board[y][x]
-                    if t is not None and t != origtile and t not in conns and t not in tiles and t.color == origtile.color:
+                    t = board[x][y]
+                    if t != origtile and t not in conns and t not in tiles and t.color == origtile.color:
                         conns.extend(self.get_connections(t, origtile, board, tiles))
-                    else:
-                        pass
-            except IndexError or AttributeError:
+            except IndexError:
+                pass
+            except AttributeError:
+                pass
+        return conns
+
+    def _road(self, stripped=None) -> bool:
+        if stripped is None:
+            new_board = self.strip_board()
+        else:
+            new_board = stripped
+        for board in (new_board, new_board.T):
+            for tile in board[0]:
+                if tile is not None:
+                    conns = self._get_connections(tile, tile, board, [])
+                    if conns[-1].y - conns[0].y == self.h - 1 or \
+                            conns[-1].x - conns[0].x == self.w - 1:
+                        return tile.color
+            for tile in board[-1]:
+                if tile is not None:
+                    conns = self._get_connections(tile, tile, board, [])
+                    if conns[-1].y - conns[0].y == self.h - 1 or \
+                            conns[-1].x - conns[0].x == self.w - 1:
+                        return tile.color
+        return False
+
+    def _get_connections(self, tile: Tile, origtile: Tile, board, tiles) -> List[Tile]:
+        print("Getting", tile, origtile, board, tiles)
+        if tile is None:
+            return []
+        tiles.append(tile)
+        conns = [tile]
+        for direction in dirs:
+            try:
+                x, y = tile.next(direction)
+                if 0 <= x < self.w and 0 <= y < self.h:
+                    t = board[x][y]
+                    if t != origtile and t not in conns and t not in tiles and t.color == origtile.color:
+                        print("Extending", tile, t, x, y, t.x, t.y, tile.x, tile.y)
+                        conns.extend(self.get_connections(t, origtile, board, tiles))
+            except IndexError:
+                pass
+            except AttributeError:
                 pass
         return conns
 
@@ -347,8 +387,7 @@ class Board:
         s_board = self.strip_board()
         def _evaluate(_color):
             e = 0
-            if self.road() == _color:
-                # print("ROAD")
+            if self.road(stripped=s_board) == _color:
                 return 1234567890
             for row in self.board:
                 for sq in row:
@@ -421,7 +460,7 @@ class Player(object):
                     if self.caps < self.board.caps:
                         yield Move(stone=CAP, col=c, row=r)
                 else:
-                    if tile.tiles[0].color == color:
+                    if tile.tiles[-1].color == color:
                         for direction in dirs:
                             x1, y1 = tile.next(direction)
                             if 0 <= x1 < self.board.w and 0 <= y1 < self.board.h:

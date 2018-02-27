@@ -27,33 +27,35 @@ class MinimaxAI(StaticAI):
         self.depth = depth
 
     def pick_move(self):
-        print("Picking move for ai color:", self.color)
-        print("Initial board state:")
-        print(self.board)
+        # print("Picking move for ai color:", self.color)
+        # print("Initial board state:")
+        # print(self.board)
         moves = self.generate_valid_moves(self.color)
         best_eval = -np.inf
         best_move = None
         for move in moves:
-            print("Trying", move)
+            # print("Trying", move)
             new_board = self.board.execute(move, self.color)
             result = self.minimax(self.depth - 1, new_board, -np.inf, np.inf, True, flip_color(self.color))
-            print("New board after move:")
-            print(new_board)
-            print("Evaluation:", result, new_board.evaluate(self.color))
+            # print("New board after move:")
+            # print(new_board)
+            # print("Evaluation:", result, new_board.evaluate(self.color))
             if result >= best_eval:
                 # print("Setting best")
                 best_eval = result
                 best_move = move
-        input()
+        # input()
         return best_move
 
     def minimax(self, depth, board, alpha, beta, maximising, color):
-        # print("Minimaxing on", depth, maximising, color)
+        # print("Maximising" if maximising else "Minimising", end='')
+        # print(" on", depth, maximising, color)
         # print(board)
+        # print(board.road())
         # print(board.evaluate(color))
         if depth == 0:
             # print("\t", "returning")
-            return -board.evaluate(color)
+            return board.evaluate(color)
         moves = self.generate_valid_moves(color)
         b_eval = None
         if maximising:

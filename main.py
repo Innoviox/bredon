@@ -20,7 +20,7 @@ ai = MinimaxAI(board, WHITE, depth=2)
 ai2 = MinimaxAI(board, BLACK, depth=2)
 # p = Player(board, BLACK)
 
-for _ in range(100):
+while not board.winner([ai, ai2]):
     while 1:
         ai_move = ai.pick_move()
         print(ai_move)
@@ -29,7 +29,8 @@ for _ in range(100):
             break
         except ValueError as e:
             print("Error:", e)
-    input(board)
+    print(board)
+    # input(board._road())
     while 1:
         ai_move = ai2.pick_move()
         print(ai_move)
@@ -38,7 +39,10 @@ for _ in range(100):
             break
         except ValueError as e:
             print("Error:", e)
-    input(board)
+    print(board)
+    # input(board._road())
+print(board.winner([ai, ai2]))
+print(board._road())
     #
     # # board.force(board.parse_move(ai_move, ai.curr_player))
     # # ai.switch_player()
