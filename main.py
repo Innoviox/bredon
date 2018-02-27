@@ -24,21 +24,22 @@ i = 1
 while not board.winner([ai, ai2]):
     ptn += str(i) + ". "
     ai_move = ai.pick_move()
-    print(ai_move)
+    print(repr(ai_move))
     ai.do(ai_move)
     print(board)
-    ptn += ai_move.to_ptn() + " "
+    ptn += str(ai_move) + " "
     # input(board._road())
 
     ai_move = ai2.pick_move()
     print(ai_move)
     ai2.do(ai_move)
     print(board)
-    ptn += ai_move.to_ptn()
+    ptn += str(ai_move)
 
     ptn += "\n"
     i += 1
     # input(board._road())
+print(ptn)
 print(board.winner([ai, ai2]))
     #
     # # board.force(board.parse_move(ai_move, ai.curr_player))

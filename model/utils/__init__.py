@@ -74,7 +74,13 @@ class Move:
     def get_square(self):
         return self.col + str(self.row)
 
-    def to_ptn(self):
+    def __repr__(self):
+        r = "Move("
+        for k, v in self.__dict__.items():
+            r += k + '=' + str(v) + ', '
+        return r[:-2] + ")"
+
+    def __str__(self):
         ptn = ""
         if not self.direction:
             if self.stone != FLAT:
