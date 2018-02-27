@@ -2,7 +2,7 @@ from model import *
 
 # board = load_moves_from_file("games/sarras vs takkybot 18.1.27 14.15.ptn")
 # print(board)
-board = Board(3, 3)  # load_moves_from_file("You vs You 18.1.29 20.43.ptn")
+board = Board(4, 4)  # load_moves_from_file("You vs You 18.1.29 20.43.ptn")
 board.force(board.parse_move(Move(col='a', row=3), BLACK))
 board.force(board.parse_move(Move(col='c', row=3), WHITE))
 '''
@@ -19,30 +19,27 @@ print(board.road())
 ai = MinimaxAI(board, WHITE, depth=2)
 ai2 = MinimaxAI(board, BLACK, depth=2)
 # p = Player(board, BLACK)
-
+ptn = ""
+i = 1
 while not board.winner([ai, ai2]):
-    while 1:
-        ai_move = ai.pick_move()
-        print(ai_move)
-        try:
-            ai.do(ai_move)
-            break
-        except ValueError as e:
-            print("Error:", e)
+    ptn += str(i) + ". "
+    ai_move = ai.pick_move()
+    print(ai_move)
+    ai.do(ai_move)
     print(board)
+    ptn += ai_move.to_ptn() + " "
     # input(board._road())
-    while 1:
-        ai_move = ai2.pick_move()
-        print(ai_move)
-        try:
-            ai2.do(ai_move)
-            break
-        except ValueError as e:
-            print("Error:", e)
+
+    ai_move = ai2.pick_move()
+    print(ai_move)
+    ai2.do(ai_move)
     print(board)
+    ptn += ai_move.to_ptn()
+
+    ptn += "\n"
+    i += 1
     # input(board._road())
 print(board.winner([ai, ai2]))
-print(board._road())
     #
     # # board.force(board.parse_move(ai_move, ai.curr_player))
     # # ai.switch_player()

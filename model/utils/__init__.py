@@ -74,6 +74,21 @@ class Move:
     def get_square(self):
         return self.col + str(self.row)
 
+    def to_ptn(self):
+        ptn = ""
+        if not self.direction:
+            if self.stone != FLAT:
+                ptn += self.stone
+            ptn += self.col
+            ptn += str(self.row)
+        else:
+            ptn += str(self.total)
+            ptn += self.col
+            ptn += str(self.row)
+            ptn += ''.join(map(str, self.moves))
+            ptn += self.direction
+        return ptn
+
 
 class Tile:
     def __init__(self, color, stone='F', x=None, y=None):
@@ -81,7 +96,7 @@ class Tile:
         self.x, self.y = x, y
 
     def __repr__(self):
-        return '%s{%s}' % (self.color, self.stone)  # + f'@{coords_to_tile(self.x, self.y)}'
+        return '%s{%s}' % (self.color, self.stone) # + f'@{coords_to_tile(self.x, self.y)}'
 
     def __eq__(self, other):
         if isinstance(other, Tile):
@@ -314,48 +329,9 @@ class Board:
             try:
                 x, y = tile.next(direction)
                 if 0 <= x < self.w and 0 <= y < self.h:
-                    t = board[x][y]
+                    t = board[y][x]
+                    t.x, t.y = x, y
                     if t != origtile and t not in conns and t not in tiles and t.color == origtile.color:
-                        conns.extend(self.get_connections(t, origtile, board, tiles))
-            except IndexError:
-                pass
-            except AttributeError:
-                pass
-        return conns
-
-    def _road(self, stripped=None) -> bool:
-        if stripped is None:
-            new_board = self.strip_board()
-        else:
-            new_board = stripped
-        for board in (new_board, new_board.T):
-            for tile in board[0]:
-                if tile is not None:
-                    conns = self._get_connections(tile, tile, board, [])
-                    if conns[-1].y - conns[0].y == self.h - 1 or \
-                            conns[-1].x - conns[0].x == self.w - 1:
-                        return tile.color
-            for tile in board[-1]:
-                if tile is not None:
-                    conns = self._get_connections(tile, tile, board, [])
-                    if conns[-1].y - conns[0].y == self.h - 1 or \
-                            conns[-1].x - conns[0].x == self.w - 1:
-                        return tile.color
-        return False
-
-    def _get_connections(self, tile: Tile, origtile: Tile, board, tiles) -> List[Tile]:
-        print("Getting", tile, origtile, board, tiles)
-        if tile is None:
-            return []
-        tiles.append(tile)
-        conns = [tile]
-        for direction in dirs:
-            try:
-                x, y = tile.next(direction)
-                if 0 <= x < self.w and 0 <= y < self.h:
-                    t = board[x][y]
-                    if t != origtile and t not in conns and t not in tiles and t.color == origtile.color:
-                        print("Extending", tile, t, x, y, t.x, t.y, tile.x, tile.y)
                         conns.extend(self.get_connections(t, origtile, board, tiles))
             except IndexError:
                 pass
@@ -394,7 +370,8 @@ class Board:
                     if sq.tiles:
                         t = sq.tiles[-1]
                         if t.color == _color:
-                            e += str(sq).count(_color)
+                            e += 1
+                            e += sum(1 for i in sq.tiles if i.color == color and i.stone in 'CF')
                             a = len(list(filter(lambda tile: tile.stone in 'F', self.get_connections(t, t, s_board, []))))
                             if a > 1:
                                 e += a
