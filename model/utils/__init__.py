@@ -79,19 +79,10 @@ class Move:
         return 'Move(' + ', '.join([f"{k}={v!r}" for k, v in self.__dict__.items()]) + ')'
 
     def __str__(self):
-        ptn = ""
         if not self.direction:
-            if self.stone != FLAT:
-                ptn += self.stone
-            ptn += self.col
-            ptn += str(self.row)
+            return (self.stone + self.get_square()).strip(FLAT)
         else:
-            ptn += str(self.total)
-            ptn += self.col
-            ptn += str(self.row)
-            ptn += ''.join(map(str, self.moves))
-            ptn += self.direction
-        return ptn
+            return str(self.total) + self.get_square() + ''.join(map(str, self.moves)) + self.direction
 
 
 class Tile:
@@ -100,7 +91,7 @@ class Tile:
         self.x, self.y = x, y
 
     def __repr__(self):
-        return '%s{%s}' % (self.color, self.stone) + f'@{coords_to_tile(self.x, self.y)}'
+        return '%s{%s}' % (self.color, self.stone) # + f'@{coords_to_tile(self.x, self.y)}'
 
     def __eq__(self, other):
         if isinstance(other, Tile):
@@ -317,7 +308,8 @@ class Board:
                 road = self.compress_left(color, board, out=out)
                 if out:
                     print(road)
-                if all(len(road[i]) > 0 for i in range(self.h)):
+                if all(len(road[i]) > 0 for i in range(self.h)) or \
+                   any(len(road[i]) >= self.h for i in range(self.h)):
                     return color 
         return False
     
@@ -351,7 +343,7 @@ class Board:
                            headers=list(range(1, self.w + 1)),
                            showindex=list(cols[:self.h]))
 
-    def evaluate(self, color):
+    def evaluate(self, color, out=False):
         '''
         Evaluate a board
         :param color: which color is playing
@@ -360,25 +352,62 @@ class Board:
         def _evaluate(_color):
             e = 0
             if self.road() == _color:
-                return 1234567890
+                # print("ROAD")
+                return -1234567890
             for row in self.board:
                 for sq in row:
                     if sq.tiles:
                         t = sq.tiles[-1]
                         if t.color == _color:
-                            e += 1
-                            e += sum(1 for i in sq.tiles if i.color == color and i.stone in 'CF')
-                            a = sq.connections(self.board)
-                            if a > 1:
-                                e += a
+                            if out:
+                                print(sq, sum(1 for i in sq.tiles if i.color == color and i.stone in 'CF') ** 1.5, (sq.connections(self.board) + 1) ** 2)
+                            # if t.stone == 'F':
+                            #     e += 5
+                            # elif t.stone == 'S':
+                            #     e += 2
+                            # elif t.stone == 'C':
+                            #     e += 4
+                            e += sum(1 for i in sq.tiles if i.color == color and i.stone in 'CF') ** 1.5
+                            e += (sq.connections(self.board) + 1) ** 1
             return e
-        return _evaluate(color) - _evaluate(flip_color(color))
+        return _evaluate(color) - _evaluate(flip_color(color)) * 2
 
     def execute(self, move, color):
-        new_board = self.copy()
-        new_board.force_move(move, color)
-        return new_board
+        self.force_move(move, color)
 
+    def set(self, old_state):
+        self.board = old_state
+
+    def _valid(self, move, color):
+        return self.valid(self.parse_move(move, color))
+
+    def generate_valid_moves(self, color, caps):
+        return filter(lambda move: self._valid(move, color), self.generate_all_moves(color, caps))
+
+    def generate_all_moves(self, color, caps):
+        for y in range(self.h):
+            for x in range(self.w):
+                c, r = coords_to_tile(x, y)
+                tile = self.get(x, y)
+                if tile == EMPTY:
+                    for stone in FLAT + STAND:
+                        yield Move(stone=stone, col=c, row=r)
+                    if caps < self.caps:
+                        yield Move(stone=CAP, col=c, row=r)
+                else:
+                    if tile.tiles[-1].color == color:
+                        for direction in dirs:
+                            x1, y1 = tile.next(direction)
+                            if 0 <= x1 < self.w and 0 <= y1 < self.h:
+                                for i in range(1, len(tile.tiles) + 1):
+                                    if i == 1 and len(tile.tiles) == 1:
+                                        yield Move(col=c, row=r, direction=direction)
+                                    else:
+                                        for move_amounts in sums(i):
+                                            if len(move_amounts) == 1 and move_amounts[0] == i:
+                                                yield Move(total=i, col=c, row=r, direction=direction)
+                                            else:
+                                                yield Move(total=i, col=c, row=r, moves=move_amounts, direction=direction)
 
 class Player(object):
     def __init__(self, board, color):
@@ -422,30 +451,6 @@ class Player(object):
     def out_of_tiles(self):
         return self.caps > self.board.caps and self.stones > self.board.stones
 
-    def generate_all_moves(self, color):
-        for y in range(self.board.h):
-            for x in range(self.board.w):
-                c, r = coords_to_tile(x, y)
-                tile = self.board.get(x, y)
-                if tile == EMPTY:
-                    for stone in FLAT + STAND:
-                        yield Move(stone=stone, col=c, row=r)
-                    if self.caps < self.board.caps:
-                        yield Move(stone=CAP, col=c, row=r)
-                else:
-                    if tile.tiles[-1].color == color:
-                        for direction in dirs:
-                            x1, y1 = tile.next(direction)
-                            if 0 <= x1 < self.board.w and 0 <= y1 < self.board.h:
-                                for i in range(1, len(tile.tiles) + 1):
-                                    if i == 1 and len(tile.tiles) == 1:
-                                        yield Move(col=c, row=r, direction=direction)
-                                    else:
-                                        for move_amounts in sums(i):
-                                            if len(move_amounts) == 1 and move_amounts[0] == i:
-                                                yield Move(total=i, col=c, row=r, direction=direction)
-                                            else:
-                                                yield Move(total=i, col=c, row=r, moves=move_amounts, direction=direction)
 
 
 def str_to_move(move: str) -> Move:
