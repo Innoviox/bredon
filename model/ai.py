@@ -1,6 +1,4 @@
 import random
-
-
 from .utils import Player, coords_to_tile, EMPTY, dirs, BLACK, WHITE, np, flip_color
 
 class StaticAI(Player):
