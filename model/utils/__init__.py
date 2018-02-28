@@ -1,3 +1,5 @@
+import functools
+
 import numpy as np
 import collections as ct
 import itertools as it
@@ -366,11 +368,21 @@ class Board:
             return e
         return _evaluate(color) - _evaluate(flip_color(color)) * 2
 
-    def execute(self, move, color):
+    def execute(self, color, move):
         new_board = self.copy()
         new_board.force_move(move, color)
         return new_board
 
+    def _valid(self, color, move):
+        return self.valid(self.parse_move(move, color))
+
+    def generate_valid_moves(self, player):
+        fn = functools.partial(self._valid, player.color)
+        return filter(fn, player.generate_all_moves(player.color))
+
+    def executed_valid_moves(self, player):
+        fn = functools.partial(self.execute, player.color)
+        return map(fn, self.generate_valid_moves(player))
 
 class Player(object):
     def __init__(self, board, color):

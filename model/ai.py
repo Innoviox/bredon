@@ -1,18 +1,7 @@
-import random
-
-
+import random, functools
 from .utils import Player, coords_to_tile, EMPTY, dirs, BLACK, WHITE, np, flip_color
 
 class StaticAI(Player):
-    def valid(self, move):
-        return self.board.valid(self.board.parse_move(move, self.color))
-
-    def generate_valid_moves(self, color):
-        return filter(self.valid, self.generate_all_moves(color))
-
-    def other_color(self):
-        return [BLACK, WHITE][self.color == BLACK]
-
     def pick_move(self):
         raise NotImplementedError()
 
@@ -30,23 +19,24 @@ class MinimaxAI(StaticAI):
         # print("Picking move for ai color:", self.color)
         # print("Initial board state:")
         # print(self.board)
-        moves = self.generate_valid_moves(self.color)
-        best_eval = np.inf
+        moves = self.board.generate_valid_moves(self)
+        best_eval = -np.inf
         # if self.color == "B": best_eval *= -1
         best_move = None
+        alpha = -np.inf
         for move in moves:
             # print("Trying", move)
-            new_board = self.board.execute(move, self.color)
-            result = self.minimax(self.depth - 1, new_board, -np.inf, np.inf, True, flip_color(self.color))
+            new_board = self.board.execute(self.color, move)
+            alpha = self.minimax(self.depth - 1, new_board, alpha, np.inf, False, flip_color(self.color))
             # if self.color in "WB": result *= -1
             # print("New board after move:")
             # print(new_board)
             # print("Evaluation:", result, new_board.evaluate(self.color, out=True))
             # if (self.color == "W" and result >= best_eval) or \
             #    (self.color == "B" and result <= best_eval):
-            if result <= best_eval:
+            if alpha >= best_eval:
                 # print("Setting best")
-                best_eval = result
+                best_eval = alpha
                 best_move = move
             # print(move)
             # print(new_board)
@@ -64,14 +54,14 @@ class MinimaxAI(StaticAI):
 
         if depth == 0:
             # print("\t", "returning")
-            return board.evaluate(color)
-        moves = self.generate_valid_moves(color)
+            return -board.evaluate(color)
+        moves = self.board.generate_valid_moves(self)
         b_eval = None
         if maximising:
             b_eval = -np.inf
             for move in moves:
                 # print("\t1a ", b_eval, alpha, beta)
-                new_board = board.execute(move, color)
+                new_board = board.execute(color, move)
                 b_eval = max(b_eval, self.minimax(depth - 1, new_board, alpha, beta, not maximising, flip_color(color)))
                 alpha = max(alpha, b_eval)
                 # print("\t1b ", b_eval, alpha, beta)
@@ -82,7 +72,7 @@ class MinimaxAI(StaticAI):
             b_eval = np.inf
             for move in moves:
                 # print("\t2a ", b_eval, alpha, beta)
-                new_board = board.execute(move, color)
+                new_board = board.execute(color, move)
                 b_eval = min(b_eval, self.minimax(depth - 1, new_board, alpha, beta, not maximising, flip_color(color)))
                 beta = min(beta, b_eval)
                 # print("\t2b ", b_eval, alpha, beta)
