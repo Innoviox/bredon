@@ -22,7 +22,9 @@ class MinimaxAI(StaticAI):
         # print("Initial board state:")
         # print(self.board)
         moves = self.board.generate_valid_moves(self.color, self.caps)
-        best_eval = -np.inf
+        best_eval = np.inf
+        if self.depth % 2 == 1:
+            best_eval *= -1
         # if self.color == "B": best_eval *= -1
         best_move = None
         old_state = self.board.copy_board()
@@ -35,13 +37,13 @@ class MinimaxAI(StaticAI):
             alpha -= ev
             # print("New board after move:")
             # print(self.board)
-            print("Evaluation:", alpha, ev)# , out=True))
+            print("Evaluation:", alpha, ev, best_eval)# , out=True))
             self.board.set(old_state)
             # if self.color in "WB": result *= -1
             # if (self.color == "W" and result >= best_eval) or \
             #    (self.color == "B" and result <= best_eval):
-            if alpha >= best_eval:
-                # print("Setting best")
+            if (self.depth % 2 == 1 and alpha >= best_eval) or (self.depth % 2 == 0 and alpha <= best_eval):
+                print("Setting best")
                 best_eval = alpha
                 best_move = move
             # print(move)
@@ -58,14 +60,14 @@ class MinimaxAI(StaticAI):
         # print(board.road())
         # print(board.evaluate(color))
 
-        if board.road():
+        # if board.road():
 
             # print(board)
-            if maximising:
-                return -1234567890
-            else:
-                return 1234567890
-        elif depth == 0: # or board.road():
+        #     if maximising:
+        #         return -1234567890
+        #     else:
+        #         return 1234567890
+        if depth == 0: # or board.road():
             # print("\t", "returning")
             return board.evaluate(color)
 

@@ -82,7 +82,7 @@ class Move:
         if not self.direction:
             return (self.stone + self.get_square()).strip(FLAT)
         else:
-            return str(self.total) + self.get_square() + ''.join(map(str, self.moves)) + self.direction
+            return str(self.total) + self.get_square() + self.direction + ''.join(map(str, self.moves))
 
 
 class Tile:
@@ -285,6 +285,10 @@ class Board:
         new_board = self.copy()
         return new_board.force(pbs) is None
 
+    def valid_move(self, move, color):
+        new_board = self.copy()
+        return new_board.force_move(move, color)
+
     def winner(self, players):
         r = self.road()
         if r:
@@ -451,7 +455,22 @@ class Player(object):
     def out_of_tiles(self):
         return self.caps > self.board.caps and self.stones > self.board.stones
 
+    def _pick_move(self, color):
+        m = None
+        while True:
+            m = str_to_move(input("Enter move: "))
+            v = self.board.valid_move(m, color)
+            if v is None:
+                return m
+            else:
+                print("Parsed move", m)
+                print("Received error", v)
 
+    def pick_move(self):
+        return self._pick_move(self.color)
+
+    def pick_opposing_move(self):
+        return self._pick_move(flip_color(self.color))
 
 def str_to_move(move: str) -> Move:
     move_dir = None
