@@ -18,6 +18,7 @@ dirs = '+-<>'
 UP, DOWN, LEFT, RIGHT = dirs
 stones = 'FCS'
 FLAT, CAP, STAND = stones
+SIZE = None
 
 PseudoBoard = ct.namedtuple("PseudoBoard", ("w", "h", "board", "bool", "err", "type"))
 
@@ -45,17 +46,18 @@ def coords_to_tile(x: int, y: int):
     return cols[y] + str(x + 1)
 
 
-def _next(obj, direction):
+def _next(obj, direction, size):
     # TODO: checks on boundaries
     if hasattr(obj, 'x') and hasattr(obj, 'y'):
-        if direction == LEFT:  # and self.y != 0:
+        if direction == LEFT and obj.y > 0:
             return obj.x, obj.y - 1
-        if direction == RIGHT:
+        if direction == RIGHT and obj.y < size:
             return obj.x, obj.y + 1
-        if direction == DOWN:
+        if direction == DOWN and obj.x > 0:
             return obj.x - 1, obj.y
-        if direction == UP:
+        if direction == UP and obj.x < size:
             return obj.x + 1, obj.y
+        raise ValueError("Out of bounds")
     raise TypeError("Object must have an x and y attribute")
 
 def flip_color(color):
@@ -131,14 +133,17 @@ class Square:
     def connections(self, board):
         conns = 0 
         for direction in dirs:
-            x, y = self.next(direction)
             try:
-                t_next = board[x][y].tiles[-1]
+                x, y = self.next(direction, SIZE)
+                t_next = board[y][x].tiles[-1]
                 t = self.tiles[-1]
                 if t_next is not None and t is not None and t_next.color == t.color and t_next.stone in 'FC' and t.stone in 'FC':
                     conns += 1
             except IndexError:
                 pass
+            except ValueError:
+                pass
+
         return conns
       
     def copy(self):
@@ -162,7 +167,8 @@ Square.next = Tile.next = _next
 
 class Board:
     def __init__(self, w: int, h: int, board=None):
-        self.w, self.h = w, h
+        global SIZE
+        self.w, self.h, SIZE = w, h, w
         self.board = [[Square(x, y) for x in range(w)]
                       for y in range(h)] if board is None else board
         self.stones, self.caps = sizes[w]
@@ -203,7 +209,10 @@ class Board:
             if isinstance(new_square, tuple):
                 new_square = self.get(*new_square)
             elif isinstance(new_square, str):
-                new_square = self.get(*old_square.next(new_square))
+                try:
+                    new_square = self.get(*old_square.next(new_square, SIZE))
+                except ValueError:
+                    return PseudoBoard(self.w, self.h, self.board, False, f"{old_square.x}, {old_square.y} is out of bounds for {new_square}", None)
             else:
                 raise TypeError("new_square must be Square, tuple, or str, got: %s" % new_square.__class__)
         else:
@@ -254,7 +263,7 @@ class Board:
         sq = copy.get(*tile_to_coords(move.get_square()))
         yield _run(lambda: copy.move_single(sq, move.direction, move.total, first=True))
         for n in range(1, len(move.moves)):
-            sq = copy.get(*sq.next(move.direction))
+            sq = copy.get(*sq.next(move.direction, SIZE))
             yield _run(lambda: copy.move_single(sq, move.direction, sum(move.moves[n:]), first=False))
 
     def parse_move(self, move: Move, curr_player):
@@ -267,11 +276,13 @@ class Board:
         if isinstance(pbs, PseudoBoard):
             self.force([pbs])
         else:
+            new_board = self.copy_board()
             for pb in pbs:
                 if pb.err is not None:
                     return pb.err
                 else:
-                    self.board = pb.board
+                    new_board = pb.board
+            self.board = new_board
 
     def force_move(self, s, curr_player):
         return self.force(self.parse_move(s, curr_player))
@@ -285,23 +296,25 @@ class Board:
 
     def valid_move(self, move, color):
         new_board = self.copy()
-        return new_board.force_move(move, color)
+        return new_board.force_move(move, color) is None
 
-    def winner(self, players):
+    def winner(self, players, t=False):
         r = self.road()
         if r:
             return r
         elif all(sq != EMPTY for row in self.board for sq in row) or \
                 any(player.out_of_tiles() for player in players):
-            return self.flat_win()
+            return self.flat_win(t=t, f=True)
         return None
 
-    def flat_win(self):
+    def flat_win(self, t=False, f=False):
         def _sum(color):
-            return sum(1 for row in self.board for sq in row if sq.tiles and sq.tiles[-1] == (color, FLAT))
+            return sum(1 for row in self.board for sq in row if sq.tiles and sq.tiles[-1].color == color and sq.tiles[-1].stone == FLAT)
 
         w, b = _sum(WHITE), _sum(BLACK)
-        return False if w == b else WHITE if w > b else BLACK
+        if f or all(len(sq.tiles) > 0 for row in self.board for sq in row):
+            return ("TIE" if t else False) if w == b else WHITE if w > b else BLACK
+        return False
 
     def road(self, out=False):
         np_board = np.array(self.board)
@@ -354,6 +367,7 @@ class Board:
         def _evaluate(_color):
             e = 0
             if self.road() == _color or self.flat_win() == _color:
+                # print(self)
                 # print("ROAD")
                 return -1234567890
             for row in self.board:
@@ -363,10 +377,10 @@ class Board:
                         if t.color == _color:
                             if out:
                                 print(sq, sum(1 for i in sq.tiles if i.color == color and i.stone in 'CF') ** 1.5, (sq.connections(self.board) + 1) ** 2)
-                            # if t.stone == 'F':
-                            #     e += 5
-                            # elif t.stone == 'S':
-                            #     e += 2
+                            if t.stone == 'F':
+                                e += 50
+                            elif t.stone == 'S':
+                                e += 2
                             # elif t.stone == 'C':
                             #     e += 4
                             e += sum(1 for i in sq.tiles if i.color == color and i.stone in 'CF') ** 1.5
@@ -399,17 +413,21 @@ class Board:
                 else:
                     if tile.tiles[-1].color == color:
                         for direction in dirs:
-                            x1, y1 = tile.next(direction)
-                            if 0 <= x1 < self.w and 0 <= y1 < self.h:
-                                for i in range(1, min(len(tile.tiles) + 1, self.h + 1)):
-                                    if i == 1 and len(tile.tiles) == 1:
-                                        yield Move(col=c, row=r, direction=direction)
-                                    else:
-                                        for move_amounts in sums(i):
-                                            if len(move_amounts) == 1 and move_amounts[0] == i:
-                                                yield Move(total=i, col=c, row=r, direction=direction)
-                                            else:
-                                                yield Move(total=i, col=c, row=r, moves=move_amounts, direction=direction)
+                            try:
+                                x1, y1 = tile.next(direction, SIZE)
+                                if 0 <= x1 < self.w and 0 <= y1 < self.h:
+                                    for i in range(1, min(len(tile.tiles) + 1, self.h + 1)):
+                                        if i == 1 and len(tile.tiles) == 1:
+                                            yield Move(col=c, row=r, direction=direction)
+                                        else:
+                                            for move_amounts in sums(i):
+                                                if len(move_amounts) == 1 and move_amounts[0] == i:
+                                                    yield Move(total=i, col=c, row=r, direction=direction)
+                                                else:
+                                                    yield Move(total=i, col=c, row=r, moves=move_amounts, direction=direction)
+                            except ValueError:
+                                pass
+
 
 class Player(object):
     def __init__(self, board, color):
@@ -462,7 +480,7 @@ class Player(object):
             m = str_to_move(input("Enter move: "))
             try:
                 v = self.board.valid_move(m, color)
-                if v is None:
+                if v:
                     return m, color
                 else:
                     print("Parsed move", m)

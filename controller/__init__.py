@@ -34,7 +34,7 @@ class Game:
                 print(time.time() - t)
                 ptn += str(m) + " "
                 player._do(m, c)
-                w = self.board.winner(self.players)
+                w = self.board.winner(self.players, t=True)
                 print(ptn)
                 if w:
                     print(w, "won!")
