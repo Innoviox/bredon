@@ -1,7 +1,5 @@
 import random
-
-
-from .utils import Player, coords_to_tile, EMPTY, dirs, BLACK, WHITE, np, flip_color
+from .utils import *
 
 class StaticAI(Player):
     def pick_move(self):
@@ -30,11 +28,22 @@ class MinimaxAI(StaticAI):
         old_state = self.board.copy_board()
         alpha = np.inf
         for move in moves:
+            # if move.stone == STAND:
+            #     continue
             print("Trying", move)
             self.board.execute(move, self.color)
-            alpha = -self.minimax(self.depth - 1, self.board, -np.inf, np.inf, True, flip_color(self.color), self.board.copy_board()) * 3
+            alpha = self.minimax(self.depth - 1, self.board, -np.inf, np.inf, True, flip_color(self.color), self.board.copy_board()) * 3
             ev = self.board.evaluate(self.color)
             alpha -= ev
+            if abs(alpha) > 10000:
+                alpha *= -1
+            # s_alpha = -np.inf
+            # if abs(alpha) > 10000:
+            #     self.board.set(old_state)
+            #     self.board.execute(str_to_move(STAND + move.get_square()), self.color)
+            #     s_alpha =  -self.minimax(self.depth - 1, self.board, -np.inf, np.inf, True, flip_color(self.color), self.board.copy_board()) * 3
+            #     s_alpha -= self.board.evaluate(self.color)
+
             # print("New board after move:")
             # print(self.board)
             print("Evaluation:", alpha, ev, best_eval)# , out=True))
@@ -46,9 +55,12 @@ class MinimaxAI(StaticAI):
                 print("Setting best")
                 best_eval = alpha
                 best_move = move
+            # if s_alpha > alpha:
+            #     best_eval = s_alpha
+            #     best_move = STAND + move.get_square()
             # print(move)
             # print(new_board)
-            # input()
+            # input()∂
         # input()
         return best_move
 
@@ -88,7 +100,7 @@ class MinimaxAI(StaticAI):
                 if beta <= alpha:
                     pass
                     # print("\t" * (self.depth - depth) + "\t(max) breaking", alpha, beta)
-                    break
+                    return -beta # break
         else:
             b_eval = np.inf
             for move in moves:
@@ -102,5 +114,5 @@ class MinimaxAI(StaticAI):
                 if beta <= alpha:
                     pass
                     # print("\t" * (self.depth - depth) + "\t(min) breaking", alpha, beta)
-                    break
+                    return -beta # break
         return b_eval
