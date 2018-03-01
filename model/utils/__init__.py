@@ -353,7 +353,7 @@ class Board:
         '''
         def _evaluate(_color):
             e = 0
-            if self.road() == _color:
+            if self.road() == _color or self.flat_win() == _color:
                 # print("ROAD")
                 return -1234567890
             for row in self.board:
