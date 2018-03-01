@@ -1,5 +1,5 @@
 import random
-from utils import *
+from .utils import *
 
 class StaticAI(Player):
     def pick_move(self):
@@ -30,10 +30,10 @@ class MinimaxAI(StaticAI):
         for move in moves:
             # if move.stone == STAND:
             #     continue
-            print("Trying", move)
+            # print("Trying", move)
             self.board.execute(move, self.color)
             # print(self.board)
-            alpha = self.minimax(self.depth - 1, self.board, -np.inf, np.inf, True, flip_color(self.color), self.board.copy_board(), out=str(move) == '1c4<') * 3
+            alpha = self.minimax(self.depth - 1, self.board, -np.inf, np.inf, True, flip_color(self.color), self.board.copy_board()) * 3
             ev = self.board.evaluate(self.color)
             alpha -= ev
             if abs(alpha) > 10000:
@@ -47,7 +47,7 @@ class MinimaxAI(StaticAI):
 
             # print("New board after move:")
             # print(self.board)
-            print("Evaluation:", alpha, ev, best_eval)# , out=True))
+            # print("Evaluation:", alpha, ev, best_eval)# , out=True))
             self.board.set(old_state)
             # if self.color in "WB": result *= -1
             # if (self.color == "W" and result >= best_eval) or \
@@ -59,51 +59,55 @@ class MinimaxAI(StaticAI):
             # if s_alpha > alpha:
             #     best_eval = s_alpha
             #     best_move = STAND + move.get_square()
-            print(move)
+            # print(move)
             # print(new_board)
             # input()
         # input()
         return best_move
 
     def minimax(self, depth, board, alpha, beta, maximising, color, old_state, out=False):
-        if out: print("\t" * (self.depth - depth) + "(minimax)", alpha, beta)
-        if board.road():
+        # if out: print("\t" * (self.depth - depth) + "(minimax)", alpha, beta)
+        if depth == 0:
+            # if out: print("\t" * self.depth + "(0) ret", board.evaluate(color))
+            return board.evaluate(color)
+        elif board.road() or board.flat_win():
             if maximising:
-                if out: print("\t" * (self.depth - depth) + "\t(max) road breaking")
+                # if out: print("\t" * (self.depth - depth) + "\t(max) road breaking")
                 return -1234567890
             else:
-                if out: print("\t" * (self.depth - depth) + "\t(min) road breaking")
+                # if out: print("\t" * (self.depth - depth) + "\t(min) road breaking")
                 return 1234567890
-        elif depth == 0:
-            if out: print("\t" * self.depth + "(0) ret", board.evaluate(color))
-            return board.evaluate(color)
+
         moves = board.generate_valid_moves(color, self.caps)
         if maximising:
             b_eval = -np.inf
             for move in moves:
-                if out: print("\t" * (self.depth - depth) + "(max) Trying", move, b_eval)
+                # if out: print("\t" * (self.depth - depth) + "(max) Trying", move, b_eval)
                 board.execute(move, color)
                 b_eval = max(b_eval, self.minimax(depth - 1, board, alpha, beta, not maximising, flip_color(color), board.copy_board(), out=out))
                 board.set(old_state)
                 alpha = max(alpha, b_eval)
                 if beta <= alpha:
                     pass
-                    if out: print("\t" * (self.depth - depth) + "\t(max) breaking", alpha, beta)
+                    # if out: print("\t" * (self.depth - depth) + "\t(max) breaking", alpha, beta)
                     # if abs(beta) > 10000:
-                    return beta # break
+                    if beta < -10000:
+                        return beta
+                    return -beta # break
                     # return b_eval
         else:
             b_eval = np.inf
             for move in moves:
-                if out: print("\t" * (self.depth - depth) + "(min) Trying", move, b_eval)
+                # if out: print("\t" * (self.depth - depth) + "(min) Trying", move, b_eval)
                 board.execute(move, color)
                 b_eval = min(b_eval, self.minimax(depth - 1, board, alpha, beta, not maximising, flip_color(color), board.copy_board(), out=out))
                 board.set(old_state)
                 beta = min(beta, b_eval)
                 if beta <= alpha:
                     pass
-                    if out: print("\t" * (self.depth - depth) + "\t(min) breaking", alpha, beta)
-                    # if abs(beta) > 10000:
-                    return beta # break
+                    # if out: print("\t" * (self.depth - depth) + "\t(min) breaking", alpha, beta)
+                    if beta < -10000:
+                        return beta
+                    return -beta # break
                     # return b_eval
         return b_eval

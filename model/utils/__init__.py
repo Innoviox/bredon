@@ -417,8 +417,8 @@ class Player(object):
         self.color = color
         self.stones, self.caps = 0, 0
 
-    def do(self, m: Move):
-        move = self.board.parse_move(m, self.color)
+    def _do(self, m: Move, c):
+        move = self.board.parse_move(m, c)
         if isinstance(move, PseudoBoard):
             if move.bool:
                 stone_type = m.stone
@@ -439,9 +439,9 @@ class Player(object):
                     self.stones -= stone
                     self.caps -= cap
                     raise ValueError(f"Not enough pieces left")
-                                     # f"\tStones played: {self.stones}, Total: {self.board.stones}"
-                                     # f"\tCaps played: {self.caps}, Total: {self.board.caps}"
-                                     # f"Stone: {stone}, Cap: {cap}")
+                    # f"\tStones played: {self.stones}, Total: {self.board.stones}"
+                    # f"\tCaps played: {self.caps}, Total: {self.board.caps}"
+                    # f"Stone: {stone}, Cap: {cap}")
                 else:
                     self.board.force(move)
             else:
@@ -450,8 +450,11 @@ class Player(object):
         else:
             self.board.force(move)
 
+    def do(self, m: Move):
+        return self._do(m, self.color)
+
     def out_of_tiles(self):
-        return self.caps > self.board.caps and self.stones > self.board.stones
+        return self.caps >= self.board.caps and self.stones >= self.board.stones
 
     def _pick_move(self, color):
         m = None
@@ -460,7 +463,7 @@ class Player(object):
             try:
                 v = self.board.valid_move(m, color)
                 if v is None:
-                    return m
+                    return m, color
                 else:
                     print("Parsed move", m)
                     print("Received error", v)
