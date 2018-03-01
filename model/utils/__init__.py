@@ -353,7 +353,7 @@ class Board:
         '''
         def _evaluate(_color):
             e = 0
-            if self.road() == _color:
+            if self.road() == _color or self.flat_win() == _color:
                 # print("ROAD")
                 return -1234567890
             for row in self.board:
@@ -401,7 +401,7 @@ class Board:
                         for direction in dirs:
                             x1, y1 = tile.next(direction)
                             if 0 <= x1 < self.w and 0 <= y1 < self.h:
-                                for i in range(1, len(tile.tiles) + 1):
+                                for i in range(1, min(len(tile.tiles) + 1, self.h + 1)):
                                     if i == 1 and len(tile.tiles) == 1:
                                         yield Move(col=c, row=r, direction=direction)
                                     else:
