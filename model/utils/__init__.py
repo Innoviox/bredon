@@ -130,20 +130,32 @@ class Square:
         self.tiles = self.tiles[:n]
         return top
 
-    def connections(self, board):
+    def connections(self, board, xy=True):
+        # print("\tRunning connections!")
         conns = 0 
         for direction in dirs:
+            # print("\t\tTrying", direction)
             try:
                 x, y = self.next(direction, SIZE)
-                t_next = board[y][x].tiles[-1]
+                # print("\t\tI am", self.x, self.y, "got", x, y)
+                # if direction in UP + DOWN:
+                #     t_next = board[y][x].tiles[-1]
+                # else:
+                if xy:
+                    t_next = board[x][y].tiles[-1]
+                else:
+                    t_next = board[y][x].tiles[-1]
+                # print("\t\tGot", t_next, t_next.x, t_next.y)
                 t = self.tiles[-1]
                 if t_next is not None and t is not None and t_next.color == t.color and t_next.stone in 'FC' and t.stone in 'FC':
                     conns += 1
             except IndexError:
+                # print("\t\t\tindex error!")
                 pass
             except ValueError:
+                # print("\t\t\tvalue error!")
                 pass
-
+        # print("\treturning", conns)
         return conns
       
     def copy(self):
@@ -318,9 +330,9 @@ class Board:
 
     def road(self, out=False):
         np_board = np.array(self.board)
-        for board in (np_board, np.transpose(np_board)):
+        for board, xy in zip((np_board, np.transpose(np_board)), (False, True)):
             for color in COLORS:
-                road = self.compress_left(color, board, out=out)
+                road = self.compress_left(color, board, xy, out=out)
                 if out:
                     print(road)
                 if all(len(road[i]) > 0 for i in range(self.h)) or \
@@ -328,7 +340,7 @@ class Board:
                     return color 
         return False
     
-    def compress_left(self, color, board, out=False):
+    def compress_left(self, color, board, xy, out=False):
         if out:
             print("Compressing", color)
             print(board)
@@ -336,7 +348,7 @@ class Board:
         for r, row in enumerate(board):
             for sq in row:
                 if sq.tiles and sq.tiles[-1].color == color:
-                    conns = sq.connections(board)
+                    conns = sq.connections(board, xy)
                     if out:
                         print(sq, conns)
                     if conns > 1 or ((r == 0 or r == self.h - 1) and conns > 0):
@@ -377,10 +389,10 @@ class Board:
                         if t.color == _color:
                             if out:
                                 print(sq, sum(1 for i in sq.tiles if i.color == color and i.stone in 'CF') ** 1.5, (sq.connections(self.board) + 1) ** 2)
-                            if t.stone == 'F':
-                                e += 50
-                            elif t.stone == 'S':
-                                e += 2
+                            # if t.stone == 'F':
+                            #     e += 50
+                            # elif t.stone == 'S':
+                            #     e += 2
                             # elif t.stone == 'C':
                             #     e += 4
                             e += sum(1 for i in sq.tiles if i.color == color and i.stone in 'CF') ** 1.5

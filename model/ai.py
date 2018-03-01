@@ -70,8 +70,8 @@ class MinimaxAI(StaticAI):
         if depth == 0:
             # if out: print("\t" * self.depth + "(0) ret", board.evaluate(color))
             return board.evaluate(color)
-        elif depth >= self.depth - 2 and (board.road() or board.flat_win()):
-            #
+        elif (board.road() or board.flat_win()):
+            #depth >= self.depth - 2
             if maximising:
                 # if out: print("\t" * (self.depth - depth) + "\t(max) road breaking")
                 return -1234567890
