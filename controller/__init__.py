@@ -2,6 +2,7 @@ from model import *
 
 HUMAN = "human"
 AI = "ai"
+
 class Game:
     def __init__(self, size=5, board=None, white_type=(HUMAN, None), black_type=(AI, 3)):
         self.board = Board(w=size, h=size) if board is None else board
