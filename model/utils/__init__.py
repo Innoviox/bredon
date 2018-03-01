@@ -2,12 +2,10 @@ import numpy as np
 import collections as ct
 import itertools as it
 import dataclasses as dc
-
 import tabulate as tb
+
 from string import ascii_lowercase as cols
-
 from operator import sub
-
 from typing import List
 
 COLORS = "BW"
