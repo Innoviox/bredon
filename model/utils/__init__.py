@@ -457,12 +457,16 @@ class Player(object):
         m = None
         while True:
             m = str_to_move(input("Enter move: "))
-            v = self.board.valid_move(m, color)
-            if v is None:
-                return m
-            else:
+            try:
+                v = self.board.valid_move(m, color)
+                if v is None:
+                    return m
+                else:
+                    print("Parsed move", m)
+                    print("Received error", v)
+            except Exception as e:
                 print("Parsed move", m)
-                print("Received error", v)
+                print("Received error", e)
 
     def pick_move(self):
         return self._pick_move(self.color)
