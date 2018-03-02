@@ -378,17 +378,17 @@ class Board:
         '''
         def _evaluate(_color):
             e = 0
-            if self.road() == _color or self.flat_win() == _color:
+            # if self.road() == _color or self.flat_win() == _color:
                 # print(self)
                 # print("ROAD")
-                return -1234567890
+            #     return -1234567890
             for row in self.board:
                 for sq in row:
                     if sq.tiles:
                         t = sq.tiles[-1]
                         if t.color == _color:
-                            if out:
-                                print(sq, sum(1 for i in sq.tiles if i.color == color and i.stone in 'CF') ** 1.5, (sq.connections(self.board) + 1) ** 2)
+                            # if out:
+                            #     print(sq, sum(1 for i in sq.tiles if i.color == color and i.stone in 'CF') ** 1.5, (sq.connections(self.board) + 1) ** 2)
                             # if t.stone == 'F':
                             #     e += 50
                             # elif t.stone == 'S':
@@ -396,7 +396,7 @@ class Board:
                             # elif t.stone == 'C':
                             #     e += 4
                             e += sum(1 for i in sq.tiles if i.color == color and i.stone in 'CF') ** 1.5
-                            e += (sq.connections(self.board) + 1) ** 1
+                            e += (sq.connections(self.board) + 1) ** 2
             return e
         return _evaluate(color) - _evaluate(flip_color(color)) * 2
 

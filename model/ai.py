@@ -67,10 +67,7 @@ class MinimaxAI(StaticAI):
 
     def minimax(self, depth, board, alpha, beta, maximising, color, old_state, out=False):
         if out: print("\t" * (self.depth - depth) + "(minimax)", alpha, beta)
-        if depth == 0:
-            if out: print("\t" * self.depth + "(0) ret", board.evaluate(color))
-            return board.evaluate(color)
-        elif (board.road() or board.flat_win()):
+        if (board.road() or board.flat_win()):
             #depth >= self.depth - 2
             if maximising:
                 if out: print("\t" * (self.depth - depth) + "\t(max) road breaking")
@@ -78,6 +75,10 @@ class MinimaxAI(StaticAI):
             else:
                 if out: print("\t" * (self.depth - depth) + "\t(min) road breaking")
                 return 1234567890
+        elif depth == 0:
+            if out: print("\t" * self.depth + "(0) ret", board.evaluate(color))
+            return board.evaluate(color)
+
 
         moves = board.generate_valid_moves(color, self.caps)
         if maximising:
