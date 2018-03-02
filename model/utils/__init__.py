@@ -3,6 +3,7 @@ import collections as ct
 import itertools as it
 import dataclasses as dc
 import tabulate as tb
+import functools as fc
 
 from string import ascii_lowercase as cols
 from operator import sub
@@ -341,19 +342,12 @@ class Board:
         return False
     
     def compress_left(self, color, board, xy, out=False):
-        if out:
-            print("Compressing", color)
-            print(board)
-        compressed = [[] for i in range(self.h)]
-        for r, row in enumerate(board):
-            for sq in row:
-                if sq.tiles and sq.tiles[-1].color == color:
-                    conns = sq.connections(board, xy)
-                    if out:
-                        print(sq, conns)
-                    if conns > 1 or ((r == 0 or r == self.h - 1) and conns > 0):
-                        compressed[r].append(sq)
-        return compressed 
+        def _check(r, sq):
+            if sq.tiles and sq.tiles[-1].color == color:
+                conns = sq.connections(board, xy)
+                return conns > 1 or ((r == 0 or r == self.h - 1) and conns > 0)
+            return False
+        return [list(filter(fc.partial(_check, r), row)) for r, row in enumerate(board)]
       
     def get(self, x: int, y: int) -> Square:
         return self.board[y][x]
