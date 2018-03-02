@@ -1,7 +1,7 @@
 from controller import *
 
 input()
-g = Game(size=4, white_type=(AI, 3), black_type=(AI, 3)) # black_type=HUMAN)
+g = Game(size=5, white_type=(AI, 5), black_type=(AI, 5)) # black_type=HUMAN)
 g.run()
 
 '''

@@ -11,6 +11,7 @@ def test_straight_roads():
             ms += ''.join(m) + " "
         try:
             assert b.road() == WHITE
+            print(ms, "worked!")
         except:
             print(ms, "did not work")
             print(b)

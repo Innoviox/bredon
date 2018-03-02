@@ -18,7 +18,7 @@ dirs = '+-<>'
 UP, DOWN, LEFT, RIGHT = dirs
 stones = 'FCS'
 FLAT, CAP, STAND = stones
-SIZE = None
+SIZE = 0
 
 PseudoBoard = ct.namedtuple("PseudoBoard", ("w", "h", "board", "bool", "err", "type"))
 
@@ -46,16 +46,15 @@ def coords_to_tile(x: int, y: int):
     return cols[y] + str(x + 1)
 
 
-def _next(obj, direction, size):
-    # TODO: checks on boundaries
+def _next(obj, direction):
     if hasattr(obj, 'x') and hasattr(obj, 'y'):
         if direction == LEFT and obj.y > 0:
             return obj.x, obj.y - 1
-        if direction == RIGHT and obj.y < size:
+        if direction == RIGHT and obj.y < SIZE - 1:
             return obj.x, obj.y + 1
         if direction == DOWN and obj.x > 0:
             return obj.x - 1, obj.y
-        if direction == UP and obj.x < size:
+        if direction == UP and obj.x < SIZE - 1:
             return obj.x + 1, obj.y
         raise ValueError("Out of bounds")
     raise TypeError("Object must have an x and y attribute")
@@ -142,16 +141,17 @@ class Square:
                 #     t_next = board[y][x].tiles[-1]
                 # else:
                 if xy:
-                    t_next = board[x][y].tiles[-1]
+                    t_next = board[x][y].tiles
                 else:
-                    t_next = board[y][x].tiles[-1]
-                # print("\t\tGot", t_next, t_next.x, t_next.y)
-                t = self.tiles[-1]
-                if t_next is not None and t is not None and t_next.color == t.color and t_next.stone in 'FC' and t.stone in 'FC':
-                    conns += 1
-            except IndexError:
-                # print("\t\t\tindex error!")
-                pass
+                    t_next = board[y][x].tiles
+                if t_next:
+                    t_next = t_next[-1]
+                    # print("\t\tGot", t_next, t_next.x, t_next.y)
+                    t = self.tiles
+                    if t:
+                        t = t[-1]
+                        if t_next is not None and t is not None and t_next.color == t.color and t_next.stone in 'FC' and t.stone in 'FC':
+                            conns += 1
             except ValueError:
                 # print("\t\t\tvalue error!")
                 pass
