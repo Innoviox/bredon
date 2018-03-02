@@ -33,9 +33,9 @@ class MinimaxAI(StaticAI):
             if out: print("Trying", move)
             self.board.execute(move, self.color)
             # print(self.board)
-            alpha = self.minimax(self.depth - 1, self.board, -np.inf, np.inf, True, flip_color(self.color), self.board.copy_board()) * 3
+            alpha = self.minimax(self.depth - 1, self.board, -np.inf, np.inf, True, flip_color(self.color), self.board.copy_board()) * 4
             ev = self.board.evaluate(self.color)
-            # alpha -= ev
+            alpha -= ev / 2
             if abs(alpha) > 10000:
                 alpha *= -1
             # s_alpha = -np.inf
