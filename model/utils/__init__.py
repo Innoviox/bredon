@@ -119,7 +119,7 @@ class Square:
         return ''.join(str(t) for t in self.tiles)  # + f'@{coords_to_tile(self.x, self.y)}'
 
 
-Square.next = Tile.next = _next
+Square.next = Tile.next = adv
 
 
 class Board:

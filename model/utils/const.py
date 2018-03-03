@@ -43,7 +43,7 @@ def coords_to_tile(x: int, y: int):
     return cols[y] + str(x + 1)
 
 
-def _next(obj, direction, size=None):
+def adv(obj, direction, size=None):
     if hasattr(obj, 'x') and hasattr(obj, 'y'):
         if direction == LEFT and obj.y > 0:
             return obj.x, obj.y - 1
