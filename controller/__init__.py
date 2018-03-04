@@ -1,4 +1,5 @@
 from model import *
+import time
 
 HUMAN = "human"
 AI = "ai"
@@ -24,17 +25,19 @@ class Game:
             ptn += str(turn) + ". "
             for player in self.players:
                 print(self.board)
+                t = time.time()
                 if turn == 1:
-                    m = player.pick_opposing_move()
+                    m, c = player.pick_opposing_move()
                 else:
                     m = player.pick_move()
+                    c = player.color
+                print(time.time() - t)
                 ptn += str(m) + " "
-                player.do(m)
-                w = self.board.winner(self.players)
+                player._do(m, c)
+                w = self.board.winner(self.players, t=True)
                 print(ptn)
                 if w:
                     print(w, "won!")
                     return
             ptn += "\n"
             turn += 1
-

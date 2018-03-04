@@ -1,5 +1,5 @@
 import random
-from utils import *
+from .utils import *
 
 class StaticAI(Player):
     def pick_move(self):
@@ -15,7 +15,7 @@ class MinimaxAI(StaticAI):
         super().__init__(board, color)
         self.depth = depth
 
-    def pick_move(self):
+    def pick_move(self, out=False):
         # print("Picking move for ai color:", self.color)
         # print("Initial board state:")
         # print(self.board)
@@ -26,16 +26,16 @@ class MinimaxAI(StaticAI):
         # if self.color == "B": best_eval *= -1
         best_move = None
         old_state = self.board.copy_board()
-        alpha = np.inf
+        alpha = -np.inf
         for move in moves:
             # if move.stone == STAND:
             #     continue
-            print("Trying", move)
+            if out: print("Trying", move)
             self.board.execute(move, self.color)
             # print(self.board)
-            alpha = self.minimax(self.depth - 1, self.board, -np.inf, np.inf, True, flip_color(self.color), self.board.copy_board(), out=str(move) == '1c4<') * 3
+            alpha = self.minimax(self.depth - 1, self.board, -np.inf, np.inf, True, flip_color(self.color), self.board.copy_board()) * 4
             ev = self.board.evaluate(self.color)
-            alpha -= ev
+            alpha -= ev / 2
             if abs(alpha) > 10000:
                 alpha *= -1
             # s_alpha = -np.inf
@@ -47,27 +47,28 @@ class MinimaxAI(StaticAI):
 
             # print("New board after move:")
             # print(self.board)
-            print("Evaluation:", alpha, ev, best_eval)# , out=True))
+            if out: print("Evaluation:", alpha, ev, best_eval)# , out=True))
             self.board.set(old_state)
             # if self.color in "WB": result *= -1
             # if (self.color == "W" and result >= best_eval) or \
             #    (self.color == "B" and result <= best_eval):
             if (self.depth % 2 == 1 and alpha >= best_eval) or (self.depth % 2 == 0 and alpha <= best_eval):
-                # print("Setting best")
+                if out: print("Setting best")
                 best_eval = alpha
                 best_move = move
             # if s_alpha > alpha:
             #     best_eval = s_alpha
             #     best_move = STAND + move.get_square()
-            print(move)
+            # print(move)
             # print(new_board)
-            # input()
+            # if out: input()
         # input()
         return best_move
 
     def minimax(self, depth, board, alpha, beta, maximising, color, old_state, out=False):
         if out: print("\t" * (self.depth - depth) + "(minimax)", alpha, beta)
-        if board.road():
+        if (board.road() or board.flat_win()):
+            #depth >= self.depth - 2
             if maximising:
                 if out: print("\t" * (self.depth - depth) + "\t(max) road breaking")
                 return -1234567890
@@ -77,6 +78,8 @@ class MinimaxAI(StaticAI):
         elif depth == 0:
             if out: print("\t" * self.depth + "(0) ret", board.evaluate(color))
             return board.evaluate(color)
+
+
         moves = board.generate_valid_moves(color, self.caps)
         if maximising:
             b_eval = -np.inf
@@ -90,7 +93,9 @@ class MinimaxAI(StaticAI):
                     pass
                     if out: print("\t" * (self.depth - depth) + "\t(max) breaking", alpha, beta)
                     # if abs(beta) > 10000:
-                    return beta # break
+                    if beta < -10000:
+                        return beta
+                    return -beta # break
                     # return b_eval
         else:
             b_eval = np.inf
@@ -103,7 +108,8 @@ class MinimaxAI(StaticAI):
                 if beta <= alpha:
                     pass
                     if out: print("\t" * (self.depth - depth) + "\t(min) breaking", alpha, beta)
-                    # if abs(beta) > 10000:
-                    return beta # break
+                    if beta < -10000:
+                        return beta
+                    return -beta # break
                     # return b_eval
         return b_eval
