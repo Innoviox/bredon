@@ -115,7 +115,7 @@ class Square:
 
 
 Square.next = Tile.next = adv
-
+del adv
 
 class Board:
     def __init__(self, w: int, h: int, board=None):
