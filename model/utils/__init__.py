@@ -1,8 +1,3 @@
-import numpy as np
-import dataclasses as dc
-import tabulate as tb
-import functools as fc
-
 from typing import List
 
 from .const import *
@@ -291,7 +286,9 @@ class Board:
                 conns = sq.connections(board, xy)
                 return conns > 1 or ((r == 0 or r == self.h - 1) and conns > 0)
             return False
-        return [list(filter(fc.partial(_check, r), row)) for r, row in enumerate(board)]
+        def check(r, row):
+            return filter(fc.partial(_check, r), row)
+        return list(it.starmap(check, enumerate(board)))
       
     def get(self, x: int, y: int) -> Square:
         return self.board[y][x]

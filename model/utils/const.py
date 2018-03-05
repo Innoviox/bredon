@@ -1,5 +1,9 @@
 import collections as ct
 import itertools as it
+import numpy as np
+import dataclasses as dc
+import tabulate as tb
+import functools as fc
 
 from string import ascii_lowercase as cols
 from operator import sub
