@@ -47,20 +47,21 @@ class Square:
     def __init__(self, x, y, tiles=None):
         self.x, self.y = x, y
         self.tiles = [] if tiles is None else tiles
-        self.fix()
-
-    def fix(self):
         for tile in self.tiles:
-            tile.x, tile.y = self.x, self.y 
-            
+            self.fix(tile)
+
+    def fix(self, tile):
+        tile.x, tile.y = self.x, self.y
+
     def add(self, tile: Tile):
         self.tiles.append(tile)
-        self.fix()
+        self.fix(tile)
         return self
 
     def extend(self, tiles: List[Tile]):
+        for tile in tiles:
+            self.fix(tile)
         self.tiles.extend(tiles)
-        self.fix()
         return self
 
     def remove_top(self, n_tiles: int) -> List[Tile]:
@@ -70,13 +71,14 @@ class Square:
         return top
 
     def connections(self, board, xy=True):
-        # print("\tRunning connections!")
-        conns = 0 
+        # print("\t\t\t\tRunning connections!")
+        conns = 0
+        s = len(board)
         for direction in dirs:
-            # print("\t\tTrying", direction)
+            # print("\t\t\t\t\tTrying", direction)
             try:
-                x, y = self.next(direction, SIZE)
-                # print("\t\tI am", self.x, self.y, "got", x, y)
+                x, y = self.next(direction, s)
+                # print("\t\t\t\t\tI am", self.x, self.y, "got", x, y)
                 # if direction in UP + DOWN:
                 #     t_next = board[y][x].tiles[-1]
                 # else:
@@ -86,16 +88,16 @@ class Square:
                     t_next = board[y][x].tiles
                 if t_next:
                     t_next = t_next[-1]
-                    # print("\t\tGot", t_next, t_next.x, t_next.y)
+                    # print("\t\t\t\t\tGot", t_next, t_next.x, t_next.y)
                     t = self.tiles
                     if t:
                         t = t[-1]
                         if t_next is not None and t is not None and t_next.color == t.color and t_next.stone in 'FC' and t.stone in 'FC':
                             conns += 1
             except ValueError:
-                # print("\t\t\tvalue error!")
+                # print("\t\t\t\t\t\tvalue error!")
                 pass
-        # print("\treturning", conns)
+        # print("\t\t\t\treturning", conns)
         return conns
       
     def copy(self):
@@ -121,8 +123,8 @@ class Board:
     def __init__(self, w: int, h: int, board=None):
         global SIZE
         self.w, self.h, SIZE = w, h, w
-        self.board = [[Square(x, y) for x in range(w)]
-                      for y in range(h)] if board is None else board
+        self.board = np.array([[Square(x, y) for x in range(w)]
+                      for y in range(h)]) if board is None else board
         self.stones, self.caps = sizes[w]
 
     """
@@ -203,20 +205,12 @@ class Board:
                            f"Too many tiles: {n_tiles} > {len(old_square.tiles) - int(not first)}", None)
 
     def move(self, move: Move):
-        def _run(fn):
-            try:
-                pb = fn()
-                copy.force(pb)
-                return pb
-            except IndexError as e:
-                return PseudoBoard(self.w, self.h, [], False, e, None)
-
         copy = self.copy()
         sq = copy.get(*tile_to_coords(move.get_square()))
-        yield _run(lambda: copy.move_single(sq, move.direction, move.total, first=True))
+        yield self._run(lambda: copy.move_single(sq, move.direction, move.total, first=True), copy)
         for n in range(1, len(move.moves)):
-            sq = copy.get(*sq.next(move.direction, SIZE))
-            yield _run(lambda: copy.move_single(sq, move.direction, sum(move.moves[n:]), first=False))
+            sq = copy.get(*sq.next(move.direction, self.w))
+            yield self._run(lambda: copy.move_single(sq, move.direction, sum(move.moves[n:]), first=False), copy)
 
     def parse_move(self, move: Move, curr_player):
         if move.direction is None:
@@ -260,35 +254,16 @@ class Board:
         return None
 
     def flat_win(self, t=False, f=False):
-        def _sum(color):
-            return sum(1 for row in self.board for sq in row if sq.tiles and sq.tiles[-1].color == color and sq.tiles[-1].stone == FLAT)
-
-        w, b = _sum(WHITE), _sum(BLACK)
+        w, b = self._sum(WHITE), self._sum(BLACK)
         if f or all(len(sq.tiles) > 0 for row in self.board for sq in row):
             return ("TIE" if t else False) if w == b else WHITE if w > b else BLACK
         return False
 
     def road(self, out=False):
-        np_board = np.array(self.board)
-        for board, xy in zip((np_board, np.transpose(np_board)), (False, True)):
-            for color in COLORS:
-                road = self.compress_left(color, board, xy, out=out)
-                if out:
-                    print(road)
-                if all(len(road[i]) > 0 for i in range(self.h)) or \
-                   any(len(road[i]) >= self.h for i in range(self.h)):
-                    return color 
-        return False
-    
+        return any(self._road_check(color, board, xy, out=out) for color, (board, xy) in zip(zip((self.board, np.transpose(self.board)), (False, True)), COLORS))
+
     def compress_left(self, color, board, xy, out=False):
-        def _check(r, sq):
-            if sq.tiles and sq.tiles[-1].color == color:
-                conns = sq.connections(board, xy)
-                return conns > 1 or ((r == 0 or r == self.h - 1) and conns > 0)
-            return False
-        def check(r, row):
-            return list(filter(fc.partial(_check, r), row))
-        return list(it.starmap(check, enumerate(board)))
+        return list(it.starmap(fc.partial(self._cl_row_check, color, xy, board), enumerate(board)))
       
     def get(self, x: int, y: int) -> Square:
         return self.board[y][x]
@@ -306,34 +281,7 @@ class Board:
                            showindex=list(cols[:self.h]))
 
     def evaluate(self, color, out=False):
-        '''
-        Evaluate a board
-        :param color: which color is playing
-        :return: float evaluation
-        '''
-        def _evaluate(_color):
-            e = 0
-            # if self.road() == _color or self.flat_win() == _color:
-                # print(self)
-                # print("ROAD")
-            #     return -1234567890
-            for row in self.board:
-                for sq in row:
-                    if sq.tiles:
-                        t = sq.tiles[-1]
-                        if t.color == _color:
-                            # if out:
-                            #     print(sq, sum(1 for i in sq.tiles if i.color == color and i.stone in 'CF') ** 1.5, (sq.connections(self.board) + 1) ** 2)
-                            # if t.stone == 'F':
-                            #     e += 50
-                            # elif t.stone == 'S':
-                            #     e += 2
-                            # elif t.stone == 'C':
-                            #     e += 4
-                            e += sum(1 for i in sq.tiles if i.color == color and i.stone in 'CF') ** 1.5
-                            e += (sq.connections(self.board) + 1) ** 2
-            return e
-        return _evaluate(color) - _evaluate(flip_color(color)) * 2
+        return self._evaluate(color) - self._evaluate(flip_color(color)) * 2
 
     def execute(self, move, color):
         self.force_move(move, color)
@@ -374,6 +322,52 @@ class Board:
                                                     yield Move(total=i, col=c, row=r, moves=move_amounts, direction=direction)
                             except ValueError:
                                 pass
+
+
+    ### STATIC PRIVATE HELPER METHODS ###
+    def _run(self, fn, copy):
+        try:
+            pb = fn()
+            copy.force(pb)
+            return pb
+        except IndexError as e:
+            return PseudoBoard(self.w, self.h, [], False, e, None)
+
+    def _evaluate_sq(self, color, sq):
+        e = 0
+        if sq.tiles:
+            t = sq.tiles[-1]
+            if t.color == color:
+                e += sum(1 for i in sq.tiles if i.color == color and i.stone in 'CF') ** 1.5
+                e += (sq.connections(self.board) + 1) ** 2
+        return e
+
+    def _evaluate(self, color):
+        return sum(sum(map(fc.partial(self._evaluate_sq, color), row))
+                   for row in self.board)
+
+    def _cl_sq_check(self, r, color, board, xy, sq):
+        if sq.tiles and sq.tiles[-1].color == color:
+            conns = sq.connections(board, xy)
+            return conns > 1 or ((r == 0 or r == self.h - 1) and conns > 0)
+        return False
+
+    def _cl_row_check(self, color, xy, board, r, row):
+        return list(filter(fc.partial(self._cl_sq_check, r, color, board, xy), row))
+
+    def _sum(self, color):
+        return sum(1 for row in self.board for sq in row
+                   if sq.tiles and sq.tiles[-1].color == color
+                      and sq.tiles[-1].stone == FLAT)
+
+    def _road_check(self, color, board, xy, out=False):
+        road = self.compress_left(color, board, xy, out=out)
+        if out:
+            print(road)
+        if all(len(road[i]) > 0 for i in range(self.h)) or \
+                any(len(road[i]) >= self.h for i in range(self.h)):
+            return color
+        return False
 
 
 class Player(object):
@@ -441,6 +435,7 @@ class Player(object):
 
     def pick_opposing_move(self):
         return self._pick_move(flip_color(self.color))
+
 
 def str_to_move(move: str) -> Move:
     move_dir = None

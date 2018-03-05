@@ -1,7 +1,7 @@
 from controller import *
 
-input()
-g = Game(size=5, white_type=(AI, 3), black_type=(AI, 3)) # black_type=HUMAN)
+# input()
+g = Game(size=4, white_type=(AI, 3), black_type=(AI, 3)) # black_type=HUMAN)
 g.run()
 
 # 1. a1 e5
@@ -19,9 +19,13 @@ g.run()
 # 13. 3c5<12
 
 '''
-moves = zip("Sc2 c1 c1+".split(),
+moves = zip("a1 d4 d2 b2 d3 d1 c3 a3 c1 b1 1d2- c2 ".split(),
              (BLACK, WHITE,
-              WHITE)
+              WHITE, BLACK,
+              WHITE, BLACK,
+              WHITE, BLACK,
+              WHITE, BLACK,
+              WHITE, BLACK)
 )
 for i, (m, c) in enumerate(moves):
     # g.board.force_str(m, c)
@@ -32,8 +36,8 @@ for i, (m, c) in enumerate(moves):
         print(player.color, player.out_of_tiles(), player.caps, player.stones, g.board.caps, g.board.stones)
 # print(g.player_1.do(str_to_move("3c3-111")))
 # print(g.board)
-m = g.player_2.pick_move(out=True)
+m = g.player_1.pick_move(out=True)
 print(m)
-g.player_2.do(m)
+g.player_1.do(m)
 print(g.board)
 '''

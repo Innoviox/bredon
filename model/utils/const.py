@@ -47,16 +47,17 @@ def coords_to_tile(x: int, y: int):
     return cols[y] + str(x + 1)
 
 
-def adv(obj, direction, size=None):
+def adv(obj, direction, size):
     if hasattr(obj, 'x') and hasattr(obj, 'y'):
         if direction == LEFT and obj.y > 0:
             return obj.x, obj.y - 1
-        if direction == RIGHT and obj.y < SIZE - 1:
+        if direction == RIGHT and obj.y < size - 1:
             return obj.x, obj.y + 1
         if direction == DOWN and obj.x > 0:
             return obj.x - 1, obj.y
-        if direction == UP and obj.x < SIZE - 1:
+        if direction == UP and obj.x < size - 1:
             return obj.x + 1, obj.y
+        # print("\t\t\t\t\t\t\t", obj.x, obj.y, direction, size)
         raise ValueError("Out of bounds")
     raise TypeError("Object must have an x and y attribute")
 
