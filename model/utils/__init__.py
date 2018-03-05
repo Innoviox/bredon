@@ -260,7 +260,12 @@ class Board:
         return False
 
     def road(self, out=False):
-        return any(self._road_check(color, board, xy, out=out) for color, (board, xy) in zip(zip((self.board, np.transpose(self.board)), (False, True)), COLORS))
+        for board, xy in zip((self.board, np.transpose(self.board)), (False, True)):
+            for color in COLORS:
+                if self._road_check(color, board, xy, out=out):
+                    return color
+        return False
+
 
     def compress_left(self, color, board, xy, out=False):
         return list(it.starmap(fc.partial(self._cl_row_check, color, xy, board), enumerate(board)))
