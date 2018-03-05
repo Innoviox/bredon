@@ -287,7 +287,7 @@ class Board:
                 return conns > 1 or ((r == 0 or r == self.h - 1) and conns > 0)
             return False
         def check(r, row):
-            return filter(fc.partial(_check, r), row)
+            return list(filter(fc.partial(_check, r), row))
         return list(it.starmap(check, enumerate(board)))
       
     def get(self, x: int, y: int) -> Square:
