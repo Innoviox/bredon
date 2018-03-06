@@ -1,5 +1,3 @@
-from typing import List
-
 from .const import *
 
 @dc.dataclass
@@ -58,13 +56,13 @@ class Square:
         self.fix(tile)
         return self
 
-    def extend(self, tiles: List[Tile]):
+    def extend(self, tiles):
         for tile in tiles:
             self.fix(tile)
         self.tiles.extend(tiles)
         return self
 
-    def remove_top(self, n_tiles: int) -> List[Tile]:
+    def remove_top(self, n_tiles: int):
         n = len(self.tiles) - n_tiles
         top = self.tiles[n:]
         self.tiles = self.tiles[:n]

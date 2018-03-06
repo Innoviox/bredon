@@ -1,5 +1,6 @@
 import pickle
 from model import *
+import numpy as np
 
 def gen_classes(size):
     for c in cols[:size]:
@@ -11,13 +12,16 @@ def gen_classes(size):
                     for d in dirs:
                         yield str(t) + c + str(r) + d + ''.join(map(str, ms))
 
+classes = list(gen_classes(4))
+
 def board_to_vector(b):
     #TODO: Board to vector
     ...
 
 def move_to_vector(m):
-    #TODO: Move to vector
-    ...
+    v = np.zeroes(len(classes))
+    v[classes.index(m)] = 1
+    return v
 
 def load_features(fn):
     print("Reading:", fn)
@@ -34,8 +38,10 @@ def handle_features(fn):
     boards = boards[:-1]
     return boards, moves
 
-def create_feature_sets_and_labels(file, test_size = 0.1):
-    features = list(zip(*handle_features(file)))
+def create_feature_sets_and_labels(files, test_size = 0.1):
+    features = []
+    for file in files:
+        features.extend(zip(*handle_features(file)))
     random.shuffle(features)
     features = np.array(features)
 
@@ -47,3 +53,9 @@ def create_feature_sets_and_labels(file, test_size = 0.1):
     test_y = list(features[:,1][-testing_size:])
 
     return train_x,train_y,test_x,test_y
+
+if __name__ == '__main__':
+    files = []
+    train_x, train_y, test_x, test_y = create_feature_sets_and_labels(files)
+    with open('note_features.pickle','wb') as f:
+        pickle.dump([train_x, train_y, test_x, test_y],f)

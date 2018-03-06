@@ -1,10 +1,10 @@
 from controller import *
 
-for b in load_moves_from_file("/Users/chervjay/Documents/GitHub/Bredon/neural/games/6.ptn"):
-    print(b)
+# for b in load_moves_from_file("/Users/chervjay/Documents/GitHub/Bredon/neural/games/6.ptn"):
+#     print(b)
 # input()
-# g = Game(size=3, white_type=(AI, 3), black_type=(AI, 3)) # black_type=HUMAN)
-# g.run()
+g = Game(size=4, white_type=(AI, 3), black_type=(AI, 3)) # black_type=HUMAN)
+g.run()
 
 # 1. a1 e5
 # 2. Ce3 Cb2
