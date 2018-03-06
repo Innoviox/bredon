@@ -46,8 +46,6 @@ class Square(Next):
     def __init__(self, x, y, tiles=None):
         self.x, self.y = x, y
         self.tiles = [] if tiles is None else tiles
-        for tile in self.tiles:
-            self.fix(tile)
 
     def fix(self, tile):
         tile.x, tile.y = self.x, self.y
@@ -68,6 +66,24 @@ class Square(Next):
         top = self.tiles[n:]
         self.tiles = self.tiles[:n]
         return top
+
+    # def connections(self, board, xy=True):
+    #     return sum(self._connections(d, board, xy, len(board)) for d in dirs)
+    #
+    # def _connections(self, direction, board, xy, s):
+    #     try:
+    #         x, y = self.next(direction, s)
+    #         if xy:
+    #             t_next = board[x][y][-1]
+    #         else:
+    #             t_next = board[y][x][-1]
+    #         t = self[-1]
+    #         if t_next is not None and t is not None and \
+    #                 t_next.color == t.color and t_next.stone in 'FC' and t.stone in 'FC':
+    #             return 1
+    #     except ValueError:
+    #         pass
+    #     return 0
 
     def connections(self, board, xy=True):
         # print("\t\t\t\tRunning connections!")
@@ -91,17 +107,21 @@ class Square(Next):
                     t = self.tiles
                     if t:
                         t = t[-1]
-                        if t_next is not None and t is not None and \
-                                t_next.color == t.color and t_next.stone in 'FC' and t.stone in 'FC':
+                        if t_next is not None and t is not None and t_next.color == t.color and t_next.stone in 'FC' and t.stone in 'FC':
                             conns += 1
             except ValueError:
                 # print("\t\t\t\t\t\tvalue error!")
                 pass
         # print("\t\t\t\treturning", conns)
         return conns
-      
+
     def copy(self):
         return Square(self.x, self.y, tiles=self.tiles[:])
+
+    # def __getitem__(self, i):
+    #     if self.tiles:
+    #         return self.tiles[i]
+    #     return None
 
     def __eq__(self, other):
         if other == EMPTY:
