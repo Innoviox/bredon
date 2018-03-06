@@ -1,5 +1,6 @@
 from .const import *
 
+
 @dc.dataclass
 class Move:
     total: int = 1
@@ -22,13 +23,13 @@ class Move:
             return str(self.total) + self.get_square() + self.direction + ''.join(map(str, self.moves))
 
 
-class Tile:
+class Tile(Next):
     def __init__(self, color, stone='F', x=None, y=None):
         self.color, self.stone = color, stone
         self.x, self.y = x, y
 
     def __repr__(self):
-        return '%s{%s}' % (self.color, self.stone) # + f'@{coords_to_tile(self.x, self.y)}'
+        return '%s{%s}' % (self.color, self.stone)  # + f'@{coords_to_tile(self.x, self.y)}'
 
     def __eq__(self, other):
         if isinstance(other, Tile):
@@ -41,7 +42,7 @@ class Tile:
         return False
 
 
-class Square:
+class Square(Next):
     def __init__(self, x, y, tiles=None):
         self.x, self.y = x, y
         self.tiles = [] if tiles is None else tiles
@@ -90,7 +91,8 @@ class Square:
                     t = self.tiles
                     if t:
                         t = t[-1]
-                        if t_next is not None and t is not None and t_next.color == t.color and t_next.stone in 'FC' and t.stone in 'FC':
+                        if t_next is not None and t is not None and \
+                                t_next.color == t.color and t_next.stone in 'FC' and t.stone in 'FC':
                             conns += 1
             except ValueError:
                 # print("\t\t\t\t\t\tvalue error!")
@@ -99,7 +101,7 @@ class Square:
         return conns
       
     def copy(self):
-        return Square(self.x, self.y, tiles=self.tiles[:]) # [Tile(t.color, stone=t.stone, x=t.x, y=t.y) for t in self.tiles])
+        return Square(self.x, self.y, tiles=self.tiles[:])
 
     def __eq__(self, other):
         if other == EMPTY:
@@ -114,15 +116,12 @@ class Square:
         return ''.join(str(t) for t in self.tiles)  # + f'@{coords_to_tile(self.x, self.y)}'
 
 
-Square.next = Tile.next = adv
-del adv
-
 class Board:
     def __init__(self, w: int, h: int, board=None):
         global SIZE
         self.w, self.h, SIZE = w, h, w
         self.board = np.array([[Square(x, y) for x in range(w)]
-                      for y in range(h)]) if board is None else board
+                              for y in range(h)]) if board is None else board
         self.stones, self.caps = sizes[w]
 
     """
@@ -164,7 +163,8 @@ class Board:
                 try:
                     new_square = self.get(*old_square.next(new_square, SIZE))
                 except ValueError:
-                    return PseudoBoard(self.w, self.h, self.board, False, f"{old_square.x}, {old_square.y} is out of bounds for {new_square}", None)
+                    return PseudoBoard(self.w, self.h, self.board, False,
+                                       f"{old_square.x}, {old_square.y} is out of bounds for {new_square}", None)
             else:
                 raise TypeError("new_square must be Square, tuple, or str, got: %s" % new_square.__class__)
         else:
@@ -264,8 +264,7 @@ class Board:
                     return color
         return False
 
-
-    def compress_left(self, color, board, xy, out=False):
+    def compress_left(self, color, board, xy):
         return list(it.starmap(fc.partial(self._cl_row_check, color, xy, board), enumerate(board)))
       
     def get(self, x: int, y: int) -> Square:
@@ -278,9 +277,12 @@ class Board:
         return Board(self.w, self.h, board=self.copy_board())
 
     def __repr__(self):
-        return tb.tabulate(self.board, tablefmt="plain", headers=list(range(1, self.w + 1)), showindex=list(cols[:self.h]))
+        return tb.tabulate(self.board,
+                           tablefmt="plain",
+                           headers=list(range(1, self.w + 1)),
+                           showindex=list(cols[:self.h]))
 
-    def evaluate(self, color, out=False):
+    def evaluate(self, color):
         return self._evaluate(color) - self._evaluate(flip_color(color)) * 2
 
     def execute(self, move, color):
@@ -315,15 +317,15 @@ class Board:
                                         if i == 1 and len(tile.tiles) == 1:
                                             yield Move(col=c, row=r, direction=direction)
                                         else:
-                                            for move_amounts in sums(i):
-                                                if len(move_amounts) == 1 and move_amounts[0] == i:
+                                            for moves in sums(i):
+                                                if len(moves) == 1 and moves[0] == i:
                                                     yield Move(total=i, col=c, row=r, direction=direction)
                                                 else:
-                                                    yield Move(total=i, col=c, row=r, moves=move_amounts, direction=direction)
+                                                    yield Move(total=i, col=c, row=r, moves=moves, direction=direction)
                             except ValueError:
                                 pass
 
-    ### STATIC PRIVATE HELPER METHODS ###
+    # STATIC PRIVATE HELPER METHODS
     def _run(self, fn, copy):
         try:
             pb = fn()
@@ -354,10 +356,11 @@ class Board:
         return list(filter(fc.partial(self._cl_sq_check, r, color, board, xy), row))
 
     def _sum(self, color):
-        return sum(1 for row in self.board for sq in row if sq.tiles and sq.tiles[-1].color == color and sq.tiles[-1].stone == FLAT)
+        return sum(1 for row in self.board for sq in row if sq.tiles and
+                   sq.tiles[-1].color == color and sq.tiles[-1].stone == FLAT)
 
     def _road_check(self, color, board, xy, out=False):
-        road = self.compress_left(color, board, xy, out=out)
+        road = self.compress_left(color, board, xy)
         if out:
             print(road)
         if all(len(road[i]) > 0 for i in range(self.h)) or \
@@ -412,7 +415,6 @@ class Player(object):
         return self.caps >= self.board.caps and self.stones >= self.board.stones
 
     def _pick_move(self, color):
-        m = None
         while True:
             m = str_to_move(input("Enter move: "))
             try:
@@ -454,6 +456,7 @@ def str_to_move(move: str) -> Move:
             total = 1
         c, r = t
         return Move(total=total, col=c, row=r, direction=move_dir, moves=list(map(int, ns)))
+
 
 def load_moves_from_file(filename, out=False):
     with open(filename) as file:
