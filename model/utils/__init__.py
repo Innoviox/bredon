@@ -86,33 +86,22 @@ class Square(Next):
     #     return 0
 
     def connections(self, board, xy=True):
-        # print("\t\t\t\tRunning connections!")
         conns = 0
         s = len(board)
         for direction in dirs:
-            # print("\t\t\t\t\tTrying", direction)
-            try:
-                x, y = self.next(direction, s)
-                # print("\t\t\t\t\tI am", self.x, self.y, "got", x, y)
-                # if direction in UP + DOWN:
-                #     t_next = board[y][x].tiles[-1]
-                # else:
-                if xy:
-                    t_next = board[x][y].tiles
-                else:
-                    t_next = board[y][x].tiles
-                if t_next:
-                    t_next = t_next[-1]
-                    # print("\t\t\t\t\tGot", t_next, t_next.x, t_next.y)
-                    t = self.tiles
-                    if t:
-                        t = t[-1]
-                        if t_next is not None and t is not None and t_next.color == t.color and t_next.stone in 'FC' and t.stone in 'FC':
-                            conns += 1
-            except ValueError:
-                # print("\t\t\t\t\t\tvalue error!")
-                pass
-        # print("\t\t\t\treturning", conns)
+            x, y = self.next(direction, s)
+            if xy:
+                t_next = board[x][y].tiles
+            else:
+                t_next = board[y][x].tiles
+            if t_next:
+                t_next = t_next[-1]
+                t = self.tiles
+                if t:
+                    t = t[-1]
+                    if t_next is not t and \
+                            t_next.color == t.color and t_next.stone in 'FC' and t.stone in 'FC':
+                        conns += 1
         return conns
 
     def copy(self):
@@ -291,7 +280,7 @@ class Board:
         return self.board[y][x]
 
     def copy_board(self):
-        return np.array([[s.copy() for s in r] for r in self.board])
+        return np.array([list(map(Square.copy, r)) for r in self.board])
 
     def copy(self):
         return Board(self.w, self.h, board=self.copy_board())
