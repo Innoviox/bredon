@@ -274,16 +274,13 @@ class Board:
         return self.board[y][x]
 
     def copy_board(self):
-        return [[s.copy()
-                 for s in r] for r in self.board]
+        return np.array([[s.copy() for s in r] for r in self.board])
 
     def copy(self):
         return Board(self.w, self.h, board=self.copy_board())
 
     def __repr__(self):
-        return tb.tabulate(self.board, tablefmt="plain",
-                           headers=list(range(1, self.w + 1)),
-                           showindex=list(cols[:self.h]))
+        return tb.tabulate(self.board, tablefmt="plain", headers=list(range(1, self.w + 1)), showindex=list(cols[:self.h]))
 
     def evaluate(self, color, out=False):
         return self._evaluate(color) - self._evaluate(flip_color(color)) * 2
@@ -328,7 +325,6 @@ class Board:
                             except ValueError:
                                 pass
 
-
     ### STATIC PRIVATE HELPER METHODS ###
     def _run(self, fn, copy):
         try:
@@ -348,8 +344,7 @@ class Board:
         return e
 
     def _evaluate(self, color):
-        return sum(sum(map(fc.partial(self._evaluate_sq, color), row))
-                   for row in self.board)
+        return sum(map(fc.partial(self._evaluate_sq, color), self.board.ravel('C')))
 
     def _cl_sq_check(self, r, color, board, xy, sq):
         if sq.tiles and sq.tiles[-1].color == color:
@@ -361,9 +356,7 @@ class Board:
         return list(filter(fc.partial(self._cl_sq_check, r, color, board, xy), row))
 
     def _sum(self, color):
-        return sum(1 for row in self.board for sq in row
-                   if sq.tiles and sq.tiles[-1].color == color
-                      and sq.tiles[-1].stone == FLAT)
+        return sum(1 for row in self.board for sq in row if sq.tiles and sq.tiles[-1].color == color and sq.tiles[-1].stone == FLAT)
 
     def _road_check(self, color, board, xy, out=False):
         road = self.compress_left(color, board, xy, out=out)
@@ -464,14 +457,15 @@ def str_to_move(move: str) -> Move:
         c, r = t
         return Move(total=total, col=c, row=r, direction=move_dir, moves=list(map(int, ns)))
 
-
 def load_moves_from_file(filename, out=False):
     with open(filename) as file:
-        ptn = file.read().split("\n")
-        size = int(ptn[4][7])
+        ptn = file.read()
+        _, s = ptn.split("Size")
+        ptn = s.split("\n")
+        size = int(s[2])
         b = Board(size, size)
         curr_player = WHITE
-        for iturn, turn in enumerate(ptn[7:]):
+        for iturn, turn in enumerate(ptn[2:]):
             if 'R' in turn:
                 break
             for imove, move in enumerate(turn.split(" ")[1:]):  # Exclude the round number
@@ -493,4 +487,6 @@ def load_moves_from_file(filename, out=False):
                         curr_player = WHITE
                     else:
                         curr_player = BLACK
+
+                    yield b, move
     return b
