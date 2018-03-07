@@ -22,24 +22,15 @@ class Move:
         else:
             return str(self.total) + self.get_square() + self.direction + ''.join(map(str, self.moves))
 
-
+@dc.dataclass
 class Tile(Next):
-    def __init__(self, color, stone='F', x=None, y=None):
-        self.color, self.stone = color, stone
-        self.x, self.y = x, y
+    color: str
+    stone: str = FLAT
+    x: int = None
+    y: int = None
 
     def __repr__(self):
         return '%s{%s}' % (self.color, self.stone)  # + f'@{coords_to_tile(self.x, self.y)}'
-
-    def __eq__(self, other):
-        if isinstance(other, Tile):
-            return (self.color, self.stone, self.x, self.y) == \
-                   (other.color, other.stone, other.x, other.y)
-        elif isinstance(other, Square):
-            return other.tiles and self == other.tiles[-1]
-        elif isinstance(other, tuple):
-            return (self.color, self.stone) == tuple
-        return False
 
 
 class Square(Next):
@@ -138,16 +129,15 @@ class Board:
                               for y in range(h)]) if board is None else board
         self.stones, self.caps = sizes[w]
 
-    """
-    Attempt to place the tile.
-    Returns a PseudoBoard object.
-
-    @param tile
-    @param x
-    @param y
-    @return nt was it placed?, board state
-    """
     def place(self, move: Move, curr_player):
+        """
+        Attempt to place the tile.
+        Returns a PseudoBoard object.
+
+        :param move
+        :param curr_player
+        :return nt was it placed?, board state
+        """
         tile = Tile(curr_player, stone=move.stone)
         x, y = tile_to_coords(move.get_square())
         new_board = self.copy_board()
@@ -157,11 +147,11 @@ class Board:
             return PseudoBoard(self.w, self.h, new_board, True, None, "place")
         return PseudoBoard(self.w, self.h, new_board, False, "Tile cannot be placed there", None)
 
-    """
-    Move n_tiles from old_square to
-    new_square. 
-    """
     def move_single(self, old_square, new_square, n_tiles: int, first=False):
+        """
+        Move n_tiles from old_square to
+        new_square.
+        """
         if not isinstance(old_square, Square):
             if isinstance(new_square, tuple):
                 old_square = self.get(*old_square)
@@ -274,7 +264,7 @@ class Board:
     def road(self, out=False):
         for board, xy in zip((self.board, np.transpose(self.board)), (False, True)):
             for color in COLORS:
-                if self._road_check(color, board, xy=xy, out=False):
+                if self._road_check(color, board, xy=xy, out=out):
                     return color
         return False
 
@@ -436,13 +426,11 @@ class Player(object):
                 if v:
                     return m, color
                 else:
-                    if out: print("Parsed move", m)
-                    if out: print("Received error", v)
-            except Exception as e:
-                if out:
                     print("Parsed move", m)
-                if out:
-                    print("Received error", e)
+                    print("Received error", v)
+            except Exception as e:
+                print("Parsed move", m)
+                print("Received error", e)
 
     def pick_move(self, out=True):
         return self._pick_move(self.color, out)
