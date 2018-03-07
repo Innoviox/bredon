@@ -22,6 +22,7 @@ class Move:
         else:
             return str(self.total) + self.get_square() + self.direction + ''.join(map(str, self.moves))
 
+
 @dc.dataclass
 class Tile(Next):
     color: str
@@ -122,12 +123,11 @@ class Square(Next):
 
 
 class Board:
-    def __init__(self, w: int, h: int, board=None):
-        global SIZE
-        self.w, self.h, SIZE = w, h, w
-        self.board = np.array([[Square(x, y) for x in range(w)]
-                              for y in range(h)]) if board is None else board
-        self.stones, self.caps = sizes[w]
+    def __init__(self, size: int, board=None):
+        self.size = size
+        self.board = np.array([[Square(x, y) for x in range(size)]
+                              for y in range(size)]) if board is None else board
+        self.stones, self.caps = sizes[size]
 
     def place(self, move: Move, curr_player):
         """
@@ -144,8 +144,8 @@ class Board:
         if self.board[y][x] == EMPTY and \
                 tile.x is None and tile.y is None:
             new_board[y][x].add(tile)
-            return PseudoBoard(self.w, self.h, new_board, True, None, "place")
-        return PseudoBoard(self.w, self.h, new_board, False, "Tile cannot be placed there", None)
+            return PseudoBoard(self.size, self.size, new_board, True, None, "place")
+        return PseudoBoard(self.size, self.size, new_board, False, "Tile cannot be placed there", None)
 
     def move_single(self, old_square, new_square, n_tiles: int, first=False):
         """
@@ -167,7 +167,7 @@ class Board:
                 try:
                     new_square = self.get(*old_square.next(new_square, SIZE))
                 except ValueError:
-                    return PseudoBoard(self.w, self.h, self.board, False,
+                    return PseudoBoard(self.size, self.size, self.board, False,
                                        f"{old_square.x}, {old_square.y} is out of bounds for {new_square}", None)
             else:
                 raise TypeError("new_square must be Square, tuple, or str, got: %s" % new_square.__class__)
@@ -200,10 +200,10 @@ class Board:
                     new_square.tiles[-1].stone = FLAT
 
                 new_board[old_square.y][old_square.x] = old_square.copy()
-                return PseudoBoard(self.w, self.h, new_board, True, None, "move")
-            return PseudoBoard(self.w, self.h, new_board, False,
+                return PseudoBoard(self.size, self.size, new_board, True, None, "move")
+            return PseudoBoard(self.size, self.size, new_board, False,
                                f"Tile is not flat: stone == {new_square.tiles[-1].stone}", None)
-        return PseudoBoard(self.w, self.h, new_board, False,
+        return PseudoBoard(self.size, self.size, new_board, False,
                            f"Too many tiles: {n_tiles} > {len(old_square.tiles) - int(not first)}", None)
 
     def move(self, move: Move):
@@ -211,7 +211,7 @@ class Board:
         sq = copy.get(*tile_to_coords(move.get_square()))
         yield self._run(lambda: copy.move_single(sq, move.direction, move.total, first=True), copy)
         for n in range(1, len(move.moves)):
-            sq = copy.get(*sq.next(move.direction, self.w))
+            sq = copy.get(*sq.next(move.direction, self.size))
             yield self._run(lambda: copy.move_single(sq, move.direction, sum(move.moves[n:]), first=False), copy)
 
     def parse_move(self, move: Move, curr_player):
@@ -278,13 +278,13 @@ class Board:
         return np.array([list(map(Square.copy, r)) for r in self.board])
 
     def copy(self):
-        return Board(self.w, self.h, board=self.copy_board())
+        return Board(self.size, board=self.copy_board())
 
     def __repr__(self):
         return tb.tabulate(self.board,
                            tablefmt="plain",
-                           headers=list(range(1, self.w + 1)),
-                           showindex=list(cols[:self.h]))
+                           headers=list(range(1, self.size + 1)),
+                           showindex=list(cols[:self.size]))
 
     def evaluate(self, color):
         return self._evaluate(color) - self._evaluate(flip_color(color)) * 2
@@ -302,8 +302,8 @@ class Board:
         return filter(lambda move: self._valid(move, color), self.generate_all_moves(color, caps))
 
     def generate_all_moves(self, color, caps):
-        for y in range(self.h):
-            for x in range(self.w):
+        for y in range(self.size):
+            for x in range(self.size):
                 c, r = coords_to_tile(x, y)
                 tile = self.get(x, y)
                 if tile == EMPTY:
@@ -316,8 +316,8 @@ class Board:
                         for direction in dirs:
                             try:
                                 x1, y1 = tile.next(direction, SIZE)
-                                if 0 <= x1 < self.w and 0 <= y1 < self.h:
-                                    for i in range(1, min(len(tile.tiles) + 1, self.h + 1)):
+                                if 0 <= x1 < self.size and 0 <= y1 < self.size:
+                                    for i in range(1, min(len(tile.tiles) + 1, self.size + 1)):
                                         if i == 1 and len(tile.tiles) == 1:
                                             yield Move(col=c, row=r, direction=direction)
                                         else:
@@ -336,7 +336,7 @@ class Board:
             copy.force(pb)
             return pb
         except IndexError as e:
-            return PseudoBoard(self.w, self.h, [], False, e, None)
+            return PseudoBoard(self.size, self.size, [], False, e, None)
 
     def _evaluate_sq(self, color, sq):
         e = 0
@@ -353,7 +353,7 @@ class Board:
     def _cl_sq_check(self, r, color, board, xy, out, sq):
         if sq.tiles and sq.tiles[-1].color == color:
             conns = sq.connections(board, out)
-            return conns > 1 or ((r == 0 or r == self.h - 1) and conns > 0)
+            return conns > 1 or ((r == 0 or r == self.size - 1) and conns > 0)
         return False
 
     def _cl_row_check(self, color, xy, board, r, out, row):
@@ -368,7 +368,7 @@ class Board:
         if out:
             print(road)
         if all(road) or \
-                any(len(road[i]) >= self.h for i in range(self.h)):
+                any(len(road[i]) >= self.size for i in range(self.size)):
             return color
         return False
 

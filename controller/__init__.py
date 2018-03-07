@@ -6,7 +6,7 @@ AI = "ai"
 
 class Game:
     def __init__(self, size=5, board=None, white_type=(HUMAN, None), black_type=(AI, 3)):
-        self.board = Board(w=size, h=size) if board is None else board
+        self.board = Board(size) if board is None else board
         self.player_1: Player = self._init_player(WHITE, white_type)
         self.player_2: Player = self._init_player(BLACK, black_type)
         self.players = [self.player_1, self.player_2]
