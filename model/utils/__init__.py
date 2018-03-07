@@ -274,9 +274,9 @@ class Board:
     def road(self, out=False):
         for board, xy in zip((self.board, np.transpose(self.board)), (False, True)):
             for color in COLORS:
-                if self._road_check(color, board, xy=xy, out=out):
+                if self._road_check(color, board, xy=xy, out=False):
                     return color
-        return Falses
+        return False
 
     def compress_left(self, color, board, xy, out):
         return list(it.starmap(fc.partial(self._cl_row_check, color, xy, board, out), enumerate(board)))
@@ -354,7 +354,7 @@ class Board:
             t = sq.tiles[-1]
             if t.color == color:
                 e += sum(1 for i in sq.tiles if i.color == color and i.stone in 'CF') ** 1.5
-                e += (sq.connections(self.board) + 1) ** 2
+                e += (sq.connections(self.board, out=False) + 1) ** 2
         return e
 
     def _evaluate(self, color):
@@ -366,15 +366,15 @@ class Board:
             return conns > 1 or ((r == 0 or r == self.h - 1) and conns > 0)
         return False
 
-    def _cl_row_check(self, color, xy, board, out, r, row):
-        return list(filter(fc.partial(self._cl_sq_check, r, color, board, xy, out), row))
+    def _cl_row_check(self, color, xy, board, r, out, row):
+        return list(filter(fc.partial(self._cl_sq_check, r, color, board, xy, False), row))
 
     def _sum(self, color):
         return sum(1 for row in self.board for sq in row if sq.tiles and
                    sq.tiles[-1].color == color and sq.tiles[-1].stone == FLAT)
 
     def _road_check(self, color, board, xy, out=False):
-        road = self.compress_left(color, board, xy, out=out)
+        road = self.compress_left(color, board, xy, out=False)
         if out:
             print(road)
         if all(road) or \
