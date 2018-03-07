@@ -59,55 +59,24 @@ class Square(Next):
         self.tiles = self.tiles[:n]
         return top
 
-    # def connections(self, board, xy=True):
-    #     return sum(self._connections(d, board, xy, len(board)) for d in dirs)
-    #
-    # def _connections(self, direction, board, xy, s):
-    #     try:
-    #         x, y = self.next(direction, s)
-    #         if xy:
-    #             t_next = board[x][y][-1]
-    #         else:
-    #             t_next = board[y][x][-1]
-    #         t = self[-1]
-    #         if t_next is not None and t is not None and \
-    #                 t_next.color == t.color and t_next.stone in 'FC' and t.stone in 'FC':
-    #             return 1
-    #     except ValueError:
-    #         pass
-    #     return 0
-
-    def connections(self, board, out=False):
-        if out: print("\t\t\t\tRunning connections!")
+    def connections(self, board):
         conns = 0
         s = len(board)
         for direction in dirs:
-            if out: print("\t\t\t\t\tTrying", direction)
             x, y = self.next(direction, s)
-            if out: print("\t\t\t\t\tI am", self.x, self.y, "got", x, y)
-            # if xy:
-            #     t_next = board[x][y].tiles
-            # else:
             t_next = board[y][x].tiles
             if t_next:
                 t_next = t_next[-1]
-                if out: print("\t\t\t\t\tGot", t_next, t_next.x, t_next.y)
                 t = self.tiles
                 if t:
                     t = t[-1]
                     if t_next is not t and \
                             t_next.color == t.color and t_next.stone in 'FC' and t.stone in 'FC':
-                        if out: print("\t\t\t\t\tadding to conns!")
                         conns += 1
         return conns
 
     def copy(self):
         return Square(self.x, self.y, tiles=self.tiles[:])
-
-    # def __getitem__(self, i):
-    #     if self.tiles:
-    #         return self.tiles[i]
-    #     return None
 
     def __eq__(self, other):
         if other == EMPTY:
@@ -261,15 +230,15 @@ class Board:
             return ("TIE" if t else False) if w == b else WHITE if w > b else BLACK
         return False
 
-    def road(self, out=False):
+    def road(self):
         for board, xy in zip((self.board, np.transpose(self.board)), (False, True)):
             for color in COLORS:
-                if self._road_check(color, board, xy=xy, out=out):
+                if self._road_check(color, board, xy=xy):
                     return color
         return False
 
-    def compress_left(self, color, board, xy, out):
-        return list(it.starmap(fc.partial(self._cl_row_check, color, xy, board, out), enumerate(board)))
+    def compress_left(self, color, board, xy):
+        return list(it.starmap(fc.partial(self._cl_row_check, color, xy, board), enumerate(board)))
       
     def get(self, x: int, y: int) -> Square:
         return self.board[y][x]
@@ -344,29 +313,27 @@ class Board:
             t = sq.tiles[-1]
             if t.color == color:
                 e += sum(1 for i in sq.tiles if i.color == color and i.stone in 'CF') ** 1.5
-                e += (sq.connections(self.board, out=False) + 1) ** 2
+                e += (sq.connections(self.board) + 1) ** 2
         return e
 
     def _evaluate(self, color):
         return sum(map(fc.partial(self._evaluate_sq, color), self.board.ravel('C')))
 
-    def _cl_sq_check(self, r, color, board, xy, out, sq):
+    def _cl_sq_check(self, r, color, board, xy, sq):
         if sq.tiles and sq.tiles[-1].color == color:
-            conns = sq.connections(board, out)
+            conns = sq.connections(board)
             return conns > 1 or ((r == 0 or r == self.size - 1) and conns > 0)
         return False
 
-    def _cl_row_check(self, color, xy, board, r, out, row):
-        return list(filter(fc.partial(self._cl_sq_check, r, color, board, xy, False), row))
+    def _cl_row_check(self, color, xy, board, r, row):
+        return list(filter(fc.partial(self._cl_sq_check, r, color, board, xy), row))
 
     def _sum(self, color):
         return sum(1 for row in self.board for sq in row if sq.tiles and
                    sq.tiles[-1].color == color and sq.tiles[-1].stone == FLAT)
 
-    def _road_check(self, color, board, xy, out=False):
-        road = self.compress_left(color, board, xy, out=False)
-        if out:
-            print(road)
+    def _road_check(self, color, board, xy):
+        road = self.compress_left(color, board, xy)
         if all(road) or \
                 any(len(road[i]) >= self.size for i in range(self.size)):
             return color
@@ -418,7 +385,7 @@ class Player(object):
     def out_of_tiles(self):
         return self.caps >= self.board.caps and self.stones >= self.board.stones
 
-    def _pick_move(self, color, out=True):
+    def _pick_move(self, color):
         while True:
             m = str_to_move(input("Enter move: "))
             try:
@@ -432,8 +399,8 @@ class Player(object):
                 print("Parsed move", m)
                 print("Received error", e)
 
-    def pick_move(self, out=True):
-        return self._pick_move(self.color, out)
+    def pick_move(self):
+        return self._pick_move(self.color)
 
     def pick_opposing_move(self):
         return self._pick_move(flip_color(self.color))
