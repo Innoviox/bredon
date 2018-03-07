@@ -21,13 +21,29 @@ g.run()
 # 13. 3c5<12
 
 '''
-moves = zip("a1 d4 d2 b2 d3 d1 c3 a3 c1 b1 1d2- c2 ".split(),
+moves = zip("a1 d4 d3 a2 c3 b2 d2 d1 b4 a3 Sa4 1a1> c1 1b1> 1d2- 2c1> c4 4d1<13 d1 d2 1d3- 1c1> 2d2- d3 Sa1 1a2> b3 c2 c1 1d3+ 4d1+121 1c2- 1a1> 1b2+ 3b1+12 2c1< 3b3-12 a2 c2 3b2> 1d2< 2d3<11 4c2<22 ".split(),
              (BLACK, WHITE,
               WHITE, BLACK,
               WHITE, BLACK,
               WHITE, BLACK,
               WHITE, BLACK,
-              WHITE, BLACK)
+              WHITE, BLACK,
+              WHITE, BLACK,
+              WHITE, BLACK,
+              WHITE, BLACK,
+              WHITE, BLACK,
+              WHITE, BLACK,
+              WHITE, BLACK,
+              WHITE, BLACK,
+              WHITE, BLACK,
+              WHITE, BLACK,
+              WHITE, BLACK,
+              WHITE, BLACK,
+              WHITE, BLACK,
+              WHITE, BLACK,
+              WHITE, BLACK,
+              WHITE, BLACK,
+              WHITE, BLACK,)
 )
 for i, (m, c) in enumerate(moves):
     # g.board.force_str(m, c)
@@ -38,8 +54,8 @@ for i, (m, c) in enumerate(moves):
         print(player.color, player.out_of_tiles(), player.caps, player.stones, g.board.caps, g.board.stones)
 # print(g.player_1.do(str_to_move("3c3-111")))
 # print(g.board)
-m = g.player_1.pick_move(out=True)
-print(m)
-g.player_1.do(m)
-print(g.board)
+# m = g.player_1.pick_move(out=True)
+# print(m)
+# g.player_1.do(m)
+# print(g.board)
 '''

@@ -85,22 +85,27 @@ class Square(Next):
     #         pass
     #     return 0
 
-    def connections(self, board, xy=True):
+    def connections(self, board, out=False):
+        if out: print("\t\t\t\tRunning connections!")
         conns = 0
         s = len(board)
         for direction in dirs:
+            if out: print("\t\t\t\t\tTrying", direction)
             x, y = self.next(direction, s)
-            if xy:
-                t_next = board[x][y].tiles
-            else:
-                t_next = board[y][x].tiles
+            if out: print("\t\t\t\t\tI am", self.x, self.y, "got", x, y)
+            # if xy:
+            #     t_next = board[x][y].tiles
+            # else:
+            t_next = board[y][x].tiles
             if t_next:
                 t_next = t_next[-1]
+                if out: print("\t\t\t\t\tGot", t_next, t_next.x, t_next.y)
                 t = self.tiles
                 if t:
                     t = t[-1]
                     if t_next is not t and \
                             t_next.color == t.color and t_next.stone in 'FC' and t.stone in 'FC':
+                        if out: print("\t\t\t\t\tadding to conns!")
                         conns += 1
         return conns
 
@@ -269,12 +274,12 @@ class Board:
     def road(self, out=False):
         for board, xy in zip((self.board, np.transpose(self.board)), (False, True)):
             for color in COLORS:
-                if self._road_check(color, board, xy, out=out):
+                if self._road_check(color, board, xy=xy, out=out):
                     return color
-        return False
+        return Falses
 
-    def compress_left(self, color, board, xy):
-        return list(it.starmap(fc.partial(self._cl_row_check, color, xy, board), enumerate(board)))
+    def compress_left(self, color, board, xy, out):
+        return list(it.starmap(fc.partial(self._cl_row_check, color, xy, board, out), enumerate(board)))
       
     def get(self, x: int, y: int) -> Square:
         return self.board[y][x]
@@ -355,24 +360,24 @@ class Board:
     def _evaluate(self, color):
         return sum(map(fc.partial(self._evaluate_sq, color), self.board.ravel('C')))
 
-    def _cl_sq_check(self, r, color, board, xy, sq):
+    def _cl_sq_check(self, r, color, board, xy, out, sq):
         if sq.tiles and sq.tiles[-1].color == color:
-            conns = sq.connections(board, xy)
+            conns = sq.connections(board, out)
             return conns > 1 or ((r == 0 or r == self.h - 1) and conns > 0)
         return False
 
-    def _cl_row_check(self, color, xy, board, r, row):
-        return list(filter(fc.partial(self._cl_sq_check, r, color, board, xy), row))
+    def _cl_row_check(self, color, xy, board, out, r, row):
+        return list(filter(fc.partial(self._cl_sq_check, r, color, board, xy, out), row))
 
     def _sum(self, color):
         return sum(1 for row in self.board for sq in row if sq.tiles and
                    sq.tiles[-1].color == color and sq.tiles[-1].stone == FLAT)
 
     def _road_check(self, color, board, xy, out=False):
-        road = self.compress_left(color, board, xy)
+        road = self.compress_left(color, board, xy, out=out)
         if out:
             print(road)
-        if all(len(road[i]) > 0 for i in range(self.h)) or \
+        if all(road) or \
                 any(len(road[i]) >= self.h for i in range(self.h)):
             return color
         return False
@@ -423,7 +428,7 @@ class Player(object):
     def out_of_tiles(self):
         return self.caps >= self.board.caps and self.stones >= self.board.stones
 
-    def _pick_move(self, color):
+    def _pick_move(self, color, out=True):
         while True:
             m = str_to_move(input("Enter move: "))
             try:
@@ -431,14 +436,16 @@ class Player(object):
                 if v:
                     return m, color
                 else:
-                    print("Parsed move", m)
-                    print("Received error", v)
+                    if out: print("Parsed move", m)
+                    if out: print("Received error", v)
             except Exception as e:
-                print("Parsed move", m)
-                print("Received error", e)
+                if out:
+                    print("Parsed move", m)
+                if out:
+                    print("Received error", e)
 
-    def pick_move(self):
-        return self._pick_move(self.color)
+    def pick_move(self, out=True):
+        return self._pick_move(self.color, out)
 
     def pick_opposing_move(self):
         return self._pick_move(flip_color(self.color))
