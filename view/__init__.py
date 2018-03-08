@@ -1,7 +1,8 @@
 from model import *
 import tkinter as tk
 
-TILE_SIZE = 50
+TILE_SIZE = 40
+SQUARE_SIZE = 75
 
 def _create_circle(self, x, y, r, **kwargs):
     return self.create_oval(x-r, y-r, x+r, y+r, **kwargs)
@@ -20,7 +21,7 @@ class ViewSquare(tk.Canvas):
     OFFSET = 10
 
     def __init__(self, master, i, j):
-        tk.Canvas.__init__(self, master, width=TILE_SIZE, height=TILE_SIZE)
+        tk.Canvas.__init__(self, master, width=SQUARE_SIZE, height=SQUARE_SIZE)
         self.grid(row=j + 1, column=i + 1)
         print(self.grid_info())
         self.pack()
@@ -29,14 +30,11 @@ class ViewSquare(tk.Canvas):
 
     def _render(self, tile, idx):
         n = ViewSquare.OFFSET * idx
-        print("\t\trendering tile", n, n, n + TILE_SIZE, n + TILE_SIZE, tile.color)
-        self.create_rectangle(n, n, n + TILE_SIZE, n + TILE_SIZE, fill=tile.color)
-        self.update()
+        self.create_rectangle(TILE_SIZE + n, TILE_SIZE + n, n, n, fill=tile.color)
 
     def render(self):
         self.delete("all")
-        print("\trecv render square")
-        self.create_rectangle(5, 5, TILE_SIZE, TILE_SIZE, width=5)
+        self.create_rectangle(5, 5, SQUARE_SIZE, SQUARE_SIZE, width=5)
         for idx, tile in enumerate(self.master.board.board[self.i][self.j].tiles, start=1):
             self._render(tile, idx)
 
@@ -47,7 +45,7 @@ class ViewBoard(tk.Frame):
         self.size = board.size
         self.squares = []
 
-        tk.Frame.__init__(self, master, width=self.size * TILE_SIZE, height=self.size * TILE_SIZE)
+        tk.Frame.__init__(self, master, width=self.size * SQUARE_SIZE, height=self.size * SQUARE_SIZE)
         self.pack(side=tk.LEFT, expand=1)
         self._init_gui()
 
@@ -59,5 +57,4 @@ class ViewBoard(tk.Frame):
 
     def render(self):
         for s in self.squares:
-            print("\trendering square")
             s.render()

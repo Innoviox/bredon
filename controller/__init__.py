@@ -63,10 +63,6 @@ class ViewGame(tk.Tk, Game):
         self.update()
 
     def viz(self):
-        print("lets viz")
         self.vboard.render()
         self.update_idletasks()
         self.update()
-        print(self.board)
-        print(self.vboard.board)
-        input()
