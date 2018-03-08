@@ -9,9 +9,9 @@ from string import ascii_lowercase as cols
 from operator import sub
 
 
-COLORS = "BW"
+COLORS = ("red", "green")
 BLACK, WHITE = COLORS
-COLORS_REV = ''.join(reversed(COLORS))
+COLORS_REV = tuple(reversed(COLORS))
 EMPTY = ' '
 MARKS = '?!'
 

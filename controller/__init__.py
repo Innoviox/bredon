@@ -1,10 +1,11 @@
 from model import *
+from view import *
 import time
 
 HUMAN = "human"
 AI = "ai"
 
-class Game:
+class Game():
     def __init__(self, size=5, board=None, white_type=(HUMAN, None), black_type=(AI, 3)):
         self.board = Board(size) if board is None else board
         self.player_1: Player = self._init_player(WHITE, white_type)
@@ -18,22 +19,28 @@ class Game:
         else:
             return MinimaxAI(self.board, color, depth)
 
+    def viz(self):
+        raise NotImplementedError()
+
+    def _run(self, player, turn):
+        self.viz()
+        t = time.time()
+        if turn == 1:
+            m, c = player.pick_opposing_move()
+        else:
+            m = player.pick_move()
+            c = player.color
+        print(time.time() - t)
+        player._do(m, c)
+        return str(m) + " "
+
     def run(self):
         ptn = ""
         turn = 1
         while True:
             ptn += str(turn) + ". "
             for player in self.players:
-                print(self.board)
-                t = time.time()
-                if turn == 1:
-                    m, c = player.pick_opposing_move()
-                else:
-                    m = player.pick_move()
-                    c = player.color
-                print(time.time() - t)
-                ptn += str(m) + " "
-                player._do(m, c)
+                ptn += self._run(player, turn)
                 w = self.board.winner(self.players, t=True)
                 print(ptn)
                 if w:
@@ -41,3 +48,25 @@ class Game:
                     return
             ptn += "\n"
             turn += 1
+
+class TextGame(Game):
+    def viz(self):
+        print(self.board)
+
+
+
+class ViewGame(tk.Tk, Game):
+    def __init__(self, **kw):
+        tk.Tk.__init__(self, "tak")
+        Game.__init__(self, **kw)
+        self.vboard = ViewBoard(self, self.board)
+        self.update()
+
+    def viz(self):
+        print("lets viz")
+        self.vboard.render()
+        self.update_idletasks()
+        self.update()
+        print(self.board)
+        print(self.vboard.board)
+        input()

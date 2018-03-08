@@ -30,7 +30,7 @@ class MinimaxAI(StaticAI):
         for move in moves:
             # if move.stone == STAND:
             #     continue
-            if out: print("Trying", move)
+            if out: print("Trying", move, alpha)
             self.board.execute(move, self.color)
             # print(self.board)
             alpha = self.minimax(self.depth - 1, self.board, -np.inf, np.inf, True, flip_color(self.color), self.board.copy_board()) * 4
@@ -62,7 +62,7 @@ class MinimaxAI(StaticAI):
             # print(move)
             # print(new_board)
             # if out: input()
-        # input()
+        if out: input()
         return best_move
 
     def minimax(self, depth, board, alpha, beta, maximising, color, old_state, out=False):

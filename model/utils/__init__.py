@@ -95,7 +95,7 @@ class Board:
     def __init__(self, size: int, board=None):
         self.size = size
         self.board = [[Square(x, y) for x in range(size)]
-                              for y in range(size)] if board is None else board
+                      for y in range(size)] if board is None else board
         self.stones, self.caps = sizes[size]
 
     def place(self, move: Move, curr_player):
@@ -317,7 +317,8 @@ class Board:
         return e
 
     def _evaluate(self, color):
-        return sum(map(fc.partial(self._evaluate_sq, color), np.ravel(self.board, 'C')))
+        # return sum(map(fc.partial(self._evaluate_sq, color), np.ravel(self.board, 'C')))
+        return sum(sum(map(fc.partial(self._evaluate_sq, color), row)) for row in self.board)
 
     def _cl_sq_check(self, r, color, board, xy, sq):
         if sq.tiles and sq.tiles[-1].color == color:
