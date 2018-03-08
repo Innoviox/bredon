@@ -94,8 +94,8 @@ class Square(Next):
 class Board:
     def __init__(self, size: int, board=None):
         self.size = size
-        self.board = np.array([[Square(x, y) for x in range(size)]
-                              for y in range(size)]) if board is None else board
+        self.board = [[Square(x, y) for x in range(size)]
+                              for y in range(size)] if board is None else board
         self.stones, self.caps = sizes[size]
 
     def place(self, move: Move, curr_player):
@@ -244,7 +244,7 @@ class Board:
         return self.board[y][x]
 
     def copy_board(self):
-        return np.array([list(map(Square.copy, r)) for r in self.board])
+        return [list(map(Square.copy, r)) for r in self.board]
 
     def copy(self):
         return Board(self.size, board=self.copy_board())
@@ -317,7 +317,7 @@ class Board:
         return e
 
     def _evaluate(self, color):
-        return sum(map(fc.partial(self._evaluate_sq, color), self.board.ravel('C')))
+        return sum(map(fc.partial(self._evaluate_sq, color), np.ravel(self.board, 'C')))
 
     def _cl_sq_check(self, r, color, board, xy, sq):
         if sq.tiles and sq.tiles[-1].color == color:
