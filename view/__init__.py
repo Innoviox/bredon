@@ -11,7 +11,7 @@ class ViewSquare(tk.Canvas):
     OFFSET = 3
 
     def __init__(self, master, i, j):
-        tk.Canvas.__init__(self, master, width=SQUARE_SIZE, height=SQUARE_SIZE)
+        tk.Canvas.__init__(self, master, width=SQUARE_SIZE, height=SQUARE_SIZE, bd=1, relief="sunken")
         self.pack()
         self.master = master
         self.i, self.j = i, j
@@ -24,7 +24,7 @@ class ViewSquare(tk.Canvas):
 
     def render(self):
         self.delete("all")
-        self.create_rectangle(5, 5, SQUARE_SIZE, SQUARE_SIZE, width=5)
+        # self.create_rectangle(5, 5, SQUARE_SIZE, SQUARE_SIZE)
         for idx, tile in enumerate(self.master.board.board[self.i][self.j].tiles, start=1):
             self._render(tile, idx)
 
@@ -51,7 +51,8 @@ class ViewBoard(tk.Frame):
         for i in range(self.size):
             for j in range(self.size):
                 self.squares.append(ViewSquare(self, i, j))
-                self.squares[-1].grid(row=i, column=j)
+                # self.squares[-1].grid(row=i, column=j)
+                self.squares[-1].place_configure(x=i*SQUARE_SIZE + 1, y=j*SQUARE_SIZE + 1)
 
     def render(self):
         for s in self.squares:
