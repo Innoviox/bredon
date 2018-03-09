@@ -3,7 +3,7 @@ from controller import *
 # for b in load_moves_from_file("/Users/chervjay/Documents/GitHub/Bredon/neural/games/6.ptn"):
 #     print(b)
 # input()
-g = Game(size=5, white_type=(AI, 3), black_type=(AI, 3)) # black_type=HUMAN)
+g = ViewGame(size=5, black_type=(AI, 3)) # black_type=HUMAN)
 g.run()
 
 # 1. a1 e5

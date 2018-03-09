@@ -2,11 +2,11 @@ from model import *
 from view import *
 import time
 
-HUMAN = "human"
+HUMAN = "human", None
 AI = "ai"
 
 class Game():
-    def __init__(self, size=5, board=None, white_type=(HUMAN, None), black_type=(AI, 3)):
+    def __init__(self, size=5, board=None, white_type=HUMAN, black_type=(AI, 3)):
         self.board = Board(size) if board is None else board
         self.player_1: Player = self._init_player(WHITE, white_type)
         self.player_2: Player = self._init_player(BLACK, black_type)
@@ -14,7 +14,7 @@ class Game():
 
     def _init_player(self, color, types) -> Player:
         name, depth = types
-        if name == HUMAN:
+        if name == HUMAN[0]:
             return Player(self.board, color)
         else:
             return MinimaxAI(self.board, color, depth)

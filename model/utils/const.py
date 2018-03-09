@@ -9,7 +9,7 @@ from string import ascii_lowercase as cols
 from operator import sub
 
 
-COLORS = ("red", "green")
+COLORS = ("black", "white")
 BLACK, WHITE = COLORS
 COLORS_REV = tuple(reversed(COLORS))
 EMPTY = ' '
