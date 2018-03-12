@@ -34,21 +34,6 @@ class Game():
         player._do(m, c)
         return str(m) + " "
 
-    def run(self):
-        ptn = ""
-        turn = 1
-        while True:
-            ptn += str(turn) + ". "
-            for player in self.players:
-                ptn += self._run(player, turn)
-                w = self.board.winner(self.players, t=True)
-                print(ptn)
-                if w:
-                    print(w, "won!")
-                    return
-            ptn += "\n"
-            turn += 1
-
 class TextGame(Game):
     def viz(self):
         print(self.board)
@@ -66,3 +51,21 @@ class ViewGame(tk.Tk, Game):
         self.vboard.render()
         self.update_idletasks()
         self.update()
+
+    def run(self):
+        ptn = ""
+        turn = 1
+        while True:
+            ptn += str(turn) + ". "
+            for player in self.players:
+                old_board = self.board.copy()
+                move = self._run(player, turn)
+                self.vboard.execute(move.strip(), player.color, old_board)
+                ptn += move
+                w = self.board.winner(self.players, t=True)
+                print(ptn)
+                if w:
+                    print(w, "won!")
+                    return
+            ptn += "\n"
+            turn += 1
