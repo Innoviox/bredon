@@ -1,5 +1,5 @@
 from view import *
 from controller import *
 
-g = ViewGame(size=4, black_type=HUMAN)
+g = ViewGame(size=5, white_type=(AI, 3))
 g.run()

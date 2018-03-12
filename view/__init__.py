@@ -11,6 +11,8 @@ class ViewSquare(tk.Canvas):
     OFFSET = 3
 
     def __init__(self, master, i, j):
+        #raised, sunken, groove, ridge
+        #bd -> 5?
         tk.Canvas.__init__(self, master, width=SQUARE_SIZE, height=SQUARE_SIZE, bd=1, relief="sunken")
         self.pack()
         self.master = master
@@ -20,7 +22,19 @@ class ViewSquare(tk.Canvas):
         n = TILE_SIZE / 2
         s = SQUARE_SIZE / 2
         o = ViewSquare.OFFSET * idx
-        self.create_rectangle(s - n, s - n + o, s + n, s + n + o, fill=tile.color)
+        d = 5
+        x1, y1 = s - n, s - n - o + d
+        x2, y2 = s + n, s + n - o + d
+        if tile.stone == FLAT:
+            self.create_rectangle(x1, y1, x2, y2, fill=tile.color)
+        elif tile.stone == STAND:
+            self.create_polygon(x1 + n * 1.5, y1,
+                                x2, y1 + n * 0.5,
+                                x1 + n * 0.5, y2,
+                                x1, y1 + n * 1.5, fill=tile.color)
+        else:
+
+            self.create_circle((x1+x2) / 2, (y1 + y2) / 2, s / 2, fill=tile.color)
 
     def render(self):
         self.delete("all")
@@ -28,10 +42,10 @@ class ViewSquare(tk.Canvas):
         for idx, tile in enumerate(self.master.board.board[self.i][self.j].tiles, start=1):
             self._render(tile, idx)
 
-    def _create_circle(self, x, y, r, **kwargs):
+    def create_circle(self, x, y, r, **kwargs):
         return self.create_oval(x-r, y-r, x+r, y+r, **kwargs)
 
-    def _create_circle_arc(self, x, y, r, **kwargs):
+    def create_circle_arc(self, x, y, r, **kwargs):
         if "start" in kwargs and "end" in kwargs:
             kwargs["extent"] = kwargs["end"] - kwargs["start"]
             del kwargs["end"]
