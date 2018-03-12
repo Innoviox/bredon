@@ -4,7 +4,7 @@ TEST_SIZE = 4
 
 def test_straight_roads():
     def _test(c, z2):
-        b = Board(TEST_SIZE, TEST_SIZE)
+        b = Board(TEST_SIZE)
         ms = ""
         for m in zip(c if len(c) == TEST_SIZE else c * TEST_SIZE, z2):
             b.force_str(''.join(m), WHITE)
@@ -17,6 +17,7 @@ def test_straight_roads():
             print(b)
             print(b.road(True))
             input()
+            quit()
 
     for c in "abcd":
         _test(c, "1234")
