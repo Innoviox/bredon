@@ -31,7 +31,7 @@ class ViewSquare(tk.Canvas):
             self.create_polygon(x1 + n * 1.5, y1,
                                 x2, y1 + n * 0.5,
                                 x1 + n * 0.5, y2,
-                                x1, y1 + n * 1.5, fill=tile.color)
+                                x1, y1 + n * 1.5, fill=tile.color, outline='black')
         else:
 
             self.create_circle((x1+x2) / 2, (y1 + y2) / 2, s / 2, fill=tile.color)
