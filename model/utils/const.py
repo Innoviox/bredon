@@ -69,5 +69,7 @@ class Next:
         if direction == LEFT and obj.x < size - 1:
             return obj.x + 1, obj.y
         return obj.x, obj.y
+
+
 def flip_color(color):
     return COLORS_REV[COLORS.index(color)]

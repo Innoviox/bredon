@@ -44,5 +44,4 @@ for i, (m, c) in enumerate(ms):
     g.board.execute(str_to_move(m), c)
     g.viz()
     print(g.board)
-    input()
-    # time.sleep(.1)
+    time.sleep(1)
