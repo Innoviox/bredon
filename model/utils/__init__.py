@@ -134,7 +134,7 @@ class Board:
                 new_square = self.get(*new_square)
             elif isinstance(new_square, str):
                 try:
-                    new_square = self.get(*old_square.next(new_square, SIZE))
+                    new_square = self.get(*old_square.next(new_square, self.size))
                 except ValueError:
                     return PseudoBoard(self.size, self.size, self.board, False,
                                        f"{old_square.x}, {old_square.y} is out of bounds for {new_square}", None)

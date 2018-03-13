@@ -48,7 +48,7 @@ class ViewGame(tk.Tk, Game):
         self.update()
 
     def viz(self):
-        self.vboard.render()
+        # self.vboard.render()
         self.update_idletasks()
         self.update()
 
