@@ -23,6 +23,7 @@ class ViewSquare:
         x1, y1 = offset_x + self.ix + s - n, offset_y + self.jy + s - n - o + d
         x2, y2 = offset_x + self.ix + s + n, offset_y + self.jy + s + n - o + d
         if tile.stone == FLAT:
+            # print(x1, y1, x2, y2, offset_x, offset_y, idx, tile)
             return self.master.canvas.create_rectangle(x1, y1, x2, y2, fill=tile.color, tags=(self.tags, idx))
         elif tile.stone == STAND:
             return self.master.canvas.create_polygon(x1 + n * 1.5, y1,
@@ -30,7 +31,9 @@ class ViewSquare:
                                                      x1 + n * 0.5, y2,
                                                      x1, y1 + n * 1.5, fill=tile.color, outline='black', tags=(self.tags, idx))
         else:
-            return self.create_circle(*self.find_center(idx, offset_x, offset_y), s / 2, fill=tile.color, tags=(self.tags, idx))
+            x, y = self.find_center(idx, offset_x, offset_y)
+            print(x, y, offset_x, offset_y, idx, tile)
+            return self.create_circle(x, y, s / 2, fill=tile.color, tags=(self.tags, idx))
 
     def find_center(self, idx, offset_x=0.0, offset_y=0.0):
         n, s, o, d = self._calc_nsod(idx)
@@ -122,7 +125,7 @@ class ViewBoard(tk.Frame):
         tiles = ts[-(i+n):]
         ids = vis.ids[-(i+n):]
         step = SQUARE_SIZE / ANIM_STEPS * (i + 1)
-        step -= (3 * (idx - 1 + len(nts))) / ANIM_STEPS
+        if direction == UP: step -= (3 * (idx - 1 + len(nts))) / ANIM_STEPS
         if direction == UP:
             xi, yi = step, 0
         elif direction == DOWN:
@@ -131,14 +134,14 @@ class ViewBoard(tk.Frame):
             xi, yi = 0, -step
         elif direction == LEFT:
             xi, yi = 0, step
-        # print(step, idx, xi, yi)
+        print(step, idx, xi, yi)
         print("\tmoving", ts, tiles)
-        for k in range(ANIM_STEPS):
+        for k in range(2, ANIM_STEPS):
             for _id in ids:
                 self.canvas.delete(_id)
             ids = []
-            for tile in tiles:
-                ids.append(vis._render(tile, i, -(yi * k), (xi * k)))
+            for _idx, tile in enumerate(tiles):
+                ids.append(vis._render(tile, idx + _idx, -(yi * k), (xi * k) - ((idx + _idx - 1) * 3) * (k / ANIM_STEPS)))
             self.update()
 
     def get_square(self, sq) -> ViewSquare:
