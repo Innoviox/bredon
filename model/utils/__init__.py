@@ -134,7 +134,7 @@ class Board:
                 new_square = self.get(*new_square)
             elif isinstance(new_square, str):
                 try:
-                    new_square = self.get(*old_square.next(new_square, SIZE))
+                    new_square = self.get(*old_square.next(new_square, self.size))
                 except ValueError:
                     return PseudoBoard(self.size, self.size, self.board, False,
                                        f"{old_square.x}, {old_square.y} is out of bounds for {new_square}", None)
@@ -315,7 +315,7 @@ class Board:
 
     def _evaluate(self, color):
         # return sum(map(fc.partial(self._evaluate_sq, color), np.ravel(self.board, 'C')))
-        return sum(sum(map(fc.partial(self._evaluate_sq, color), row)) for row in self.board)
+        return sum(sum(map(fc.partial(self._evaluate_sq, color), row)) for row in self.board) + sum(map(len, self._compress_left(color, self.board, False)))
 
     def _cl_sq_check(self, r, color, out, sq):
         if sq.tiles and sq.tiles[-1].color == color:

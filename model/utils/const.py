@@ -59,5 +59,17 @@ class Next:
             return obj.x + 1, obj.y
         return obj.x, obj.y
 
+    def tru_next(obj, direction, size):
+        if direction == DOWN and obj.y > 0:
+            return obj.x, obj.y - 1
+        if direction == UP and obj.y < size - 1:
+            return obj.x, obj.y + 1
+        if direction == RIGHT and obj.x > 0:
+            return obj.x - 1, obj.y
+        if direction == LEFT and obj.x < size - 1:
+            return obj.x + 1, obj.y
+        return obj.x, obj.y
+
+
 def flip_color(color):
     return COLORS_REV[COLORS.index(color)]
