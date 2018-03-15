@@ -23,7 +23,6 @@ class ViewSquare:
         x1, y1 = offset_x + self.ix + s - n, offset_y + self.jy + s - n - o + d
         x2, y2 = offset_x + self.ix + s + n, offset_y + self.jy + s + n - o + d
         if tile.stone == FLAT:
-            # print(x1, y1, x2, y2, offset_x, offset_y, idx, tile)
             return self.master.canvas.create_rectangle(x1, y1, x2, y2, fill=tile.color, tags=(self.tags, idx))
         elif tile.stone == STAND:
             return self.master.canvas.create_polygon(x1 + n * 1.5, y1,
@@ -31,9 +30,7 @@ class ViewSquare:
                                                      x1 + n * 0.5, y2,
                                                      x1, y1 + n * 1.5, fill=tile.color, outline='black', tags=(self.tags, idx))
         else:
-            x, y = self.find_center(idx, offset_x, offset_y)
-            print(x, y, offset_x, offset_y, idx, tile)
-            return self.create_circle(x, y, s / 2, fill=tile.color, tags=(self.tags, idx))
+            return self.create_circle(*self.find_center(idx, offset_x, offset_y),  s / 2, fill=tile.color, tags=(self.tags, idx))
 
     def find_center(self, idx, offset_x=0.0, offset_y=0.0):
         n, s, o, d = self._calc_nsod(idx)
@@ -52,6 +49,10 @@ class ViewSquare:
 
     def get_tiles(self, board):
         return board.board[self.i][self.j].tiles
+
+    def s(self, b):
+        return self.tags + " " + str(self.get_tiles(b))
+
 
 class ViewBoard(tk.Frame):
     def __init__(self, master, board: Board):
@@ -84,49 +85,38 @@ class ViewBoard(tk.Frame):
         self.render()
         self.move = move, old_board
 
-    def get_squares(self, m, old_board):
-        s = old_board.board[int(m.row) - 1][int(cols.index(m.col))]
-        d = m.direction
-        if not m.moves:
-            print("yielding1")
-            yield (s.x, s.y), m.total
-            # for i in range(m.total):
-            #     yield (s.x, s.y), 1
-        for n in m.moves:
-            print("yielding", n)
-            yield (s.x, s.y), n
-            s = Square(*s.next(d, self.size))
-
     def animate(self, move, old_board):
-        print("ANIMATING!")
+        print("animating", move)
         m = str_to_move(move)
-        sqs, ns = [], []
-        for s, n in self.get_squares(m, old_board):
-            sqs.append(s)
-            ns.append(n)
-        print("Found", m, move, sqs, ns)
-        for i, n in enumerate(ns):
-            print("animating", i, n)
-            moved, sqs = sqs[:n], sqs[n:]
-            print("split", moved, sqs)
-            for idx, sq in enumerate(moved, start=1):
-                print("\t_animating", idx, sq)
-                self._animate(sq, m.direction, i, n, idx, old_board)
+        sq = int(cols.index(m.col)), int(m.row) - 1
+        moves = m.moves if m.moves else [m.total]
+        print("found", sq, moves)
+        t = m.total
+        if len(moves) == 1:
+            self._animate(sq, m.direction, 0, moves[0], old_board, slice(-t, None))
+        else:
+            for i, move in enumerate(moves):
+                stop = -(t-move)
+                if stop == 0:
+                    stop = None
+                self._animate(sq, m.direction, i, move, old_board, slice(-t, stop))
+                t -= move
 
-    def _animate(self, sq, direction, i, n, idx, old_board):
-        print("\t_animating", sq, direction, i, n, idx)
+    def _animate(self, sq, direction, i, n, old_board, idxs):
+        print("\t_animating", sq, direction, i, n, idxs)
+
         vis = self.get_square(sq)
+        tiles = vis.get_tiles(old_board)[idxs]
+        ids = vis.ids[idxs]
+
         nvis = Square(*sq).tru_next(direction, self.size)
         for j in range(i):
             nvis = Square(*nvis).tru_next(direction, self.size)
-        nvis = self.get_square(nvis)
-        nts = nvis.get_tiles(old_board)
-        ts = vis.get_tiles(old_board)
-        tiles = ts[-(i+n):]
-        ids = vis.ids[-(i+n):]
+        nts = self.get_square(nvis).get_tiles(old_board)
+
         step = SQUARE_SIZE / ANIM_STEPS * (i + 1)
-        if direction == UP: step -= (3 * (idx - 1 + len(nts))) / ANIM_STEPS
         if direction == UP:
+            step -= (3 * len(nts)) / ANIM_STEPS
             xi, yi = step, 0
         elif direction == DOWN:
             xi, yi = -step, 0
@@ -134,14 +124,17 @@ class ViewBoard(tk.Frame):
             xi, yi = 0, -step
         elif direction == LEFT:
             xi, yi = 0, step
-        print(step, idx, xi, yi)
-        print("\tmoving", ts, tiles)
+
+        print("\tstates:")
+        print("\t\tvis", vis.s(old_board))
+        for name, var in zip(("tiles", "ids", "nvis", "nts", "step", "xi", "yi"),
+                             (tiles, ids, nvis, nts, step, xi, yi)):
+            print("\t\t", name, var)
+
         for k in range(2, ANIM_STEPS):
             for _id in ids:
                 self.canvas.delete(_id)
-            ids = []
-            for _idx, tile in enumerate(tiles):
-                ids.append(vis._render(tile, idx + _idx, -(yi * k), (xi * k) - ((idx + _idx - 1) * 3) * (k / ANIM_STEPS)))
+            ids = [vis._render(tile, _idx, -(yi * k), (xi * k) - ((_idx - 1) * 3) * (k / ANIM_STEPS)) for _idx, tile in enumerate(tiles, start=1)]
             self.update()
 
     def get_square(self, sq) -> ViewSquare:
