@@ -92,15 +92,12 @@ class ViewBoard(tk.Frame):
         moves = m.moves if m.moves else [m.total]
         print("found", sq, moves)
         t = m.total
-        if len(moves) == 1:
-            self._animate(sq, m.direction, 0, moves[0], old_board, slice(-t, None))
-        else:
-            for i, move in enumerate(moves):
-                stop = -(t-move)
-                if stop == 0:
-                    stop = None
-                self._animate(sq, m.direction, i, move, old_board, slice(-t, stop))
-                t -= move
+        for i, move in enumerate(moves):
+            stop = -(t-move)
+            if stop == 0:
+                stop = None
+            self._animate(sq, m.direction, i, move, old_board, slice(-t, stop))
+            t -= move
 
     def _animate(self, sq, direction, i, n, old_board, idxs):
         print("\t_animating", sq, direction, i, n, idxs)
