@@ -5,6 +5,9 @@ import tkinter as tk
 def calc_nsod(idx):
     return TILE_SIZE / 2, SQUARE_SIZE / 2, OFFSET_STEP * idx, PAD_STEP
 
+def create_circle(self, x, y, r, **kwargs):
+    return self.create_oval(x - r, y - r, x + r, y + r, **kwargs)
+tk.Canvas.create_circle = create_circle
 
 class ViewSquare:
     def __init__(self, master, i, j, width=SQUARE_SIZE, height=SQUARE_SIZE):
@@ -43,16 +46,19 @@ class ViewSquare:
         self.ids = [self.render_tile(tile, idx) for idx, tile in enumerate(self.get_tiles(self.master.board), start=1)]
 
     def create_circle(self, x, y, r, **kwargs):
-        return self.master.canvas.create_oval(x - r, y - r, x + r, y + r, **kwargs)
+        return self.master.canvas.create_circle(x, y, r, **kwargs)
 
     def get_tiles(self, board):
         return board.board[self.i][self.j].tiles
 
+    def s(self, b):
+        return self.tags + " " + str(self.get_tiles(b))
+
 
 class ViewBoard(tk.Frame):
-    def __init__(self, master, board: Board):
-        self.board = board
-        self.size = board.size
+    def __init__(self, master):
+        self.board = master.board
+        self.size = master.board.size
         self.squares = []
 
         tk.Frame.__init__(self, master, width=self.size * SQUARE_SIZE, height=self.size * SQUARE_SIZE)
@@ -109,7 +115,7 @@ class ViewBoard(tk.Frame):
         step = SQUARE_SIZE / ANIM_STEPS * (i + 1)
         xi, yi = None, None
         if direction == UP:
-            step -= (OFFSET_STEP * len(nts)) / ANIM_STEPS
+            step -= (3 * len(nts)) / ANIM_STEPS
             xi, yi = step, 0
         elif direction == DOWN:
             xi, yi = -step, 0
@@ -121,8 +127,7 @@ class ViewBoard(tk.Frame):
         for k in range(2, ANIM_STEPS):
             for _id in ids:
                 self.canvas.delete(_id)
-            ids = [vis.render_tile(tile, _idx, -(yi * k),
-                                   (xi * k) - ((_idx - 1) * OFFSET_STEP) * (k / ANIM_STEPS))
+            ids = [vis.render_tile(tile, _idx, -(yi * k), (xi * k) - ((_idx - 1) * 3) * (k / ANIM_STEPS))
                    for _idx, tile in enumerate(tiles, start=1)]
             self.update()
 
@@ -141,28 +146,80 @@ class ViewBoard(tk.Frame):
         self.actives = [False for _ in range(self.size ** 2)]
 
 
-class TilesCanvas(tk.Canvas):
-    def __init__(self, master):
+class _Canvas(tk.Canvas):
+    def __init__(self, master, width, height, bd=5, relief=tk.GROOVE):
+        self.master = master
+        self.board = master.board
         self.players = master.players
-        self.ipadx = 10
-        # self.ipady = TILE_SIZE / 4
-        # self.epadx = 5
-        # self.epady = 5
-        tk.Canvas.__init__(self, master, bd=5, relief=tk.GROOVE)
-        # width = TILE_SIZE * 2 + self.ipadx * 4 + self.epadx * 2 + 3,
-        # height = TILE_SIZE + self.ipady * master.board.stones +
-        # TILE_SIZE * master.board.caps + self.ipady * (master.board.caps - 1) +
-        # self.epady * 2 + TILE_SIZE * 2 + 5, bd = 5, relief = tk.GROOVE)
+        self.width = width
+        self.height = height
+        self.name1, self.name2 = self.get_name(0), self.get_name(1)
+
+        tk.Canvas.__init__(self, master, bd=bd, relief=relief, width=width, height=height)
+
+    def get_player(self, player):
+        return self.players[player]
+
+    def get_name(self, player):
+        return self.get_player(player).name.title()
+
+    def calc_stones(self, player):
+        p = self.get_player(player)
+        return self.master.board.caps - p.caps, self.master.board.stones - p.stones
+
+    def render(self):
+        raise NotImplementedError()
+
+
+class FlatCanvas(_Canvas):
+    def __init__(self, master):
+        _Canvas.__init__(self, master, master.board.size * SQUARE_SIZE, 30, bd=0)
 
     def render(self):
         self.delete("all")
-        self.create_text(TILE_SIZE, 20, text=self.players[0].name.title(), font=("Ubuntu Mono", 24))
-        self.create_text(len(self.players[0].name) * 24, 20, text=self.players[1].name.title(),
-                         font=("Ubuntu Mono", 24))
-        self.create_text(TILE_SIZE, 40, text="{}+{}".format(*self._calc_stones(0)), font=("Ubuntu Mono", 24))
-        self.create_text(len(self.players[0].name) * 24, 40, text="{}+{}".format(*self._calc_stones(1)),
-                         font=("Ubuntu Mono", 24))
+        w, b = self.board.count_flats(WHITE), self.board.count_flats(BLACK)
+        try:
+            s = (w / (w + b)) * self.width
+        except ZeroDivisionError:
+            s = self.width / 2
+        if s != 0:
+            self.create_rectangle(0, 0, s, self.height, fill=WHITE, outline=BLACK)
+            self.create_text(s/2, self.height / 2, text=w)
+        if s != self.width:
+            self.create_rectangle(s, 0, self.width, self.height, fill=BLACK)
+            self.create_text(s + (self.width-s)/2, self.height / 2, text=b, fill=WHITE)
 
-    def _calc_stones(self, player):
-        p = self.players[player]
-        return self.master.board.caps - p.caps, self.master.board.stones - p.stones
+
+class TilesCanvas(_Canvas):
+    def __init__(self, master):
+        self.step = TILE_SIZE / 4
+        _Canvas.__init__(self, master,
+                         width=TILE_SIZE+len(master.players[0].name)*24,
+                         height=self.step*(master.board.stones+master.board.caps) + 125)
+
+    def render(self):
+        self.delete("all")
+
+        for player in range(2):
+            self.create_text(self.get_x(player), 20,
+                             text=self.get_name(player), font=("Ubuntu Mono", 24))
+            self.create_text(self.get_x(player), 40,
+                             text="{}+{}".format(*self.calc_stones(player)), font=("Ubuntu Mono", 24))
+            self.draw_tiles(player)
+
+
+    def get_x(self, player):
+        return [TILE_SIZE, len(self.name1) * 24][player]
+
+    def draw_tiles(self, player):
+        p = (player + 1) % 2
+        x2, y2 = self.get_x(p) + 20, self.height
+        x1, y1 = x2 - TILE_SIZE, y2 - TILE_SIZE
+        for i in range(self.calc_stones(p)[1]):
+            self.create_rectangle(x1, y1, x2, y2, fill=COLORS[player], outline=COLORS[p])
+            y1 -= self.step
+            y2 -= self.step
+        s = TILE_SIZE / 2
+        for i in range(self.calc_stones(p)[0]):
+            self.create_circle(x2-s, y2-s, s, fill=COLORS[player], outline=COLORS[p])
+            y2 -= self.step

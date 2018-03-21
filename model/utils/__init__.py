@@ -287,7 +287,7 @@ class Board:
         return None
 
     def flat_win(self, t=False, f=False):
-        w, b = self._sum(WHITE), self._sum(BLACK)
+        w, b = self.count_flats(WHITE), self.count_flats(BLACK)
         if f or all(len(sq.tiles) > 0 for row in self.board for sq in row):
             return ("TIE" if t else False) if w == b else WHITE if w > b else BLACK
         return False
@@ -391,7 +391,7 @@ class Board:
     def _cl_row_check(self, color, out, r, row):
         return list(filter(fc.partial(self._cl_sq_check, r, color, out), row))
 
-    def _sum(self, color):
+    def count_flats(self, color):
         return sum(1 for row in self.board for sq in row if sq.tiles and
                    sq.tiles[-1].color == color and sq.tiles[-1].stone == FLAT)
 
@@ -415,19 +415,16 @@ class Player(object):
         self.stones, self.caps = 0, 0
         self.name = self.color if name is None else name
 
-    def _do(self, m: Move, c):
-        print("_DOING!")
+    def _do(self, m: Move, c, f=True):
         move = self.board.parse_move(m, c)
         if isinstance(move, PseudoBoard):
             if move.bool:
                 stone_type = m.stone
                 stone, cap = False, False
                 if stone_type in [FLAT, STAND]:
-                    print("hi")
                     self.stones += 1
                     stone = True
                 else:
-                    print("hi2")
                     self.caps += 1
                     cap = True
                 caps, _stones = self.caps > self.board.caps, self.stones > self.board.stones
@@ -443,12 +440,12 @@ class Player(object):
                     # f"\tStones played: {self.stones}, Total: {self.board.stones}"
                     # f"\tCaps played: {self.caps}, Total: {self.board.caps}"
                     # f"Stone: {stone}, Cap: {cap}")
-                else:
+                elif f:
                     self.board.force(move)
             else:
                 # Move is illegal
                 raise ValueError("Illegal Move")
-        else:
+        elif f:
             self.board.force(move)
 
     def do(self, m: Move):
