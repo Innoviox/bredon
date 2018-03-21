@@ -45,10 +45,15 @@ class ViewGame(tk.Tk, Game):
         tk.Tk.__init__(self, "tak")
         Game.__init__(self, **kw)
         self.vboard = ViewBoard(self, self.board)
+        self.tiles = TilesCanvas(self)
+        self.vboard.grid(row=0, column=0)
+        self.tiles.grid(row=0, column=1)
         self.update()
 
     def viz(self):
+        print(self.player_1.stones)
         # self.vboard.render()
+        self.tiles.render()
         self.update_idletasks()
         self.update()
 

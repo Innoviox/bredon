@@ -40,8 +40,10 @@ ms = zip("a2 d5 a5 a3 d4 a4 Ce4 a4+ b1 a1 Sa4 Cb4 a4+ b4< e3 b4 b1< a2- e1 Se2 b
 
 for i, (m, c) in enumerate(ms):
     # print(m, c)
+    move = str_to_move(m)
+    g.players[i % 2]._do(move, c)
     g.vboard.execute(m, c, g.board.copy())
-    g.board.execute(str_to_move(m), c)
+    g.board.execute(move, c)
     g.viz()
     # print(g.board)
     time.sleep(1)

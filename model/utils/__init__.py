@@ -344,21 +344,25 @@ class Board:
 
 
 class Player(object):
-    def __init__(self, board, color):
+    def __init__(self, board, color, name=None):
         self.board = board
         self.color = color
         self.stones, self.caps = 0, 0
+        self.name = self.color if name is None else name
 
     def _do(self, m: Move, c):
+        print("_DOING!")
         move = self.board.parse_move(m, c)
         if isinstance(move, PseudoBoard):
             if move.bool:
                 stone_type = m.stone
                 stone, cap = False, False
                 if stone_type in [FLAT, STAND]:
+                    print("hi")
                     self.stones += 1
                     stone = True
                 else:
+                    print("hi2")
                     self.caps += 1
                     cap = True
                 caps, _stones = self.caps > self.board.caps, self.stones > self.board.stones

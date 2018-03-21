@@ -1,9 +1,9 @@
 import collections as ct
-import itertools as it
-import numpy as np
+import itertools   as it
+import numpy       as np
 import dataclasses as dc
-import tabulate as tb
-import functools as fc
+import tabulate    as tb
+import functools   as fc
 
 from string import ascii_lowercase as cols
 from operator import sub
@@ -20,6 +20,12 @@ UP, DOWN, LEFT, RIGHT = dirs
 stones = 'FCS'
 FLAT, CAP, STAND = stones
 SIZE = 0
+
+TILE_SIZE = 40
+SQUARE_SIZE = 75
+ANIM_STEPS = 30
+OFFSET_STEP = 3
+PAD_STEP = 5
 
 PseudoBoard = ct.namedtuple("PseudoBoard", ("w", "h", "board", "bool", "err", "type"))
 

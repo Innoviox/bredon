@@ -1,10 +1,9 @@
 from model import *
 import tkinter as tk
-import time
 
-TILE_SIZE = 40
-SQUARE_SIZE = 75
-ANIM_STEPS = 30
+
+def calc_nsod(idx):
+    return TILE_SIZE / 2, SQUARE_SIZE / 2, OFFSET_STEP * idx, PAD_STEP
 
 
 class ViewSquare:
@@ -17,41 +16,37 @@ class ViewSquare:
         self.tags = str(i) + "." + str(j)
         self.ids = []
 
-    def _render(self, tile, idx, offset_x=0.0, offset_y=0.0):
-        n, s, o, d = self._calc_nsod(idx)
+    def render_tile(self, tile, idx, offset_x=0.0, offset_y=0.0):
+        n, s, o, d = calc_nsod(idx)
 
         x1, y1 = offset_x + self.ix + s - n, offset_y + self.jy + s - n - o + d
         x2, y2 = offset_x + self.ix + s + n, offset_y + self.jy + s + n - o + d
         if tile.stone == FLAT:
-            return self.master.canvas.create_rectangle(x1, y1, x2, y2, fill=tile.color, tags=(self.tags, idx))
+            return self.master.canvas.create_rectangle(x1, y1, x2, y2, outline='black', fill=tile.color)
         elif tile.stone == STAND:
             return self.master.canvas.create_polygon(x1 + n * 1.5, y1,
                                                      x2, y1 + n * 0.5,
                                                      x1 + n * 0.5, y2,
-                                                     x1, y1 + n * 1.5, fill=tile.color, outline='black', tags=(self.tags, idx))
+                                                     x1, y1 + n * 1.5, fill=tile.color, outline='black',
+                                                     tags=(self.tags, idx))
         else:
-            return self.create_circle(*self.find_center(idx, offset_x, offset_y),  s / 2, fill=tile.color, tags=(self.tags, idx))
+            return self.create_circle(*self.find_center(idx, offset_x, offset_y), s / 2, fill=tile.color,
+                                      tags=(self.tags, idx))
 
     def find_center(self, idx, offset_x=0.0, offset_y=0.0):
-        n, s, o, d = self._calc_nsod(idx)
+        n, s, o, d = calc_nsod(idx)
         return offset_x + self.ix + s, offset_y + self.jy + s - o + d
-
-    def _calc_nsod(self, idx):
-        return TILE_SIZE / 2, SQUARE_SIZE / 2, 3 * idx, 5
 
     def render(self, active=False):
         self.master.canvas.create_rectangle(self.ix, self.jy, self.ix + SQUARE_SIZE, self.jy + SQUARE_SIZE,
                                             fill="green" if active else "white")
-        self.ids = [self._render(tile, idx) for idx, tile in enumerate(self.get_tiles(self.master.board), start=1)]
+        self.ids = [self.render_tile(tile, idx) for idx, tile in enumerate(self.get_tiles(self.master.board), start=1)]
 
     def create_circle(self, x, y, r, **kwargs):
         return self.master.canvas.create_oval(x - r, y - r, x + r, y + r, **kwargs)
 
     def get_tiles(self, board):
         return board.board[self.i][self.j].tiles
-
-    def s(self, b):
-        return self.tags + " " + str(self.get_tiles(b))
 
 
 class ViewBoard(tk.Frame):
@@ -93,7 +88,7 @@ class ViewBoard(tk.Frame):
         print("found", sq, moves)
         t = m.total
         for i, move in enumerate(moves):
-            stop = -(t-move)
+            stop = -(t - move)
             if stop == 0:
                 stop = None
             self._animate(sq, m.direction, i, move, old_board, slice(-t, stop))
@@ -112,8 +107,9 @@ class ViewBoard(tk.Frame):
         nts = self.get_square(nvis).get_tiles(old_board)
 
         step = SQUARE_SIZE / ANIM_STEPS * (i + 1)
+        xi, yi = None, None
         if direction == UP:
-            step -= (3 * len(nts)) / ANIM_STEPS
+            step -= (OFFSET_STEP * len(nts)) / ANIM_STEPS
             xi, yi = step, 0
         elif direction == DOWN:
             xi, yi = -step, 0
@@ -122,16 +118,12 @@ class ViewBoard(tk.Frame):
         elif direction == LEFT:
             xi, yi = 0, step
 
-        print("\tstates:")
-        print("\t\tvis", vis.s(old_board))
-        for name, var in zip(("tiles", "ids", "nvis", "nts", "step", "xi", "yi"),
-                             (tiles, ids, nvis, nts, step, xi, yi)):
-            print("\t\t", name, var)
-
         for k in range(2, ANIM_STEPS):
             for _id in ids:
                 self.canvas.delete(_id)
-            ids = [vis._render(tile, _idx, -(yi * k), (xi * k) - ((_idx - 1) * 3) * (k / ANIM_STEPS)) for _idx, tile in enumerate(tiles, start=1)]
+            ids = [vis.render_tile(tile, _idx, -(yi * k),
+                                   (xi * k) - ((_idx - 1) * OFFSET_STEP) * (k / ANIM_STEPS))
+                   for _idx, tile in enumerate(tiles, start=1)]
             self.update()
 
     def get_square(self, sq) -> ViewSquare:
@@ -147,3 +139,30 @@ class ViewBoard(tk.Frame):
         self.canvas.create_line(3, 3, self.winfo_width(), 3, tags="line")
         self.canvas.create_line(3, 3, 3, self.winfo_height(), tags="line")
         self.actives = [False for _ in range(self.size ** 2)]
+
+
+class TilesCanvas(tk.Canvas):
+    def __init__(self, master):
+        self.players = master.players
+        self.ipadx = 10
+        # self.ipady = TILE_SIZE / 4
+        # self.epadx = 5
+        # self.epady = 5
+        tk.Canvas.__init__(self, master, bd=5, relief=tk.GROOVE)
+        # width = TILE_SIZE * 2 + self.ipadx * 4 + self.epadx * 2 + 3,
+        # height = TILE_SIZE + self.ipady * master.board.stones +
+        # TILE_SIZE * master.board.caps + self.ipady * (master.board.caps - 1) +
+        # self.epady * 2 + TILE_SIZE * 2 + 5, bd = 5, relief = tk.GROOVE)
+
+    def render(self):
+        self.delete("all")
+        self.create_text(TILE_SIZE, 20, text=self.players[0].name.title(), font=("Ubuntu Mono", 24))
+        self.create_text(len(self.players[0].name) * 24, 20, text=self.players[1].name.title(),
+                         font=("Ubuntu Mono", 24))
+        self.create_text(TILE_SIZE, 40, text="{}+{}".format(*self._calc_stones(0)), font=("Ubuntu Mono", 24))
+        self.create_text(len(self.players[0].name) * 24, 40, text="{}+{}".format(*self._calc_stones(1)),
+                         font=("Ubuntu Mono", 24))
+
+    def _calc_stones(self, player):
+        p = self.players[player]
+        return self.master.board.caps - p.caps, self.master.board.stones - p.stones
