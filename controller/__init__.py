@@ -1,5 +1,4 @@
-from model import *
-from view import *
+from view import *  # imports model
 import time
 
 HUMAN = "human", None
@@ -34,21 +33,29 @@ class Game():
         player._do(m, c)
         return str(m) + " "
 
+
 class TextGame(Game):
     def viz(self):
         print(self.board)
 
 
-
 class ViewGame(tk.Tk, Game):
     def __init__(self, **kw):
-        tk.Tk.__init__(self, "tak")
+        tk.Tk.__init__(self)
         Game.__init__(self, **kw)
-        self.vboard = ViewBoard(self, self.board)
-        self.update()
+        self.wm_title("tak")
+        self.vboard = ViewBoard(self)
+        self.tiles = TilesCanvas(self)
+        self.flats = FlatCanvas(self)
+
+        self.flats.grid(row=0, column=0)
+        self.vboard.grid(row=1, column=0)
+        self.tiles.grid(row=1, column=1)
+        self.viz()
 
     def viz(self):
-        # self.vboard.render()
+        self.flats.render()
+        self.tiles.render()
         self.update_idletasks()
         self.update()
 
@@ -59,7 +66,9 @@ class ViewGame(tk.Tk, Game):
             ptn += str(turn) + ". "
             for player in self.players:
                 old_board = self.board.copy()
+                print(old_board)
                 move = self._run(player, turn)
+                print(old_board)
                 self.vboard.execute(move.strip(), player.color, old_board)
                 ptn += move
                 w = self.board.winner(self.players, t=True)
