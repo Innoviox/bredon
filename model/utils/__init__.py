@@ -1,4 +1,66 @@
-from .const import *
+from .constants import *
+
+import collections as ct
+import itertools   as it
+import numpy       as np
+import dataclasses as dc
+import tabulate    as tb
+import functools   as fc
+
+# from collections import namedtuple
+# from itertools   import chain, combinations, starmap
+# from numpy       import transpose
+# from dataclasses import dataclass, field
+# from tabulate    import tabulate
+# from functools   import partial
+from string        import ascii_lowercase as cols
+from operator      import sub
+
+PseudoBoard = ct.namedtuple("PseudoBoard", ("w", "h", "board", "bool", "err", "type"))
+
+
+def sums(n):
+    b, mid, e = [0], list(range(1, n)), [n]
+    splits = (d for i in range(n) for d in it.combinations(mid, i))
+    return (list(map(sub, it.chain(s, e), it.chain(b, s))) for s in splits)
+
+
+def tile_to_coords(t: str):
+    return int(t[1]) - 1, cols.index(t[0])
+
+
+def coords_to_tile(x: int, y: int):
+    return cols[y] + str(x + 1)
+
+
+def flip_color(color):
+    return COLORS_REV[COLORS.index(color)]
+
+
+class Next:
+    __slots__ = 'x', 'y'
+
+    def next(self, direction, size):
+        if direction == LEFT and self.y > 0:
+            return self.x, self.y - 1
+        if direction == RIGHT and self.y < size - 1:
+            return self.x, self.y + 1
+        if direction == DOWN and self.x > 0:
+            return self.x - 1, self.y
+        if direction == UP and self.x < size - 1:
+            return self.x + 1, self.y
+        return self.x, self.y
+
+    def tru_next(self, direction, size):
+        if direction == DOWN and self.y > 0:
+            return self.x, self.y - 1
+        if direction == UP and self.y < size - 1:
+            return self.x, self.y + 1
+        if direction == RIGHT and self.x > 0:
+            return self.x - 1, self.y
+        if direction == LEFT and self.x < size - 1:
+            return self.x + 1, self.y
+        return self.x, self.y
 
 
 @dc.dataclass
@@ -62,7 +124,7 @@ class Square(Next):
     def connections(self, board):
         conns = 0
         s = len(board)
-        for direction in dirs:
+        for direction in DIRS:
             x, y = self.next(direction, s)
             t_next = board[y][x].tiles
             if t_next:
@@ -96,7 +158,7 @@ class Board:
         self.size = size
         self.board = [[Square(x, y) for x in range(size)]
                       for y in range(size)] if board is None else board
-        self.stones, self.caps = sizes[size]
+        self.stones, self.caps = SIZES[size]
 
     def place(self, move: Move, curr_player):
         """
@@ -279,9 +341,9 @@ class Board:
                         yield Move(stone=CAP, col=c, row=r)
                 else:
                     if tile.tiles[-1].color == color:
-                        for direction in dirs:
+                        for direction in DIRS:
                             try:
-                                x1, y1 = tile.next(direction, SIZE)
+                                x1, y1 = tile.next(direction, self.size)
                                 if 0 <= x1 < self.size and 0 <= y1 < self.size:
                                     for i in range(1, min(len(tile.tiles) + 1, self.size + 1)):
                                         if i == 1 and len(tile.tiles) == 1:
@@ -315,12 +377,14 @@ class Board:
 
     def _evaluate(self, color):
         # return sum(map(fc.partial(self._evaluate_sq, color), np.ravel(self.board, 'C')))
-        return sum(sum(map(fc.partial(self._evaluate_sq, color), row)) for row in self.board) + sum(map(len, self._compress_left(color, self.board, False)))
+        return sum(sum(map(fc.partial(self._evaluate_sq, color), row)) for row in self.board) + \
+               sum(map(len, self._compress_left(color, self.board, False)))
 
     def _cl_sq_check(self, r, color, out, sq):
         if sq.tiles and sq.tiles[-1].color == color:
             conns = sq.connections(self.board)
-            if out: print(conns, r, conns > 1 or ((r == 0 or r == self.size - 1) and conns > 0))
+            if out:
+                print(conns, r, conns > 1 or ((r == 0 or r == self.size - 1) and conns > 0))
             return conns > 1 or ((r == 0 or r == self.size - 1) and conns > 0)
         return False
 
@@ -336,7 +400,8 @@ class Board:
 
     def _road_check(self, color, board, out):
         road = self._compress_left(color, board, out)
-        if out: print(road)
+        if out:
+            print(road)
         if all(road) or \
                 any(len(road[i]) >= self.size for i in range(self.size)):
             return color
@@ -415,7 +480,7 @@ class Player(object):
 
 def str_to_move(move: str) -> Move:
     move_dir = None
-    for direction in dirs:
+    for direction in DIRS:
         if direction in move:
             move_dir = direction
             move = move.split(direction)
