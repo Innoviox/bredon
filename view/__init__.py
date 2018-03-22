@@ -5,9 +5,8 @@ import tkinter as tk
 def calc_nsod(idx):
     return TILE_SIZE / 2, SQUARE_SIZE / 2, OFFSET_STEP * idx, PAD_STEP
 
-def create_circle(self, x, y, r, **kwargs):
-    return self.create_oval(x - r, y - r, x + r, y + r, **kwargs)
-tk.Canvas.create_circle = create_circle
+tk.Canvas.create_circle = lambda self, x, y, r, **kwargs: self.create_oval(x - r, y - r, x + r, y + r, **kwargs)
+
 
 class ViewSquare:
     def __init__(self, master, i, j, width=SQUARE_SIZE, height=SQUARE_SIZE):
@@ -206,7 +205,6 @@ class TilesCanvas(_Canvas):
             self.create_text(self.get_x(player), 40,
                              text="{}+{}".format(*self.calc_stones(player)), font=("Ubuntu Mono", 24))
             self.draw_tiles(player)
-
 
     def get_x(self, player):
         return [TILE_SIZE, len(self.name1) * 24][player]
