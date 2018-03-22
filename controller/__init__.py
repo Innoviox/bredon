@@ -55,9 +55,9 @@ class ViewGame(tk.Tk, Game):
 
     def viz(self):
         self.flats.render()
-        self.tiles.render()
         self.update_idletasks()
         self.update()
+        self.tiles.render()
 
     def run(self):
         ptn = ""
