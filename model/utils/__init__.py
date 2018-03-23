@@ -247,7 +247,7 @@ class Board:
 
     def force(self, pbs):
         if isinstance(pbs, PseudoBoard):
-            self.force([pbs])
+            return self.force([pbs])
         else:
             new_board = self.copy_board()
             for pb in pbs:
@@ -270,6 +270,9 @@ class Board:
     def valid_move(self, move, color):
         new_board = self.copy()
         return new_board.force_move(move, color) is None
+
+    def valid_str(self, move, color):
+        return self.valid_move(str_to_move(move), color)
 
     def winner(self, players, t=False):
         r = self.road()

@@ -15,6 +15,12 @@ class MinimaxAI(StaticAI):
         super().__init__(board, color)
         self.depth = depth
 
+    def pick_opposing_move(self, input_fn=input):
+        print(self.board, self.board.valid_str("a1", self.color))
+        if self.board.valid_str("a1", flip_color(self.color)):
+            return str_to_move("a1"), flip_color(self.color)
+        return str_to_move(cols[self.board.size - 1] + str(self.board.size)), flip_color(self.color)
+
     def pick_move(self, input_fn=None, out=False):
         # print("Picking move for ai color:", self.color)
         # print("Initial board state:")
