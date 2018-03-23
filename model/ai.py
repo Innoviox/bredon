@@ -15,7 +15,7 @@ class MinimaxAI(StaticAI):
         super().__init__(board, color)
         self.depth = depth
 
-    def pick_move(self, out=False):
+    def pick_move(self, input_fn=None, out=False):
         # print("Picking move for ai color:", self.color)
         # print("Initial board state:")
         # print(self.board)

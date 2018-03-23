@@ -5,6 +5,7 @@ import tkinter as tk
 def calc_nsod(idx):
     return TILE_SIZE / 2, SQUARE_SIZE / 2, OFFSET_STEP * idx, PAD_STEP
 
+
 tk.Canvas.create_circle = lambda self, x, y, r, **kwargs: self.create_oval(x - r, y - r, x + r, y + r, **kwargs)
 
 
@@ -40,8 +41,8 @@ class ViewSquare:
         return offset_x + self.ix + s, offset_y + self.jy + s - o + d
 
     def render(self, active=False):
-        self.master.canvas.create_rectangle(self.ix, self.jy, self.ix + SQUARE_SIZE, self.jy + SQUARE_SIZE,
-                                            fill="green" if active else "white")
+        self.rect = self.master.canvas.create_rectangle(self.ix, self.jy, self.ix + SQUARE_SIZE, self.jy + SQUARE_SIZE,
+                                                        fill="green" if active else "white")
         self.ids = [self.render_tile(tile, idx) for idx, tile in enumerate(self.get_tiles(self.master.board), start=1)]
 
     def create_circle(self, x, y, r, **kwargs):
@@ -61,19 +62,41 @@ class ViewBoard(tk.Frame):
         self.squares = []
 
         tk.Frame.__init__(self, master, width=self.size * SQUARE_SIZE, height=self.size * SQUARE_SIZE)
+        self.pack_propagate(0)
         self.canvas = tk.Canvas(self, width=self.size * SQUARE_SIZE, height=self.size * SQUARE_SIZE)
-        self.pack()
-        self.canvas.pack()
+        # self.canvas.pack()
         self._init_gui()
         self.actives = [False for _ in range(self.size ** 2)]
         self.move = None
 
+        self.canvas.bind("<1>", self.click)
+
+    def click(self, event):
+        print(event)
+
+    def make(self, move):
+        print(move)
+
     def _init_gui(self):
+        self.row_labels = [tk.Label(self, text=cols[i], width=SQUARE_SIZE // 20, height=1)  #, bd=5, relief=tk.GROOVE)
+                               .grid(column=i + 1, row=0)
+                           for i in range(self.size)]
+        self.col_labels = [tk.Label(self, text=i + 1, height=SQUARE_SIZE // 20, width=1)  #, bd=5, relief=tk.GROOVE)
+                               .grid(column=0, row=i + 1)
+                           for i in range(self.size)]
+        self.canvas.grid(row=1, column=1, columnspan=self.size, rowspan=self.size)
+
+        self.input = tk.Entry(self)
+        self.input.grid(row=6, column=1, columnspan=5)
+        self.input.bind("<Return>", self.master.exec)
+
+
         for i in range(self.size):
             for j in range(self.size):
                 self.squares.append(ViewSquare(self, i, j))
 
     def execute(self, move, player, old_board):
+        print("executing", move)
         new_board = self.board.copy()
         new_board.force_str(move, player)
         idx = 0
@@ -82,7 +105,7 @@ class ViewBoard(tk.Frame):
                 if str(nsq) != str(sq):
                     self.actives[idx] = True
                 idx += 1
-        self.render()
+        # self.render()
         self.move = move, old_board
 
     def animate(self, move, old_board):
@@ -134,6 +157,7 @@ class ViewBoard(tk.Frame):
         return self.squares[sq[0] * self.size + sq[1]]
 
     def render(self):
+        print("rendering")
         if self.move is not None:
             if str_to_move(self.move[0]).direction is not None:
                 self.animate(self.move[0], self.move[1])
@@ -200,10 +224,8 @@ class TilesCanvas(_Canvas):
         self.delete("all")
 
         for player in range(2):
-            self.create_text(self.get_x(player), 20,
-                             text=self.get_name(player), font=("Ubuntu Mono", 24))
-            self.create_text(self.get_x(player), 40,
-                             text="{}+{}".format(*self.calc_stones(player)), font=("Ubuntu Mono", 24))
+            self.create_text(self.get_x(player), 40, font=("Ubuntu Mono", 24),
+                             text="{}\n{}+{}".format(self.get_name(player), *self.calc_stones(player)))
             self.draw_tiles(player)
 
     def get_x(self, player):

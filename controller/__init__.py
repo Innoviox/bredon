@@ -21,13 +21,13 @@ class Game():
     def viz(self):
         raise NotImplementedError()
 
-    def _run(self, player, turn):
-        self.viz()
+    def _run(self, player, turn, input_fn=input):
+        # self.viz()
         t = time.time()
         if turn == 1:
-            m, c = player.pick_opposing_move()
+            m, c = player.pick_opposing_move(input_fn=input_fn)
         else:
-            m = player.pick_move()
+            m = player.pick_move(input_fn=input_fn)
             c = player.color
         print(time.time() - t)
         player._do(m, c)
@@ -48,33 +48,74 @@ class ViewGame(tk.Tk, Game):
         self.tiles = TilesCanvas(self)
         self.flats = FlatCanvas(self)
 
-        self.flats.grid(row=0, column=0)
-        self.vboard.grid(row=1, column=0)
-        self.tiles.grid(row=1, column=1)
+        self.flats.grid(row=0, column=0)  #, columnspan=self.board.size)
+        self.vboard.grid(row=2, column=0)
+        self.tiles.grid(row=2, column=6, rowspan=self.board.size)
         self.viz()
+
+        self.turn = 1
+        self.ptn = ""
+        self.running = False
+        self.player = 0
+        self.first = True
+
+    def exec(self, *event, ai=False):
+        if not self.running:
+            return
+        elif self.first:
+            self.ptn = "1. "
+            self.first = False
+        elif self.player == 0:
+            self.ptn += "\n%d. " % self.turn
+            self.turn += 1
+
+        old_board = self.board.copy()
+
+        p = self.players[self.player]
+        move = self._run(p, self.turn, input_fn=input if ai else lambda _: self.vboard.input.get())
+        self.ptn += move
+        print(self.ptn)
+
+        self.vboard.input.delete(0, "end")
+        print("calling execute!")
+        self.vboard.execute(move.strip(), p, old_board)
+        self.viz()
+        self.player = (self.player + 1) % 2
+        if isinstance(self.players[self.player], StaticAI):
+            self.exec(ai=True)
+
+        w = self.board.winner(self.players, t=True)
+        if w:
+            print(w, "won!")
 
     def viz(self):
         self.flats.render()
+        self.tiles.render()
+        print("rendering!")
+        self.vboard.render()
         self.update_idletasks()
         self.update()
-        self.tiles.render()
 
     def run(self):
-        ptn = ""
-        turn = 1
-        while True:
-            ptn += str(turn) + ". "
-            for player in self.players:
-                old_board = self.board.copy()
-                print(old_board)
-                move = self._run(player, turn)
-                print(old_board)
-                self.vboard.execute(move.strip(), player.color, old_board)
-                ptn += move
-                w = self.board.winner(self.players, t=True)
-                print(ptn)
-                if w:
-                    print(w, "won!")
-                    return
-            ptn += "\n"
-            turn += 1
+        self.running = True
+        if isinstance(self.players[self.player], StaticAI):
+            self.exec(ai=True)
+        self.mainloop()
+
+    # def run(self):
+    #     ptn = ""
+    #     turn = 1
+    #     while True:
+    #         ptn += str(turn) + ". "
+    #         for player in self.players:
+    #             old_board = self.board.copy()
+    #             move = self._run(player, turn, input_fn=self.vboard.input.get)
+    #             self.vboard.execute(move.strip(), player.color, old_board)
+    #             ptn += move
+    #             w = self.board.winner(self.players, t=True)
+    #             print(ptn)
+    #             if w:
+    #                 print(w, "won!")
+    #                 return
+    #         ptn += "\n"
+    #         turn += 1
