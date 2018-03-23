@@ -26,6 +26,7 @@ class Game():
         t = time.time()
         if turn == 1:
             m, c = player.pick_opposing_move(input_fn=input_fn)
+            print(m, c)
         else:
             m = player.pick_move(input_fn=input_fn)
             c = player.color
