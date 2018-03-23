@@ -7,12 +7,6 @@ import dataclasses as dc
 import tabulate    as tb
 import functools   as fc
 
-# from collections import namedtuple
-# from itertools   import chain, combinations, starmap
-# from numpy       import transpose
-# from dataclasses import dataclass, field
-# from tabulate    import tabulate
-# from functools   import partial
 from string        import ascii_lowercase as cols
 from operator      import sub
 
@@ -454,9 +448,9 @@ class Player(object):
     def out_of_tiles(self):
         return self.caps >= self.board.caps and self.stones >= self.board.stones
 
-    def _pick_move(self, color):
+    def _pick_move(self, color, input_fn=input):
         while True:
-            m = str_to_move(input("Enter move: "))
+            m = str_to_move(input_fn("Enter move: "))
             try:
                 v = self.board.valid_move(m, color)
                 if v:
@@ -468,11 +462,11 @@ class Player(object):
                 print("Parsed move", m)
                 print("Received error", e)
 
-    def pick_move(self):
-        return self._pick_move(self.color)[0]
+    def pick_move(self, input_fn=input):
+        return self._pick_move(self.color, input_fn=input_fn)[0]
 
-    def pick_opposing_move(self):
-        return self._pick_move(flip_color(self.color))
+    def pick_opposing_move(self, input_fn=input):
+        return self._pick_move(flip_color(self.color), input_fn=input_fn)
 
 
 def str_to_move(move: str) -> Move:
