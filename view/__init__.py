@@ -77,7 +77,7 @@ class ViewBoard(tk.Frame):
         self.i = (self.i + 1) % 3
         x, y = event.x // SQUARE_SIZE, event.y // SQUARE_SIZE
         sq = self.squares[x * self.size + y]
-        t = sq.get_tiles()
+        t = sq.get_tiles(self.board)
         if not self.grabbed:
             if len(t) == 0:
                 self.input.delete(0, tk.END)
