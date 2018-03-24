@@ -62,11 +62,13 @@ class ViewGame(tk.Tk, Game):
         self.event = None
 
     def exec(self, *event, ai=False):
+        if not ai and not self.vboard.input.get():
+            return
         if not self.running:
             return
-        elif self.first:
-            self.ptn = "1. "
-            self.first = False
+        # elif self.first:
+        #     self.ptn = "1. "
+        #     self.first = False
         elif self.player == 0:
             self.ptn += "\n%d. " % self.turn
             self.turn += 1
@@ -74,8 +76,6 @@ class ViewGame(tk.Tk, Game):
         old_board = self.board.copy()
 
         p = self.players[self.player]
-        if not ai and not self.vboard.input.get():
-            return
         move = self._run(p, self.turn, input_fn=lambda _: self.vboard.input.get())
         self.ptn += move
         print(self.ptn)
