@@ -59,6 +59,7 @@ class ViewGame(tk.Tk, Game):
         self.running = False
         self.player = 0
         self.first = True
+        self.event = None
 
     def exec(self, *event, ai=False):
         if not self.running:
@@ -73,12 +74,14 @@ class ViewGame(tk.Tk, Game):
         old_board = self.board.copy()
 
         p = self.players[self.player]
-        move = self._run(p, self.turn, input_fn=input if ai else lambda _: self.vboard.input.get())
+        if not ai and not self.vboard.input.get():
+            return
+        move = self._run(p, self.turn, input_fn=lambda _: self.vboard.input.get())
         self.ptn += move
         print(self.ptn)
 
         self.vboard.input.delete(0, "end")
-        print("calling execute!")
+        self.vboard.i = 0
         self.vboard.execute(move.strip(), p, old_board)
         self.viz()
         self.player = (self.player + 1) % 2

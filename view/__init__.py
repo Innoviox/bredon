@@ -69,20 +69,30 @@ class ViewBoard(tk.Frame):
         self.actives = [False for _ in range(self.size ** 2)]
         self.move = None
 
+        self.i = 0
+        self.grabbed = False
         self.canvas.bind("<1>", self.click)
 
     def click(self, event):
-        print(event)
-
-    def make(self, move):
-        print(move)
+        self.i = (self.i + 1) % 3
+        x, y = event.x // SQUARE_SIZE, event.y // SQUARE_SIZE
+        sq = self.squares[x * self.size + y]
+        t = sq.get_tiles()
+        if not self.grabbed:
+            if len(t) == 0:
+                self.input.delete(0, tk.END)
+                self.input.insert(0, STONES[self.i - 1] + cols[x] + str(y + 1))
+                self.master.after(1000, self.master.exec)
+            elif t[-1].color == self.master.players[self.master.player].color:
+                print("Grabbing?")
+        # self.master.exec()
 
     def _init_gui(self):
         self.row_labels = [tk.Label(self, text=cols[i], width=SQUARE_SIZE // 20, height=1)  #, bd=5, relief=tk.GROOVE)
-                               .grid(column=i + 1, row=0)
+                           .grid(column=i + 1, row=0)
                            for i in range(self.size)]
         self.col_labels = [tk.Label(self, text=i + 1, height=SQUARE_SIZE // 20, width=1)  #, bd=5, relief=tk.GROOVE)
-                               .grid(column=0, row=i + 1)
+                           .grid(column=0, row=i + 1)
                            for i in range(self.size)]
         self.canvas.grid(row=1, column=1, columnspan=self.size, rowspan=self.size)
 
@@ -90,13 +100,11 @@ class ViewBoard(tk.Frame):
         self.input.grid(row=6, column=1, columnspan=5)
         self.input.bind("<Return>", self.master.exec)
 
-
         for i in range(self.size):
             for j in range(self.size):
                 self.squares.append(ViewSquare(self, i, j))
 
     def execute(self, move, player, old_board):
-        print("executing", move)
         new_board = self.board.copy()
         new_board.force_str(move, player)
         idx = 0
@@ -157,7 +165,6 @@ class ViewBoard(tk.Frame):
         return self.squares[sq[0] * self.size + sq[1]]
 
     def render(self):
-        print("rendering")
         if self.move is not None:
             if str_to_move(self.move[0]).direction is not None:
                 self.animate(self.move[0], self.move[1])
