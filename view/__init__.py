@@ -113,6 +113,12 @@ class ViewBoard(tk.Frame):
                 print("Grabbing?")
                 self.grabbed = sq
                 self.render(flip_color(self.master.players[self.master.player].color))
+        else:
+            x1, y1 = sq.i, sq.j
+            x, y = self.grabbed.i, self.grabbed.j
+            a, b = abs(x-x1), abs(y-y1)
+            if (a <= 1 and b <= 1) and ((a == 1) ^ (b == 1)):
+                print("valid!")
         # self.master.exec()
 
     def possibles(self, color):
