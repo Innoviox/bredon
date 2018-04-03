@@ -1,3 +1,5 @@
+from typing import Optional
+
 from model import *
 import tkinter as tk
 
@@ -40,16 +42,23 @@ class ViewSquare:
         n, s, o, d = calc_nsod(idx)
         return offset_x + self.ix + s, offset_y + self.jy + s - o + d
 
-    def render(self, active=False):
+    def render(self, active=False, possible=False):
         self.rect = self.master.canvas.create_rectangle(self.ix, self.jy, self.ix + SQUARE_SIZE, self.jy + SQUARE_SIZE,
                                                         fill="green" if active else "white")
+        if possible:
+            s = SQUARE_SIZE / 2
+            self.circle = self.create_circle(self.ix + s, self.jy + s, s - 5, outline="blue", width=5)
+
         self.ids = [self.render_tile(tile, idx) for idx, tile in enumerate(self.get_tiles(self.master.board), start=1)]
 
     def create_circle(self, x, y, r, **kwargs):
         return self.master.canvas.create_circle(x, y, r, **kwargs)
 
+    def get_square(self, board):
+        return board.board[self.i][self.j]
+
     def get_tiles(self, board):
-        return board.board[self.i][self.j].tiles
+        return self.get_square(board).tiles
 
     def s(self, b):
         return self.tags + " " + str(self.get_tiles(b))
@@ -70,22 +79,8 @@ class ViewBoard(tk.Frame):
         self.move = None
 
         self.i = 0
-        self.grabbed = False
+        self.grabbed: Optional[bool, ViewSquare] = False
         self.canvas.bind("<1>", self.click)
-
-    def click(self, event):
-        self.i = (self.i + 1) % 3
-        x, y = event.x // SQUARE_SIZE, event.y // SQUARE_SIZE
-        sq = self.squares[x * self.size + y]
-        t = sq.get_tiles(self.board)
-        if not self.grabbed:
-            if len(t) == 0:
-                self.input.delete(0, tk.END)
-                self.input.insert(0, STONES[self.i - 1] + cols[x] + str(y + 1))
-                self.master.after(1000, self.master.exec)
-            elif t[-1].color == self.master.players[self.master.player].color:
-                print("Grabbing?")
-        # self.master.exec()
 
     def _init_gui(self):
         self.row_labels = [tk.Label(self, text=cols[i], width=SQUARE_SIZE // 20, height=1)  #, bd=5, relief=tk.GROOVE)
@@ -103,6 +98,50 @@ class ViewBoard(tk.Frame):
         for i in range(self.size):
             for j in range(self.size):
                 self.squares.append(ViewSquare(self, i, j))
+
+    def click(self, event):
+        self.i = (self.i + 1) % 3
+        x, y = event.x // SQUARE_SIZE, event.y // SQUARE_SIZE
+        sq = self.squares[x * self.size + y]
+        t = sq.get_tiles(self.board)
+        if not self.grabbed:
+            if len(t) == 0:
+                self.input.delete(0, tk.END)
+                self.input.insert(0, STONES[self.i - 1] + cols[x] + str(y + 1))
+                self.master.after(1000, self.master.exec)
+            elif t[-1].color == self.master.players[self.master.player].color:
+                print("Grabbing?")
+                self.grabbed = sq
+                self.render(flip_color(self.master.players[self.master.player].color))
+        else:
+            x1, y1 = sq.i, sq.j
+            x, y = self.grabbed.i, self.grabbed.j
+            a, b = abs(x-x1), abs(y-y1)
+            if (a <= 1 and b <= 1) and ((a == 1) ^ (b == 1)):
+                print("valid!")
+        # self.master.exec()
+
+    def possibles(self, color):
+        print("possibles", color)
+        print(bool(self.grabbed))
+        if not self.grabbed:
+            for sq in self.squares:
+                t = sq.get_tiles(self.board)
+                if t:
+                    yield t[-1].color == color
+                else:
+                    yield True
+        else:
+            sq = self.grabbed.get_square(self.board)
+            ps = [False] * (self.size ** 2)
+            for d in DIRS:
+                x, y = sq.next(d, self.size)
+                t = self.board.board[x][y].tiles
+                if t:
+                    ps[x * self.size + y] = t[-1].stone is FLAT
+                else:
+                    ps[x * self.size + y] = True
+            yield from ps
 
     def execute(self, move, player, old_board):
         new_board = self.board.copy()
@@ -164,13 +203,14 @@ class ViewBoard(tk.Frame):
     def get_square(self, sq) -> ViewSquare:
         return self.squares[sq[0] * self.size + sq[1]]
 
-    def render(self):
+    def render(self, color):
         if self.move is not None:
             if str_to_move(self.move[0]).direction is not None:
                 self.animate(self.move[0], self.move[1])
         self.canvas.delete("all")
-        for s, a in zip(self.squares, self.actives):
-            s.render(a)
+
+        for s, a, p in zip(self.squares, self.actives, self.possibles(color)):
+            s.render(a, p)
         self.canvas.create_line(3, 3, self.winfo_width(), 3, tags="line")
         self.canvas.create_line(3, 3, 3, self.winfo_height(), tags="line")
         self.actives = [False for _ in range(self.size ** 2)]

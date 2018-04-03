@@ -52,7 +52,6 @@ class ViewGame(tk.Tk, Game):
         self.flats.grid(row=0, column=0)  #, columnspan=self.board.size)
         self.vboard.grid(row=2, column=0)
         self.tiles.grid(row=2, column=6, rowspan=self.board.size)
-        self.viz()
 
         self.turn = 1
         self.ptn = ""
@@ -61,12 +60,16 @@ class ViewGame(tk.Tk, Game):
         self.first = True
         self.event = None
 
+        self.viz()
+
     def exec(self, *event, ai=False):
+        if not ai and not self.vboard.input.get():
+            return
         if not self.running:
             return
-        elif self.first:
-            self.ptn = "1. "
-            self.first = False
+        # elif self.first:
+        #     self.ptn = "1. "
+        #     self.first = False
         elif self.player == 0:
             self.ptn += "\n%d. " % self.turn
             self.turn += 1
@@ -74,8 +77,6 @@ class ViewGame(tk.Tk, Game):
         old_board = self.board.copy()
 
         p = self.players[self.player]
-        if not ai and not self.vboard.input.get():
-            return
         move = self._run(p, self.turn, input_fn=lambda _: self.vboard.input.get())
         self.ptn += move
         print(self.ptn)
@@ -95,8 +96,7 @@ class ViewGame(tk.Tk, Game):
     def viz(self):
         self.flats.render()
         self.tiles.render()
-        print("rendering!")
-        self.vboard.render()
+        self.vboard.render(flip_color(self.players[self.player].color))
         self.update_idletasks()
         self.update()
 
