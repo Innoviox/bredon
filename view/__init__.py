@@ -83,7 +83,7 @@ class ViewBoard(tk.Frame):
         self.canvas.bind("<1>", self.click)
 
     def _init_gui(self):
-        self.row_labels = [tk.Label(self, text=cols[i], width=SQUARE_SIZE // 20, height=1)  #, bd=5, relief=tk.GROOVE)
+        self.row_labels = [tk.Label(self, text=ascii_lowercase[i], width=SQUARE_SIZE // 20, height=1)  #, bd=5, relief=tk.GROOVE)
                            .grid(column=i + 1, row=0)
                            for i in range(self.size)]
         self.col_labels = [tk.Label(self, text=i + 1, height=SQUARE_SIZE // 20, width=1)  #, bd=5, relief=tk.GROOVE)
@@ -107,7 +107,7 @@ class ViewBoard(tk.Frame):
         if not self.grabbed:
             if len(t) == 0:
                 self.input.delete(0, tk.END)
-                self.input.insert(0, STONES[self.i - 1] + cols[x] + str(y + 1))
+                self.input.insert(0, STONES[self.i - 1] + ascii_lowercase[x] + str(y + 1))
                 self.master.after(1000, self.master.exec)
             elif t[-1].color == self.master.players[self.master.player].color:
                 print("Grabbing?")
@@ -158,7 +158,7 @@ class ViewBoard(tk.Frame):
     def animate(self, move, old_board):
         print("animating", move)
         m = str_to_move(move)
-        sq = int(cols.index(m.col)), int(m.row) - 1
+        sq = int(ascii_lowercase.index(m.col)), int(m.row) - 1
         moves = m.moves if m.moves else [m.total]
         print("found", sq, moves)
         t = m.total

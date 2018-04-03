@@ -1,6 +1,7 @@
 import random
 from .utils import *
 
+inf = float('inf')
 class StaticAI(Player):
     def pick_move(self):
         raise NotImplementedError()
@@ -25,29 +26,29 @@ class MinimaxAI(StaticAI):
         # print("Initial board state:")
         # print(self.board)
         moves = self.board.generate_valid_moves(self.color, self.caps)
-        best_eval = np.inf
+        best_eval = inf
         if self.depth % 2 == 1:
             best_eval *= -1
         # if self.color == "B": best_eval *= -1
         best_move = None
         old_state = self.board.copy_board()
-        alpha = -np.inf
+        alpha = -inf
         for move in moves:
             # if move.stone == STAND:
             #     continue
             if out: print("Trying", move, alpha)
             self.board.execute(move, self.color)
             # print(self.board)
-            alpha = self.minimax(self.depth - 1, self.board, -np.inf, np.inf, True, flip_color(self.color), self.board.copy_board()) * 4
+            alpha = self.minimax(self.depth - 1, self.board, -inf, inf, True, flip_color(self.color), self.board.copy_board()) * 4
             ev = self.board.evaluate(self.color)
             alpha -= ev / 2
             if abs(alpha) > 10000:
                 alpha *= -1
-            # s_alpha = -np.inf
+            # s_alpha = -inf
             # if abs(alpha) > 10000:
             #     self.board.set(old_state)
             #     self.board.execute(str_to_move(STAND + move.get_square()), self.color)
-            #     s_alpha =  -self.minimax(self.depth - 1, self.board, -np.inf, np.inf, True, flip_color(self.color), self.board.copy_board()) * 3
+            #     s_alpha =  -self.minimax(self.depth - 1, self.board, -inf, inf, True, flip_color(self.color), self.board.copy_board()) * 3
             #     s_alpha -= self.board.evaluate(self.color)
 
             # print("New board after move:")
@@ -87,7 +88,7 @@ class MinimaxAI(StaticAI):
 
         moves = board.generate_valid_moves(color, self.caps)
         if maximising:
-            b_eval = -np.inf
+            b_eval = -inf
             for move in moves:
                 if out: print("\t" * (self.depth - depth) + "(max) Trying", move, b_eval)
                 board.execute(move, color)
@@ -103,7 +104,7 @@ class MinimaxAI(StaticAI):
                     return -beta # break
                     # return b_eval
         else:
-            b_eval = np.inf
+            b_eval = inf
             for move in moves:
                 if out: print("\t" * (self.depth - depth) + "(min) Trying", move, b_eval)
                 board.execute(move, color)

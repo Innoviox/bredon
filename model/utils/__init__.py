@@ -1,30 +1,28 @@
 from .constants import *
 
-import collections as ct
-import itertools   as it
-import numpy       as np
-import dataclasses as dc
-import tabulate    as tb
-import functools   as fc
-
-from string        import ascii_lowercase as cols
+from collections   import namedtuple
+from itertools     import combinations, chain, starmap
+from dataclasses   import dataclass, field
+from tabulate      import tabulate
+from functools     import partial
+from string        import ascii_lowercase
 from operator      import sub
 
-PseudoBoard = ct.namedtuple("PseudoBoard", ("w", "h", "board", "bool", "err", "type"))
+PseudoBoard = namedtuple("PseudoBoard", ("w", "h", "board", "bool", "err", "type"))
 
 
 def sums(n):
     b, mid, e = [0], list(range(1, n)), [n]
-    splits = (d for i in range(n) for d in it.combinations(mid, i))
-    return (list(map(sub, it.chain(s, e), it.chain(b, s))) for s in splits)
+    splits = (d for i in range(n) for d in combinations(mid, i))
+    return (list(map(sub, chain(s, e), chain(b, s))) for s in splits)
 
 
 def tile_to_coords(t: str):
-    return int(t[1]) - 1, cols.index(t[0])
+    return int(t[1]) - 1, ascii_lowercase.index(t[0])
 
 
 def coords_to_tile(x: int, y: int):
-    return cols[y] + str(x + 1)
+    return ascii_lowercase[y] + str(x + 1)
 
 
 def flip_color(color):
@@ -57,13 +55,13 @@ class Next:
         return self.x, self.y
 
 
-@dc.dataclass
+@dataclass
 class Move:
     total: int = 1
     stone: str = FLAT
     col: str = None
     row: int = None
-    moves: list = dc.field(default_factory=list)
+    moves: list = field(default_factory=list)
     direction: str = None
 
     def get_square(self):
@@ -79,7 +77,7 @@ class Move:
             return str(self.total) + self.get_square() + self.direction + ''.join(map(str, self.moves))
 
 
-@dc.dataclass
+@dataclass
 class Tile(Next):
     color: str
     stone: str = FLAT
@@ -290,7 +288,7 @@ class Board:
         return False
 
     def road(self, out=False):
-        for board in (self.board, np.transpose(self.board)):
+        for board in (self.board, zip(*self.board)):
             for color in COLORS:
                 if self._road_check(color, board, out=out):
                     return color
@@ -306,10 +304,10 @@ class Board:
         return Board(self.size, board=self.copy_board())
 
     def __repr__(self):
-        return tb.tabulate(self.board,
-                           tablefmt="plain",
-                           headers=list(range(1, self.size + 1)),
-                           showindex=list(cols[:self.size]))
+        return tabulate(self.board,
+                        tablefmt="plain",
+                        headers=list(range(1, self.size + 1)),
+                        showindex=list(ascii_lowercase[:self.size]))
 
     def evaluate(self, color):
         return self._evaluate(color) - self._evaluate(flip_color(color)) * 2
@@ -373,8 +371,8 @@ class Board:
         return e
 
     def _evaluate(self, color):
-        # return sum(map(fc.partial(self._evaluate_sq, color), np.ravel(self.board, 'C')))
-        return sum(sum(map(fc.partial(self._evaluate_sq, color), row)) for row in self.board) + \
+        # return sum(map(partial(self._evaluate_sq, color), np.ravel(self.board, 'C')))
+        return sum(sum(map(partial(self._evaluate_sq, color), row)) for row in self.board) + \
                sum(map(len, self._compress_left(color, self.board, False)))
 
     def _cl_sq_check(self, r, color, out, sq):
@@ -386,14 +384,14 @@ class Board:
         return False
 
     def _cl_row_check(self, color, out, r, row):
-        return list(filter(fc.partial(self._cl_sq_check, r, color, out), row))
+        return list(filter(partial(self._cl_sq_check, r, color, out), row))
 
     def count_flats(self, color):
         return sum(1 for row in self.board for sq in row if sq.tiles and
                    sq.tiles[-1].color == color and sq.tiles[-1].stone == FLAT)
 
     def _compress_left(self, color, board, out):
-        return list(it.starmap(fc.partial(self._cl_row_check, color, out), enumerate(board)))
+        return list(starmap(partial(self._cl_row_check, color, out), enumerate(board)))
 
     def _road_check(self, color, board, out):
         road = self._compress_left(color, board, out)
@@ -486,7 +484,7 @@ def str_to_move(move: str) -> Move:
     else:
         ns = move[1]
         t = move[0]
-        if t[0] not in cols:
+        if t[0] not in ascii_lowercase:
             total = int(t[0])
             t = t[1:]
         else:
