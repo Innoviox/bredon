@@ -20,8 +20,10 @@ class ViewSquare:
         self.ix, self.jy = self.i * SQUARE_SIZE + 2, self.j * SQUARE_SIZE + 2
         self.tags = str(i) + "." + str(j)
         self.ids = []
+        self.nridx = None
 
     def render_tile(self, tile, idx, offset_x=0.0, offset_y=0.0):
+        if tile is None: return
         n, s, o, d = calc_nsod(idx)
 
         x1, y1 = offset_x + self.ix + s - n, offset_y + self.jy + s - n - o + d
@@ -48,7 +50,10 @@ class ViewSquare:
         if possible:
             s = SQUARE_SIZE / 2
             self.circle = self.create_circle(self.ix + s, self.jy + s, s - 5, outline="blue", width=5)
-
+        self.ids = []
+        tiles = self.get_tiles(self.master.board)
+        if self.nridx:
+            tiles.insert(None, self.nridx)
         self.ids = [self.render_tile(tile, idx) for idx, tile in enumerate(self.get_tiles(self.master.board), start=1)]
 
     def create_circle(self, x, y, r, **kwargs):
@@ -57,6 +62,7 @@ class ViewSquare:
     def get_square(self, board):
         return board.board[self.i][self.j]
 
+    def
     def get_tiles(self, board):
         return self.get_square(board).tiles
 
@@ -112,6 +118,7 @@ class ViewBoard(tk.Frame):
             elif t[-1].color == self.master.players[self.master.player].color:
                 print("Grabbing?")
                 self.grabbed = sq
+                self.grabbed.nridx = 1
                 self.render(flip_color(self.master.players[self.master.player].color))
         else:
             x1, y1 = sq.i, sq.j
@@ -119,6 +126,10 @@ class ViewBoard(tk.Frame):
             a, b = abs(x-x1), abs(y-y1)
             if (a <= 1 and b <= 1) and ((a == 1) ^ (b == 1)):
                 print("valid!")
+            elif a == 0 and b == 0:
+                self.grabbed.nridx += 1
+
+
         # self.master.exec()
 
     def possibles(self, color):

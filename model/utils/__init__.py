@@ -8,7 +8,8 @@ from functools     import partial
 from string        import ascii_lowercase
 from operator      import sub
 
-PseudoBoard = namedtuple("PseudoBoard", ("w", "h", "board", "bool", "err", "type"))
+PseudoBoard = namedtuple("PseudoBoard",
+                         ("w", "h", "board", "bool", "err", "type"))
 
 
 def sums(n):
