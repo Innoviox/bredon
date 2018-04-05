@@ -1,7 +1,7 @@
+import tkinter as tk
 from typing import Optional
 
 from model import *
-import tkinter as tk
 
 
 def calc_nsod(idx):
@@ -52,8 +52,8 @@ class ViewSquare:
             self.circle = self.create_circle(self.ix + s, self.jy + s, s - 5, outline="blue", width=5)
         self.ids = []
         tiles = self.get_tiles(self.master.board)
-        if self.nridx:
-            tiles.insert(None, self.nridx)
+        if self.nridx is not None:
+            tiles.insert(self.nridx, None)
         self.ids = [self.render_tile(tile, idx) for idx, tile in enumerate(self.get_tiles(self.master.board), start=1)]
 
     def create_circle(self, x, y, r, **kwargs):
@@ -62,7 +62,6 @@ class ViewSquare:
     def get_square(self, board):
         return board.board[self.i][self.j]
 
-    def
     def get_tiles(self, board):
         return self.get_square(board).tiles
 
@@ -128,6 +127,7 @@ class ViewBoard(tk.Frame):
                 print("valid!")
             elif a == 0 and b == 0:
                 self.grabbed.nridx += 1
+                self.render(flip_color(self.master.players[self.master.player].color))
 
 
         # self.master.exec()

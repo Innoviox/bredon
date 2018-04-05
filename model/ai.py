@@ -1,4 +1,5 @@
 import random
+
 from .utils import *
 
 inf = float('inf')
@@ -19,7 +20,7 @@ class MinimaxAI(StaticAI):
     def pick_opposing_move(self, input_fn=input):
         if self.board.valid_str("a1", flip_color(self.color)):
             return str_to_move("a1"), flip_color(self.color)
-        return str_to_move(cols[self.board.size - 1] + str(self.board.size)), flip_color(self.color)
+        return str_to_move(ascii_lowercase[self.board.size - 1] + str(self.board.size)), flip_color(self.color)
 
     def pick_move(self, input_fn=None, out=False):
         # print("Picking move for ai color:", self.color)
