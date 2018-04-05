@@ -109,24 +109,26 @@ class ViewBoard(tk.Frame):
                 self.squares.append(ViewSquare(self, i, j))
 
     def click(self, event):
+        def _run(s):
+            self.input.delete(0, tk.END)
+            self.input.insert(0, s)
+            self.move = None
+            self.render(flip_color(self.master.get_color()))
+            b = self.board.copy()
+            self.board = self.board.copy()
+            self.board.force_str(self.input.get(), self.master.players[self.master.player].color)
+            self.execute(self.input.get().strip(), self.master.players[self.master.player], b)
+            self.render(flip_color(self.master.get_color()))
+            self.move = None
+            self.board = b
+
         self.i = (self.i + 1) % 3
         x, y = event.x // SQUARE_SIZE, event.y // SQUARE_SIZE
         sq = self.squares[x * self.size + y]
         t = sq.get_tiles(self.board)
         if not self.grabbed:
             if len(t) == 0:
-                self.input.delete(0, tk.END)
-                self.input.insert(0, STONES[self.i - 1] + ascii_lowercase[x] + str(y + 1))
-                self.move = None
-                self.render(flip_color(self.master.get_color()))
-                b = self.board.copy()
-                self.board = self.board.copy()
-                self.board.force_str(self.input.get(), self.master.players[self.master.player].color)
-                self.execute(self.input.get().strip(), self.master.players[self.master.player], b)
-                self.render(flip_color(self.master.get_color()))
-                self.move = None
-                self.board = b
-                # self.master.after(1000, self.master.exec)
+                _run(STONES[self.i - 1] + ascii_lowercase[x] + str(y + 1))
             elif t[-1].color == self.master.players[self.master.player].color:
                 self.grabbed = sq
                 self.grabbed.nridx = 1
@@ -140,20 +142,7 @@ class ViewBoard(tk.Frame):
                     dir = " -+"[y-y1]
                 else:
                     dir = " <>"[x-x1]
-
-                self.input.delete(0, tk.END)
-                self.input.insert(0, str(self.grabbed.nridx) + ascii_lowercase[x] + str(y + 1) + dir)
-                self.move = None
-                self.render(flip_color(self.master.get_color()))
-                b = self.board.copy()
-                self.board = self.board.copy()
-                self.board.force_str(self.input.get(), self.master.players[self.master.player].color)
-                self.execute(self.input.get().strip(), self.master.players[self.master.player], b)
-                self.render(flip_color(self.master.get_color()))
-                self.move = None
-                self.board = b
-                # self.master.after(1000, self.master.exec)
-
+                _run(str(self.grabbed.nridx) + ascii_lowercase[x] + str(y + 1) + dir)
             elif a == 0 and b == 0:
                 if len(self.grabbed.get_tiles()) > self.grabbed.nridx:
                     self.grabbed.nridx += 1
