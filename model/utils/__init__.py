@@ -453,16 +453,16 @@ class Player(object):
     def _pick_move(self, color, input_fn=input):
         while True:
             m = str_to_move(input_fn("Enter move: "))
-            try:
-                v = self.board.valid_move(m, color)
-                if v:
-                    return m, color
-                else:
-                    print("Parsed move", m)
-                    print("Received error", v)
-            except Exception as e:
+            # try:
+            v = self.board.valid_move(m, color)
+            if v:
+                return m, color
+            else:
                 print("Parsed move", m)
-                print("Received error", e)
+                print("Received error", v)
+            # except Exception as e:
+            #     print("Parsed move", m)
+            #     print("Received error", e)
 
     def pick_move(self, input_fn=input):
         return self._pick_move(self.color, input_fn=input_fn)[0]

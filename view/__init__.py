@@ -51,7 +51,7 @@ class ViewSquare:
             s = SQUARE_SIZE / 2
             self.circle = self.create_circle(self.ix + s, self.jy + s, s - 5, outline="blue", width=5)
         self.ids = []
-        tiles = self.get_tiles(self.master.board)
+        tiles = self.get_tiles(self.master.board)[:]
         if self.nridx is not None:
             tiles.insert(self.nridx, None)
         self.ids = [self.render_tile(tile, idx) for idx, tile in enumerate(self.get_tiles(self.master.board), start=1)]
@@ -97,8 +97,12 @@ class ViewBoard(tk.Frame):
         self.canvas.grid(row=1, column=1, columnspan=self.size, rowspan=self.size)
 
         self.input = tk.Entry(self)
-        self.input.grid(row=6, column=1, columnspan=5)
         self.input.bind("<Return>", self.master.exec)
+
+        self.exec_button = tk.Button(self, text="Execute", command=self.master.exec)
+
+        self.input.grid(row=6, column=0, columnspan=self.size - 1)
+        self.exec_button.grid(row=6, column=self.size - 1)
 
         for i in range(self.size):
             for j in range(self.size):
@@ -113,9 +117,17 @@ class ViewBoard(tk.Frame):
             if len(t) == 0:
                 self.input.delete(0, tk.END)
                 self.input.insert(0, STONES[self.i - 1] + ascii_lowercase[x] + str(y + 1))
-                self.master.after(1000, self.master.exec)
+                self.move = None
+                self.render(flip_color(self.master.get_color()))
+                b = self.board.copy()
+                self.board = self.board.copy()
+                self.board.force_str(self.input.get(), self.master.players[self.master.player].color)
+                self.execute(self.input.get().strip(), self.master.players[self.master.player], b)
+                self.render(flip_color(self.master.get_color()))
+                self.move = None
+                self.board = b
+                # self.master.after(1000, self.master.exec)
             elif t[-1].color == self.master.players[self.master.player].color:
-                print("Grabbing?")
                 self.grabbed = sq
                 self.grabbed.nridx = 1
                 self.render(flip_color(self.master.players[self.master.player].color))
@@ -124,9 +136,27 @@ class ViewBoard(tk.Frame):
             x, y = self.grabbed.i, self.grabbed.j
             a, b = abs(x-x1), abs(y-y1)
             if (a <= 1 and b <= 1) and ((a == 1) ^ (b == 1)):
-                print("valid!")
+                if a == 0:
+                    dir = " -+"[y-y1]
+                else:
+                    dir = " <>"[x-x1]
+
+                self.input.delete(0, tk.END)
+                self.input.insert(0, str(self.grabbed.nridx) + ascii_lowercase[x] + str(y + 1) + dir)
+                self.move = None
+                self.render(flip_color(self.master.get_color()))
+                b = self.board.copy()
+                self.board = self.board.copy()
+                self.board.force_str(self.input.get(), self.master.players[self.master.player].color)
+                self.execute(self.input.get().strip(), self.master.players[self.master.player], b)
+                self.render(flip_color(self.master.get_color()))
+                self.move = None
+                self.board = b
+                # self.master.after(1000, self.master.exec)
+
             elif a == 0 and b == 0:
-                self.grabbed.nridx += 1
+                if len(self.grabbed.get_tiles()) > self.grabbed.nridx:
+                    self.grabbed.nridx += 1
                 self.render(flip_color(self.master.players[self.master.player].color))
 
 
@@ -149,9 +179,9 @@ class ViewBoard(tk.Frame):
                 x, y = sq.next(d, self.size)
                 t = self.board.board[x][y].tiles
                 if t:
-                    ps[x * self.size + y] = t[-1].stone is FLAT
+                    ps[y * self.size + x] = t[-1].stone is FLAT
                 else:
-                    ps[x * self.size + y] = True
+                    ps[y * self.size + x] = True
             yield from ps
 
     def execute(self, move, player, old_board):

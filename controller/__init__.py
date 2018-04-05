@@ -52,6 +52,7 @@ class ViewGame(tk.Tk, Game):
         self.flats.grid(row=0, column=0)  #, columnspan=self.board.size)
         self.vboard.grid(row=2, column=0)
         self.tiles.grid(row=2, column=6, rowspan=self.board.size)
+        # self.exec_button.grid(row=3, column=0, columnspan=self.board.size)
 
         self.turn = 1
         self.ptn = ""
@@ -80,10 +81,14 @@ class ViewGame(tk.Tk, Game):
         move = self._run(p, self.turn, input_fn=lambda _: self.vboard.input.get())
         self.ptn += move
         print(self.ptn)
-
+        self.viz()
         self.vboard.input.delete(0, "end")
         self.vboard.i = 0
-        self.vboard.execute(move.strip(), p, old_board)
+        # self.vboard.execute(move.strip(), p, old_board)
+        if self.vboard.grabbed:
+            self.vboard.grabbed.nridx = 0
+            self.vboard.grabbed = False
+        self.vboard.board = self.board
         self.viz()
         self.player = (self.player + 1) % 2
         if isinstance(self.players[self.player], StaticAI):
@@ -106,6 +111,8 @@ class ViewGame(tk.Tk, Game):
             self.exec(ai=True)
         self.mainloop()
 
+    def get_color(self):
+        return self.players[self.player].color
     # def run(self):
     #     ptn = ""
     #     turn = 1
