@@ -83,8 +83,14 @@ class ViewBoard(tk.Frame):
         self.actives = [False for _ in range(self.size ** 2)]
         self.move = None
 
+        # Saved states for movement
         self.i = 0
         self.grabbed: Optional[bool, ViewSquare] = False
+        self.grabbed_first = False
+        self.dir = False
+        self.nridx = 0
+        self.moves = []
+
         self.canvas.bind("<1>", self.click)
 
     def _init_gui(self):
@@ -101,26 +107,29 @@ class ViewBoard(tk.Frame):
 
         self.exec_button = tk.Button(self, text="Execute", command=self.master.exec)
 
-        self.input.grid(row=6, column=0, columnspan=self.size - 1)
-        self.exec_button.grid(row=6, column=self.size - 1)
+        self.clear_button = tk.Button(self, text="Clear", command=self.clear)
+
+        self.input.grid(row=6, column=0, columnspan=self.size - 2)
+        self.exec_button.grid(row=6, column=self.size - 2)
+        self.clear_button.grid(row=6, column=self.size - 1)
 
         for i in range(self.size):
             for j in range(self.size):
                 self.squares.append(ViewSquare(self, i, j))
 
     def click(self, event):
-        def _run(s):
+        def _run(s, f=False):
             self.input.delete(0, tk.END)
             self.input.insert(0, s)
             self.move = None
             self.render(flip_color(self.master.get_color()))
-            b = self.board.copy()
-            self.board = self.board.copy()
+            self.b = self.board.copy()
+            self.board = self.master.board.copy()
             self.board.force_str(self.input.get(), self.master.players[self.master.player].color)
-            self.execute(self.input.get().strip(), self.master.players[self.master.player], b)
+            self.execute(self.input.get().strip(), self.master.players[self.master.player], self.b)
             self.render(flip_color(self.master.get_color()))
             self.move = None
-            self.board = b
+            if not f: self.board = self.b
 
         self.i = (self.i + 1) % 3
         x, y = event.x // SQUARE_SIZE, event.y // SQUARE_SIZE
@@ -131,7 +140,8 @@ class ViewBoard(tk.Frame):
                 _run(STONES[self.i - 1] + ascii_lowercase[x] + str(y + 1))
             elif t[-1].color == self.master.players[self.master.player].color:
                 self.grabbed = sq
-                self.grabbed.nridx = 1
+                self.grabbed_first = self.grabbed
+                self.grabbed.nridx = self.nridx = 1
                 self.render(flip_color(self.master.players[self.master.player].color))
         else:
             x1, y1 = sq.i, sq.j
@@ -142,18 +152,45 @@ class ViewBoard(tk.Frame):
                     dir = " -+"[y-y1]
                 else:
                     dir = " <>"[x-x1]
-                _run(str(self.grabbed.nridx) + ascii_lowercase[x] + str(y + 1) + dir)
+                if not self.dir:
+                    self.dir = dir
+                elif self.dir != dir:
+                    return
+                x, y = self.grabbed_first.i, self.grabbed_first.j
+                self.moves.append(1)
+                s = str(self.nridx) + ascii_lowercase[x] + str(y + 1) + dir
+                if self.moves:
+                    s += ''.join(map(str, self.moves))
+                _run(s, f=True)
+
+                if self.grabbed.nridx > 1:
+                    self.grabbed.nridx -= 1
+                    self.switch_g(dir)
+                    self.render(flip_color(self.master.players[self.master.player].color))
             elif a == 0 and b == 0:
-                if len(self.grabbed.get_tiles()) > self.grabbed.nridx:
+                if not self.dir and len(self.grabbed.get_tiles(self.board)) > self.grabbed.nridx:
                     self.grabbed.nridx += 1
+                    self.nridx += 1
+                else:
+                    self.moves[-1] += 1
                 self.render(flip_color(self.master.players[self.master.player].color))
 
+    def clear(self, r=True):
+        self.grabbed.nridx = self.i = self.nridx = 0
+        self.grabbed = self.grabbed_first = self.dir = False
+        self.board = self.master.board
+        self.moves = []
+        if r:
+            self.render(flip_color(self.master.players[self.master.player].color))
 
-        # self.master.exec()
+    def switch_g(self, dir):
+        n = self.grabbed.nridx
+        x, y = self.grabbed.get_square(self.board) \
+            .next(dir, self.size)
+        self.grabbed = self.squares[x * self.size + y]
+        self.grabbed.nridx = n
 
     def possibles(self, color):
-        print("possibles", color)
-        print(bool(self.grabbed))
         if not self.grabbed:
             for sq in self.squares:
                 t = sq.get_tiles(self.board)
@@ -171,6 +208,7 @@ class ViewBoard(tk.Frame):
                     ps[y * self.size + x] = t[-1].stone is FLAT
                 else:
                     ps[y * self.size + x] = True
+
             yield from ps
 
     def execute(self, move, player, old_board):

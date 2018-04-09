@@ -86,8 +86,7 @@ class ViewGame(tk.Tk, Game):
         self.vboard.i = 0
         # self.vboard.execute(move.strip(), p, old_board)
         if self.vboard.grabbed:
-            self.vboard.grabbed.nridx = 0
-            self.vboard.grabbed = False
+            self.vboard.clear(r=False)
         self.vboard.board = self.board
         self.viz()
         self.player = (self.player + 1) % 2
@@ -113,20 +112,3 @@ class ViewGame(tk.Tk, Game):
 
     def get_color(self):
         return self.players[self.player].color
-    # def run(self):
-    #     ptn = ""
-    #     turn = 1
-    #     while True:
-    #         ptn += str(turn) + ". "
-    #         for player in self.players:
-    #             old_board = self.board.copy()
-    #             move = self._run(player, turn, input_fn=self.vboard.input.get)
-    #             self.vboard.execute(move.strip(), player.color, old_board)
-    #             ptn += move
-    #             w = self.board.winner(self.players, t=True)
-    #             print(ptn)
-    #             if w:
-    #                 print(w, "won!")
-    #                 return
-    #         ptn += "\n"
-    #         turn += 1
