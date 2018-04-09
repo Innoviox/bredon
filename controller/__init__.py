@@ -90,7 +90,7 @@ class ViewGame(tk.Tk, Game):
         self.vboard.board = self.board
         self.viz()
         self.player = (self.player + 1) % 2
-        if isinstance(self.players[self.player], StaticAI):
+        if isinstance(self.players[self.player], AI):
             self.exec(ai=True)
 
         w = self.board.winner(self.players, t=True)
@@ -106,7 +106,7 @@ class ViewGame(tk.Tk, Game):
 
     def run(self):
         self.running = True
-        if isinstance(self.players[self.player], StaticAI):
+        if isinstance(self.players[self.player], AI):
             self.exec(ai=True)
         self.mainloop()
 
