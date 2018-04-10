@@ -84,7 +84,7 @@ class ViewBoard(tk.Frame):
         self.move = None
 
         # Saved states for movement
-        self.i = 0
+        self.i = 1
         self.grabbed: Optional[bool, ViewSquare] = False
         self.grabbed_first = False
         self.dir = False
@@ -132,13 +132,14 @@ class ViewBoard(tk.Frame):
             self.move = None
             if not f: self.board = self.b
 
-        self.i = (self.i + 1) % 3
+        stones = self.master.stones[flip_color(self.master.get_color())]
+        self.i = (self.i + 1) % len(stones)
         x, y = event.x // SQUARE_SIZE, event.y // SQUARE_SIZE
         sq = self.squares[x * self.size + y]
         t = sq.get_tiles(self.board)
         if not self.grabbed:
             if len(t) == 0:
-                _run(STONES[self.i - 1] + ascii_lowercase[x] + str(y + 1))
+                _run(stones[self.i - 1] + ascii_lowercase[x] + str(y + 1))
             elif t[-1].color == self.master.players[self.master.player].color:
                 self.grabbed = sq
                 self.grabbed_first = self.grabbed
@@ -177,7 +178,8 @@ class ViewBoard(tk.Frame):
                 self.render(flip_color(self.master.players[self.master.player].color))
 
     def clear(self, r=True):
-        self.grabbed.nridx = self.i = self.nridx = 0
+        self.grabbed.nridx = self.nridx = 0
+        self.i = 1
         self.grabbed = self.grabbed_first = self.dir = False
         self.board = self.master.board
         self.moves = []

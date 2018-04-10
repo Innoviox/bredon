@@ -11,6 +11,8 @@ class Game():
         self.player_2: Player = self._init_player(BLACK, black_type)
         self.players = [self.player_1, self.player_2]
 
+        self.stones = {i: FLAT for i in COLORS}
+
     def _init_player(self, color, types) -> Player:
         name, depth = types
         if name == HUMAN[0]:
@@ -26,10 +28,13 @@ class Game():
         t = time.time()
         if turn == 1:
             m, c = player.pick_opposing_move(input_fn=input_fn)
+            self.stones[c] = STONES
             print(m, c)
         else:
             m = player.pick_move(input_fn=input_fn)
             c = player.color
+            if CAP in str(m):
+                self.stones[c] = FLAT + STAND
         print(time.time() - t)
         player._do(m, c)
         return str(m) + " "
