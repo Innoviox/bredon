@@ -91,6 +91,7 @@ class ViewBoard(tk.Frame):
         self.nridx = 0
         self.moves = []
 
+        self.canvas.bind("<2>", self.master.exec)
         self.canvas.bind("<1>", self.click)
 
     def _init_gui(self):
@@ -165,7 +166,7 @@ class ViewBoard(tk.Frame):
 
                 if self.grabbed.nridx > 1:
                     self.grabbed.nridx -= 1
-                    self.switch_g(dir)
+                    self.switch_g()
                     self.render(flip_color(self.master.players[self.master.player].color))
             elif a == 0 and b == 0:
                 if not self.dir and len(self.grabbed.get_tiles(self.board)) > self.grabbed.nridx:
@@ -183,11 +184,11 @@ class ViewBoard(tk.Frame):
         if r:
             self.render(flip_color(self.master.players[self.master.player].color))
 
-    def switch_g(self, dir):
+    def switch_g(self):
         n = self.grabbed.nridx
         x, y = self.grabbed.get_square(self.board) \
-            .next(dir, self.size)
-        self.grabbed = self.squares[x * self.size + y]
+            .next(self.dir, self.size)
+        self.grabbed = self.squares[y * self.size + x]
         self.grabbed.nridx = n
 
     def possibles(self, color):

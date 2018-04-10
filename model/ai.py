@@ -3,16 +3,16 @@ import random
 from .utils import *
 
 inf = float('inf')
-class AI(Player):
-    def pick_move(self):
+class BaseAI(Player):
+    def pick_move(self, input_fn=input):
         raise NotImplementedError()
 
 
-class RandomAI(AI):
-    def pick_move(self):
+class RandomAI(BaseAI):
+    def pick_move(self, input_fn=input):
         return random.choice(list(self.board.generate_valid_moves(self)))
 
-class MinimaxAI(AI):
+class MinimaxAI(BaseAI):
     def __init__(self, board, color, depth=3):
         super().__init__(board, color)
         self.depth = depth
