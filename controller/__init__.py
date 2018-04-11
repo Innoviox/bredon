@@ -29,16 +29,11 @@ class Game():
         if turn == 1 or turn == 0:
             m, c = player.pick_opposing_move(input_fn=input_fn)
             self.stones[c] = STONES
-            print("affea", c, str(m), self.stones)
-            print(m, c)
-            print("affea", c, str(m), self.stones)
         else:
             m = player.pick_move(input_fn=input_fn)
             c = player.color
             if CAP in str(m):
-                print("affea", c, str(m), self.stones)
                 self.stones[c] = FLAT + STAND
-                print("affea", c, str(m), self.stones)
         print(time.time() - t)
         player._do(m, c)
         return str(m) + " "
