@@ -132,7 +132,7 @@ class ViewBoard(tk.Frame):
             self.move = None
             if not f: self.board = self.b
 
-        stones = self.master.stones[flip_color(self.master.get_color())]
+        stones = self.master.stones[self.master.get_color()]
         self.i = (self.i + 1) % len(stones)
         x, y = event.x // SQUARE_SIZE, event.y // SQUARE_SIZE
         sq = self.squares[x * self.size + y]
