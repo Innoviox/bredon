@@ -3,6 +3,7 @@ from typing import Optional
 
 from model import *
 
+
 tk.Canvas.create_circle = lambda self, x, y, r, **kwargs: self.create_oval(x - r, y - r, x + r, y + r, **kwargs)
 
 
@@ -55,7 +56,6 @@ class ViewSquare:
         self.rect = self.master.canvas.create_rectangle(self.ix, self.jy, self.ix + SQUARE_SIZE, self.jy + SQUARE_SIZE,
                                                         fill="green" if active else "white")
         if possible:
-            s = SQUARE_SIZE / 2
             self.circle = self.create_circle(self.ix + s, self.jy + s, s - 5, outline="blue", width=5)
         self.ids = []
         tiles = self.get_tiles(self.master.board)[:]
@@ -94,7 +94,7 @@ class ViewBoard(tk.Frame):
         self.i = 1
         self.grabbed: Optional[bool, ViewSquare] = False
         self.grabbed_first = False
-        self.dir = False
+        self.direction = False
         self.nridx = 0
         self.moves = []
 
@@ -158,16 +158,16 @@ class ViewBoard(tk.Frame):
             a, b = abs(x-x1), abs(y-y1)
             if (a <= 1 and b <= 1) and ((a == 1) ^ (b == 1)):
                 if a == 0:
-                    dir = " -+"[y-y1]
+                    direction = " -+"[y-y1]
                 else:
-                    dir = " <>"[x-x1]
-                if not self.dir:
-                    self.dir = dir
-                elif self.dir != dir:
+                    direction = " <>"[x-x1]
+                if not self.direction:
+                    self.direction = direction
+                elif self.direction != direction:
                     return
                 x, y = self.grabbed_first.i, self.grabbed_first.j
                 self.moves.append(1)
-                s = str(self.nridx) + ascii_lowercase[x] + str(y + 1) + dir
+                s = str(self.nridx) + ascii_lowercase[x] + str(y + 1) + direction
                 if self.moves:
                     s += ''.join(map(str, self.moves))
                 _run(s, f=True)
@@ -177,7 +177,7 @@ class ViewBoard(tk.Frame):
                     self.switch_g()
                     self.render(flip_color(self.master.players[self.master.player].color))
             elif a == 0 and b == 0:
-                if not self.dir and len(self.grabbed.get_tiles(self.board)) > self.grabbed.nridx:
+                if not self.direction and len(self.grabbed.get_tiles(self.board)) > self.grabbed.nridx:
                     self.grabbed.nridx += 1
                     self.nridx += 1
                 else:
@@ -187,7 +187,7 @@ class ViewBoard(tk.Frame):
     def clear(self, r=True):
         self.grabbed.nridx = self.nridx = 0
         self.i = 1
-        self.grabbed = self.grabbed_first = self.dir = False
+        self.grabbed = self.grabbed_first = self.direction = False
         self.board = self.master.board
         self.moves = []
         if r:
@@ -196,7 +196,7 @@ class ViewBoard(tk.Frame):
     def switch_g(self):
         n = self.grabbed.nridx
         x, y = self.grabbed.get_square(self.board) \
-            .next(self.dir, self.size)
+            .next(self.direction, self.size)
         self.grabbed = self.squares[y * self.size + x]
         self.grabbed.nridx = n
 
