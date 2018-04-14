@@ -1,20 +1,35 @@
+## Colors
 COLORS = ("black", "white")
 BLACK, WHITE = COLORS
 COLORS_REV = tuple(reversed(COLORS))
-EMPTY = ' '
+
+## PTN
 MARKS = '?!'
 
+## Moves
 DIRS = '+-<>'
 UP, DOWN, LEFT, RIGHT = DIRS
 STONES = 'FCS'
 FLAT, CAP, STAND = STONES
+EMPTY = ' '
 
+## Graphics
 TILE_SIZE = 40
 SQUARE_SIZE = 75
 ANIM_STEPS = 30
 OFFSET_STEP = 3
 PAD_STEP = 5
 
+
+## AI
+MAX_N = 1234567890
+THRESHOLD = 10000
+
+## Controller
+HUMAN = "human", None
+AI = lambda n: ("AI", n)
+
+## Misc
 SIZES = {
     3: [10, 0],
     4: [15, 0],
@@ -23,3 +38,4 @@ SIZES = {
     7: [40, 2],
     8: [50, 2]
 }
+

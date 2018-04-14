@@ -1,11 +1,8 @@
 from view import *  # imports model
 import time
 
-HUMAN = "human", None
-AI = "ai"
-
 class Game():
-    def __init__(self, size=5, board=None, white_type=HUMAN, black_type=(AI, 3)):
+    def __init__(self, size=5, board=None, white_type=HUMAN, black_type=AI(3)):
         self.board = Board(size) if board is None else board
         self.player_1: Player = self._init_player(WHITE, white_type)
         self.player_2: Player = self._init_player(BLACK, black_type)
@@ -53,10 +50,9 @@ class ViewGame(tk.Tk, Game):
         self.tiles = TilesCanvas(self)
         self.flats = FlatCanvas(self)
 
-        self.flats.grid(row=0, column=0)  #, columnspan=self.board.size)
+        self.flats.grid(row=0, column=0)
         self.vboard.grid(row=2, column=0)
         self.tiles.grid(row=2, column=6, rowspan=self.board.size)
-        # self.exec_button.grid(row=3, column=0, columnspan=self.board.size)
 
         self.turn = 0
         self.ptn = ""
@@ -72,14 +68,9 @@ class ViewGame(tk.Tk, Game):
             return
         if not self.running:
             return
-        # elif self.first:
-        #     self.ptn = "1. "
-        #     self.first = False
         elif self.player == 0:
             self.ptn += "\n%d. " % self.turn
             self.turn += 1
-
-        old_board = self.board.copy()
 
         p = self.players[self.player]
         move = self._run(p, self.turn, input_fn=lambda _: self.vboard.input.get())
@@ -88,7 +79,6 @@ class ViewGame(tk.Tk, Game):
         self.viz()
         self.vboard.input.delete(0, "end")
         self.vboard.i = 0
-        # self.vboard.execute(move.strip(), p, old_board)
         if self.vboard.grabbed:
             self.vboard.clear(r=False)
         self.vboard.board = self.board

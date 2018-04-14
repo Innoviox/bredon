@@ -3,6 +3,7 @@ import random
 from .utils import *
 
 inf = float('inf')
+
 class BaseAI(Player):
     def pick_move(self, input_fn=input):
         raise NotImplementedError()
@@ -32,10 +33,10 @@ class MinimaxAI(BaseAI):
         alpha = -inf
         for move in moves:
             self.board.execute(move, self.color)
-            alpha = self.minimax(self.depth - 1, self.board, -inf, inf, True, flip_color(self.color), self.board.copy_board()) * 4
+            alpha = self.minimax(self.depth - 1, self.board, alpha, inf, True, flip_color(self.color), self.board.copy_board()) * 4
             ev = self.board.evaluate(self.color)
             alpha -= ev / 2
-            if abs(alpha) > 10000:
+            if abs(alpha) > THRESHOLD:
                 alpha *= -1
             self.board.set(old_state)
             if (self.depth % 2 == 1 and alpha >= best_eval) or (self.depth % 2 == 0 and alpha <= best_eval):
@@ -46,9 +47,9 @@ class MinimaxAI(BaseAI):
     def minimax(self, depth, board, alpha, beta, maximising, color, old_state, out=False):
         if (board.road() or board.flat_win()):
             if maximising:
-                return -1234567890 * depth
+                return -MAX_N * depth
             else:
-                return 1234567890  * depth
+                return MAX_N  * depth
         elif depth == 0:
             return board.evaluate(color)
         
@@ -61,7 +62,7 @@ class MinimaxAI(BaseAI):
                 board.set(old_state)
                 alpha = max(alpha, b_eval)
                 if beta <= alpha:
-                    if beta < -10000:
+                    if beta < -THRESHOLD:
                         return beta
                     return -beta
         else:
@@ -72,7 +73,7 @@ class MinimaxAI(BaseAI):
                 board.set(old_state)
                 beta = min(beta, b_eval)
                 if beta <= alpha:
-                    if beta < -10000:
+                    if beta < -THRESHOLD:
                         return beta
                     return -beta
         return b_eval
