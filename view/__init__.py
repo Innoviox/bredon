@@ -3,11 +3,6 @@ from typing import Optional
 
 from model import *
 
-
-def calc_nsod(idx):
-    return TILE_SIZE / 2, SQUARE_SIZE / 2, OFFSET_STEP * idx, PAD_STEP
-
-
 tk.Canvas.create_circle = lambda self, x, y, r, **kwargs: self.create_oval(x - r, y - r, x + r, y + r, **kwargs)
 
 
@@ -24,24 +19,36 @@ class ViewSquare:
 
     def render_tile(self, tile, idx, offset_x=0.0, offset_y=0.0):
         if tile is None: return
-        n, s, o, d = calc_nsod(idx)
+        o = OFFSET_STEP * idx
 
         x1, y1 = offset_x + self.ix + s - n, offset_y + self.jy + s - n - o + d
         x2, y2 = offset_x + self.ix + s + n, offset_y + self.jy + s + n - o + d
         if tile.stone == FLAT:
             return self.master.canvas.create_rectangle(x1, y1, x2, y2, outline='black', fill=tile.color)
         elif tile.stone == STAND:
-            return self.master.canvas.create_polygon(x1 + n * 1.5, y1,
-                                                     x2, y1 + n * 0.5,
-                                                     x1 + n * 0.5, y2,
-                                                     x1, y1 + n * 1.5, fill=tile.color, outline='black',
+            if tile.color == WHITE:
+                points = (
+                    x1 + n * 1.5, y1,
+                    x2, y1 + n * 0.5,
+                    x1 + n * 0.5, y2,
+                    x1, y1 + n * 1.5
+                )
+            else:
+                points = (
+                    x1 + n * 0.5, y1,
+                    x2, y1 + n * 1.5,
+                    x1 + n * 1.5, y2,
+                    x1, y1 + n * 0.5
+                )
+
+            return self.master.canvas.create_polygon(*points, fill=tile.color, outline='black',
                                                      tags=(self.tags, idx))
         else:
             return self.create_circle(*self.find_center(idx, offset_x, offset_y), s / 2, fill=tile.color,
                                       tags=(self.tags, idx))
 
     def find_center(self, idx, offset_x=0.0, offset_y=0.0):
-        n, s, o, d = calc_nsod(idx)
+        o = OFFSET_STEP * idx
         return offset_x + self.ix + s, offset_y + self.jy + s - o + d
 
     def render(self, active=False, possible=False):
