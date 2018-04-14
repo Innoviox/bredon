@@ -50,8 +50,8 @@ class MinimaxAI(BaseAI):
                 return -MAX_N * depth
             else:
                 return MAX_N  * depth
-        elif depth == 0:
-            return board.evaluate(color)
+        # elif depth == 0:
+            # return board.evaluate(color)
         
         moves = board.generate_valid_moves(color, self.caps)
         if maximising:

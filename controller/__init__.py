@@ -1,6 +1,7 @@
 from view import *  # imports model
 import time
 
+
 class Game():
     def __init__(self, size=5, board=None, white_type=HUMAN, black_type=AI(3)):
         self.board = Board(size) if board is None else board
@@ -69,7 +70,7 @@ class ViewGame(tk.Tk, Game):
         if not self.running:
             return
         elif self.player == 0:
-            self.ptn += "\n%d. " % self.turn
+            self.ptn += "\n%d. " % (self.turn + 1)
             self.turn += 1
 
         p = self.players[self.player]
@@ -98,11 +99,11 @@ class ViewGame(tk.Tk, Game):
         self.update_idletasks()
         self.update()
 
-    def run(self):
+    def mainloop(self, n=0):
         self.running = True
         if isinstance(self.players[self.player], BaseAI):
             self.exec(ai=True)
-        self.mainloop()
+        super(tk.Tk, self).mainloop(n=n)
 
     def get_color(self):
         return self.players[self.player].color
