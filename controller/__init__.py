@@ -24,7 +24,7 @@ class Game():
     def _run(self, player, turn, input_fn=input):
         # self.viz()
         t = time.time()
-        if turn == 1 or turn == 0:
+        if turn <= 1:
             m, c = player.pick_opposing_move(input_fn=input_fn)
             self.stones[c] = STONES
         else:
@@ -36,6 +36,20 @@ class Game():
         player._do(m, c)
         return str(m) + " "
 
+    def run(self):
+        ptn = ""
+        turn = 1
+        while True:
+            ptn += str(turn) + ". "
+            for player in self.players:
+                ptn += self._run(player, turn)
+                w = self.board.winner(self.players, t=True)
+                print(ptn)
+                if w:
+                    print(w, "won!")
+                    return
+            ptn += "\n"
+            turn += 1
 
 class TextGame(Game):
     def viz(self):
