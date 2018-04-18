@@ -22,41 +22,41 @@ class ViewSquare:
         if tile is None: return
         o = OFFSET_STEP * idx
 
-        x1, y1 = offset_x + self.ix + s - n, offset_y + self.jy + s - n - o + d
-        x2, y2 = offset_x + self.ix + s + n, offset_y + self.jy + s + n - o + d
+        x1, y1 = offset_x + self.ix + S - N, offset_y + self.jy + S - N - o + D
+        x2, y2 = offset_x + self.ix + S + N, offset_y + self.jy + S + N - o + D
         if tile.stone == FLAT:
             return self.master.canvas.create_rectangle(x1, y1, x2, y2, outline='black', fill=tile.color)
         elif tile.stone == STAND:
             if tile.color == WHITE:
                 points = (
-                    x1 + n * 1.5, y1,
-                    x2, y1 + n * 0.5,
-                    x1 + n * 0.5, y2,
-                    x1, y1 + n * 1.5
+                    x1 + N * 1.5, y1,
+                    x2, y1 + N * 0.5,
+                    x1 + N * 0.5, y2,
+                    x1, y1 + N * 1.5
                 )
             else:
                 points = (
-                    x1 + n * 0.5, y1,
-                    x2, y1 + n * 1.5,
-                    x1 + n * 1.5, y2,
-                    x1, y1 + n * 0.5
+                    x1 + N * 0.5, y1,
+                    x2, y1 + N * 1.5,
+                    x1 + N * 1.5, y2,
+                    x1, y1 + N * 0.5
                 )
 
             return self.master.canvas.create_polygon(*points, fill=tile.color, outline='black',
                                                      tags=(self.tags, idx))
         else:
-            return self.create_circle(*self.find_center(idx, offset_x, offset_y), s / 2, fill=tile.color,
+            return self.create_circle(*self.find_center(idx, offset_x, offset_y), S / 2, fill=tile.color,
                                       tags=(self.tags, idx))
 
     def find_center(self, idx, offset_x=0.0, offset_y=0.0):
         o = OFFSET_STEP * idx
-        return offset_x + self.ix + s, offset_y + self.jy + s - o + d
+        return offset_x + self.ix + S, offset_y + self.jy + S - o + D
 
     def render(self, active=False, possible=False):
         self.rect = self.master.canvas.create_rectangle(self.ix, self.jy, self.ix + SQUARE_SIZE, self.jy + SQUARE_SIZE,
                                                         fill="green" if active else "white")
         if possible:
-            self.circle = self.create_circle(self.ix + s, self.jy + s, s - 5, outline="blue", width=5)
+            self.circle = self.create_circle(self.ix + S, self.jy + S, S - 5, outline="blue", width=5)
         self.ids = []
         tiles = self.get_tiles(self.master.board)[:]
         if self.nridx is not None:
@@ -72,7 +72,7 @@ class ViewSquare:
     def get_tiles(self, board):
         return self.get_square(board).tiles
 
-    def s(self, b):
+    def S(self, b):
         return self.tags + " " + str(self.get_tiles(b))
 
 
@@ -126,9 +126,9 @@ class ViewBoard(tk.Frame):
                 self.squares.append(ViewSquare(self, i, j))
 
     def click(self, event):
-        def _run(s, f=False):
+        def _run(S, f=False):
             self.input.delete(0, tk.END)
-            self.input.insert(0, s)
+            self.input.insert(0, S)
             self.move = None
             self.render(flip_color(self.master.get_color()))
             self.b = self.board.copy()
@@ -167,10 +167,10 @@ class ViewBoard(tk.Frame):
                     return
                 x, y = self.grabbed_first.i, self.grabbed_first.j
                 self.moves.append(1)
-                s = str(self.nridx) + ascii_lowercase[x] + str(y + 1) + direction
+                S = str(self.nridx) + ascii_lowercase[x] + str(y + 1) + direction
                 if self.moves:
-                    s += ''.join(map(str, self.moves))
-                _run(s, f=True)
+                    S += ''.join(map(str, self.moves))
+                _run(S, f=True)
 
                 if self.grabbed.nridx > 1:
                     self.grabbed.nridx -= 1
@@ -194,11 +194,11 @@ class ViewBoard(tk.Frame):
             self.render(flip_color(self.master.players[self.master.player].color))
 
     def switch_g(self):
-        n = self.grabbed.nridx
+        N = self.grabbed.nridx
         x, y = self.grabbed.get_square(self.board) \
             .next(self.direction, self.size)
         self.grabbed = self.squares[y * self.size + x]
-        self.grabbed.nridx = n
+        self.grabbed.nridx = N
 
     def possibles(self, color):
         if not self.grabbed:
@@ -211,8 +211,8 @@ class ViewBoard(tk.Frame):
         else:
             sq = self.grabbed.get_square(self.board)
             ps = [False] * (self.size ** 2)
-            for d in DIRS:
-                x, y = sq.next(d, self.size)
+            for D in DIRS:
+                x, y = sq.next(D, self.size)
                 t = self.board.board[x][y].tiles
                 if t:
                     ps[y * self.size + x] = t[-1].stone is FLAT
@@ -247,8 +247,8 @@ class ViewBoard(tk.Frame):
             self._animate(sq, m.direction, i, move, old_board, slice(-t, stop))
             t -= move
 
-    def _animate(self, sq, direction, i, n, old_board, idxs):
-        print("\t_animating", sq, direction, i, n, idxs)
+    def _animate(self, sq, direction, i, N, old_board, idxs):
+        print("\t_animating", sq, direction, i, N, idxs)
 
         vis = self.get_square(sq)
         tiles = vis.get_tiles(old_board)[idxs]
@@ -287,8 +287,8 @@ class ViewBoard(tk.Frame):
                 self.animate(self.move[0], self.move[1])
         self.canvas.delete("all")
 
-        for s, a, p in zip(self.squares, self.actives, self.possibles(color)):
-            s.render(a, p)
+        for S, a, p in zip(self.squares, self.actives, self.possibles(color)):
+            S.render(a, p)
         self.canvas.create_line(3, 3, self.winfo_width(), 3, tags="line")
         self.canvas.create_line(3, 3, 3, self.winfo_height(), tags="line")
         self.actives = [False for _ in range(self.size ** 2)]
@@ -327,15 +327,15 @@ class FlatCanvas(_Canvas):
         self.delete("all")
         w, b = self.board.count_flats(WHITE), self.board.count_flats(BLACK)
         try:
-            s = (w / (w + b)) * self.width
+            S = (w / (w + b)) * self.width
         except ZeroDivisionError:
-            s = self.width / 2
-        if s != 0:
-            self.create_rectangle(0, 0, s, self.height, fill=WHITE, outline=BLACK)
-            self.create_text(s/2, self.height / 2, text=w)
-        if s != self.width:
-            self.create_rectangle(s, 0, self.width, self.height, fill=BLACK)
-            self.create_text(s + (self.width-s)/2, self.height / 2, text=b, fill=WHITE)
+            S = self.width / 2
+        if S != 0:
+            self.create_rectangle(0, 0, S, self.height, fill=WHITE, outline=BLACK)
+            self.create_text(S/2, self.height / 2, text=w)
+        if S != self.width:
+            self.create_rectangle(S, 0, self.width, self.height, fill=BLACK)
+            self.create_text(S + (self.width-S)/2, self.height / 2, text=b, fill=WHITE)
 
 
 class TilesCanvas(_Canvas):
@@ -364,7 +364,7 @@ class TilesCanvas(_Canvas):
             self.create_rectangle(x1, y1, x2, y2, fill=COLORS[player], outline=COLORS[p])
             y1 -= self.step
             y2 -= self.step
-        s = TILE_SIZE / 2
+        S = TILE_SIZE / 2
         for i in range(self.calc_stones(p)[0]):
-            self.create_circle(x2-s, y2-s, s, fill=COLORS[player], outline=COLORS[p])
+            self.create_circle(x2-S, y2-S, S, fill=COLORS[player], outline=COLORS[p])
             y2 -= self.step

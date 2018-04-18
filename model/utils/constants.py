@@ -21,7 +21,7 @@ OFFSET_STEP = 3
 PAD_STEP = 5
 
 ## What a great coder
-n, s, d = TILE_SIZE / 2, SQUARE_SIZE / 2, PAD_STEP
+N, S, D = TILE_SIZE / 2, SQUARE_SIZE / 2, PAD_STEP
 
 # AI
 MAX_N = 1234567890
