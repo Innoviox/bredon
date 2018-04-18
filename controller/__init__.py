@@ -3,10 +3,10 @@ import time
 
 
 class Game():
-    def __init__(self, size=5, board=None, white_type=HUMAN, black_type=AI(3)):
+    def __init__(self, size=5, board=None, white=HUMAN, black=AI(3)):
         self.board = Board(size) if board is None else board
-        self.player_1: Player = self._init_player(WHITE, white_type)
-        self.player_2: Player = self._init_player(BLACK, black_type)
+        self.player_1: Player = self._init_player(WHITE, white)
+        self.player_2: Player = self._init_player(BLACK, black)
         self.players = [self.player_1, self.player_2]
 
         self.stones = {i: FLAT for i in COLORS}

@@ -33,7 +33,7 @@ class MinimaxAI(BaseAI):
         alpha = -inf
         for move in moves:
             self.board.execute(move, self.color)
-            alpha = self.minimax(self.depth - 1, self.board, alpha, inf, True, flip_color(self.color), self.board.copy_board()) * 4
+            alpha = self.minimax(self.depth - 1, self.board, -inf, inf, True, flip_color(self.color), self.board.copy_board()) * 4
             ev = self.board.evaluate(self.color)
             alpha -= ev / 2
             if abs(alpha) > THRESHOLD:
@@ -50,8 +50,8 @@ class MinimaxAI(BaseAI):
                 return -MAX_N * depth
             else:
                 return MAX_N  * depth
-        # elif depth == 0:
-            # return board.evaluate(color)
+        elif depth == 0:
+            return board.evaluate(color)
         
         moves = board.generate_valid_moves(color, self.caps)
         if maximising:

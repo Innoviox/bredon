@@ -1,3 +1,3 @@
 from controller import *
 
-ViewGame(size=5, white_type=HUMAN, black_type=HUMAN).mainloop()
+ViewGame(size=5, white=HUMAN, black=AI(3)).mainloop()
