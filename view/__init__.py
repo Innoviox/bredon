@@ -261,7 +261,7 @@ class ViewBoard(tk.Frame):
         ids = vis.ids[idxs]
 
         nvis = Square(*sq).tru_next(direction, self.size)
-        for j in range(i):
+        for _ in range(i):
             nvis = Square(*nvis).tru_next(direction, self.size)
         nts = self.get_square(nvis).get_tiles(old_board)
 
@@ -366,11 +366,11 @@ class TilesCanvas(_Canvas):
         p = (player + 1) % 2
         x2, y2 = self.get_x(p) + 20, self.height
         x1, y1 = x2 - TILE_SIZE, y2 - TILE_SIZE
-        for i in range(self.calc_stones(p)[1]):
+        for _ in range(self.calc_stones(p)[1]):
             self.create_rectangle(x1, y1, x2, y2, fill=COLORS[player], outline=COLORS[p])
             y1 -= self.step
             y2 -= self.step
         S = TILE_SIZE / 2
-        for i in range(self.calc_stones(p)[0]):
+        for _ in range(self.calc_stones(p)[0]):
             self.create_circle(x2-S, y2-S, S, fill=COLORS[player], outline=COLORS[p])
             y2 -= self.step
