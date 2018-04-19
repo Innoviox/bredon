@@ -5,14 +5,14 @@ jobs:
       - image: circleci/python:3.6.4
     steps:
       - checkout
-      - run: pip install -r requirements.txt
+      - run: sudo pip install -r requirements.txt
       - run: python main.py
   view:
     docker:
       - image: circleci/python:3.6.4
     steps:
       - checkout
-      - run: pip install -r requirements.txt
+      - run: sudo pip install -r requirements.txt
       - run: python view-test.py
 workflows:
   version: 2
