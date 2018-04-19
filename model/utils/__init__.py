@@ -395,9 +395,9 @@ class Board:
     def _road_check(self, color, board, out):
         # if out:
         #     print(road)
-        # if road and (all(road) or
-        #         any(len(road[i]) >= self.size for i in range(self.size))):
-        if sum(map(len, self._compress_left(color, board, out))) >= self.size:
+        if road and (all(road) or
+                     any(len(road[i]) >= self.size for i in range(self.size))):
+        # if sum(map(len, self._compress_left(color, board, out))) >= self.size:
             return color
         return False
 
