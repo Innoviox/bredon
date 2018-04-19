@@ -379,8 +379,6 @@ class Board:
     def _cl_sq_check(self, r, color, out, sq):
         if sq.tiles and sq.tiles[-1].color == color:
             conns = sq.connections(self.board)
-            if out:
-                print(conns, r, conns > 1 or ((r == 0 or r == self.size - 1) and conns > 0))
             return conns > 1 or ((r == 0 or r == self.size - 1) and conns > 0)
         return False
 

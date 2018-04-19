@@ -102,10 +102,12 @@ class ViewBoard(tk.Frame):
         self.canvas.bind("<1>", self.click)
 
     def _init_gui(self):
-        self.row_labels = [tk.Label(self, text=ascii_lowercase[i], width=SQUARE_SIZE // 20, height=1)  #, bd=5, relief=tk.GROOVE)
+        for i in range(1, self.size + 2):
+            self.grid_columnconfigure(i, minsize=SQUARE_SIZE)
+        self.row_labels = [tk.Label(self, text=ascii_lowercase[i], width=1, height=1, bg="blue")  #, bd=5, relief=tk.GROOVE)
                            .grid(column=i + 1, row=0)
                            for i in range(self.size)]
-        self.col_labels = [tk.Label(self, text=i + 1, height=SQUARE_SIZE // 20, width=1)  #, bd=5, relief=tk.GROOVE)
+        self.col_labels = [tk.Label(self, text=i + 1, height=1, width=1)  #, bd=5, relief=tk.GROOVE)
                            .grid(column=0, row=i + 1)
                            for i in range(self.size)]
         self.canvas.grid(row=1, column=1, columnspan=self.size, rowspan=self.size)
@@ -117,7 +119,7 @@ class ViewBoard(tk.Frame):
 
         self.clear_button = tk.Button(self, text="Clear", command=self.clear)
 
-        self.input.grid(row=6, column=0, columnspan=self.size - 2)
+        self.input.grid(row=6, column=1, columnspan=2)
         self.exec_button.grid(row=6, column=self.size - 2)
         self.clear_button.grid(row=6, column=self.size - 1)
 
