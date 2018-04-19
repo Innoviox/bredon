@@ -82,7 +82,7 @@ class ViewBoard(tk.Frame):
         self.size = master.board.size
         self.squares = []
 
-        tk.Frame.__init__(self, master, width=self.size * SQUARE_SIZE, height=self.size * SQUARE_SIZE)
+        tk.Frame.__init__(self, master, width=(self.size + 2) * SQUARE_SIZE, height=(self.size + 2) * SQUARE_SIZE)
         self.pack_propagate(0)
         self.canvas = tk.Canvas(self, width=self.size * SQUARE_SIZE, height=self.size * SQUARE_SIZE)
         # self.canvas.pack()
@@ -102,26 +102,28 @@ class ViewBoard(tk.Frame):
         self.canvas.bind("<1>", self.click)
 
     def _init_gui(self):
-        for i in range(1, self.size + 2):
-            self.grid_columnconfigure(i, minsize=SQUARE_SIZE)
-        self.row_labels = [tk.Label(self, text=ascii_lowercase[i], width=1, height=1, bg="blue")  #, bd=5, relief=tk.GROOVE)
-                           .grid(column=i + 1, row=0)
-                           for i in range(self.size)]
-        self.col_labels = [tk.Label(self, text=i + 1, height=1, width=1)  #, bd=5, relief=tk.GROOVE)
-                           .grid(column=0, row=i + 1)
-                           for i in range(self.size)]
+        self.input = tk.Entry(self, font = "Courier 12")  #, width = SQUARE_SIZE * 2 // 12)
+        self.input.bind("<Return>", self.master.exec)
+        self.exec_button = tk.Button(self, text="Exec", font="Courier 12", command=self.master.exec, width=7)
+        self.clear_button = tk.Button(self, text="Clear", font="Courier 12", command=self.clear, width=7)
+
         self.canvas.grid(row=1, column=1, columnspan=self.size, rowspan=self.size)
 
-        self.input = tk.Entry(self)
-        self.input.bind("<Return>", self.master.exec)
-
-        self.exec_button = tk.Button(self, text="Execute", command=self.master.exec)
-
-        self.clear_button = tk.Button(self, text="Clear", command=self.clear)
-
         self.input.grid(row=6, column=1, columnspan=2)
-        self.exec_button.grid(row=6, column=self.size - 2)
-        self.clear_button.grid(row=6, column=self.size - 1)
+        self.exec_button.grid(row=6, column=4)
+        self.clear_button.grid(row=6, column=5)
+
+        spaces = " "*5
+        self.row_labels = tk.Label(self, text=spaces+(spaces*2).join(ascii_lowercase[:self.size])+spaces,
+                                   font="Courier 12", height=1).grid(column=1, row=0, columnspan=self.size)
+
+        self.col_labels = [tk.Label(self, text=i + 1, font="Courier 12", height=1, width=1)  #, bd=5, relief=tk.GROOVE)
+                           # .grid(column=0, row=i + 1)
+                           for i in range(self.size)]
+        for i, l in enumerate(self.col_labels, start=1):
+            l.place_configure(x=i*SQUARE_SIZE)
+            l.grid(column=0, row=i)
+
 
         for i in range(self.size):
             for j in range(self.size):
