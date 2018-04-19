@@ -393,6 +393,7 @@ class Board:
         return list(starmap(partial(self._cl_row_check, color, out), enumerate(board)))
 
     def _road_check(self, color, board, out):
+        road = self._compress_left(color, board, out)
         # if out:
         #     print(road)
         if road and (all(road) or
