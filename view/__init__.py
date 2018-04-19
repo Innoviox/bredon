@@ -129,6 +129,8 @@ class ViewBoard(tk.Frame):
             for j in range(self.size):
                 self.squares.append(ViewSquare(self, i, j))
 
+        self.canvas.focus_set()
+
     def click(self, event):
         def _run(S, f=False):
             self.input.delete(0, tk.END)
