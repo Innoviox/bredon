@@ -136,12 +136,12 @@ class ViewBoard(tk.Frame):
             self.input.delete(0, tk.END)
             self.input.insert(0, S)
             self.move = None
-            self.render(flip_color(self.master.get_color()))
+            self.render()  #flip_color(self.master.get_color()))
             self.b = self.board.copy()
             self.board = self.master.board.copy()
-            self.board.force_str(self.input.get(), self.master.players[self.master.player].color)
+            self.board.force_str(self.input.get(), self.master.get_color())
             self.execute(self.input.get().strip(), self.master.players[self.master.player], self.b)
-            self.render(flip_color(self.master.get_color()))
+            self.render()  #flip_color(self.master.get_color()))
             self.move = None
             if not f: self.board = self.b
 
@@ -157,7 +157,7 @@ class ViewBoard(tk.Frame):
                 self.grabbed = sq
                 self.grabbed_first = self.grabbed
                 self.grabbed.nridx = self.nridx = 1
-                self.render(flip_color(self.master.players[self.master.player].color))
+                self.render()  #flip_color(self.master.players[self.master.player].color))
         else:
             x1, y1 = sq.i, sq.j
             x, y = self.grabbed.i, self.grabbed.j
@@ -181,14 +181,14 @@ class ViewBoard(tk.Frame):
                 if self.grabbed.nridx > 1:
                     self.grabbed.nridx -= 1
                     self.switch_g()
-                    self.render(flip_color(self.master.players[self.master.player].color))
+                    self.render()  #flip_color(self.master.players[self.master.player].color))
             elif a == 0 and b == 0:
                 if not self.direction and len(self.grabbed.get_tiles(self.board)) > self.grabbed.nridx:
                     self.grabbed.nridx += 1
                     self.nridx += 1
                 else:
                     self.moves[-1] += 1
-                self.render(flip_color(self.master.players[self.master.player].color))
+                self.render()  #flip_color(self.master.players[self.master.player].color))
 
     def clear(self, r=True):
         self.grabbed.nridx = self.nridx = 0
@@ -197,7 +197,7 @@ class ViewBoard(tk.Frame):
         self.board = self.master.board
         self.moves = []
         if r:
-            self.render(flip_color(self.master.players[self.master.player].color))
+            self.render()  #flip_color(self.master.players[self.master.player].color))
 
     def switch_g(self):
         N = self.grabbed.nridx
@@ -287,7 +287,8 @@ class ViewBoard(tk.Frame):
     def get_square(self, sq) -> ViewSquare:
         return self.squares[sq[0] * self.size + sq[1]]
 
-    def render(self, color):
+    def render(self):  #, color):
+        color = self.master.get_color()
         if self.move is not None:
             if str_to_move(self.move[0]).direction is not None:
                 self.animate(self.move[0], self.move[1])

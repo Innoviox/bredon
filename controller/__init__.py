@@ -109,7 +109,7 @@ class ViewGame(tk.Tk, Game):
     def viz(self):
         self.flats.render()
         self.tiles.render()
-        self.vboard.render(flip_color(self.players[self.player].color))
+        self.vboard.render()  #flip_color(self.players[self.player].color))
         self.update_idletasks()
         self.update()
 
@@ -120,4 +120,7 @@ class ViewGame(tk.Tk, Game):
         super(tk.Tk, self).mainloop(n=n)
 
     def get_color(self):
-        return self.players[self.player].color
+        c = self.players[self.player].color
+        if self.turn < 1:
+            c = flip_color(c)
+        return c
