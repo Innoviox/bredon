@@ -8,6 +8,6 @@ install:
 before_script:
   - pip install coveralls
 script:
-  - coverage run main.py
+  - coverage run main.py TextGame --size 3 --white ai:3
 after_success:
   - coveralls

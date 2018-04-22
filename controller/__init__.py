@@ -2,7 +2,7 @@ from view import *  # imports model
 import time
 
 
-class Game():
+class Game:
     def __init__(self, size=5, board=None, white=HUMAN, black=AI(3)):
         self.board = Board(size) if board is None else board
         self.player_1: Player = self._init_player(WHITE, white)
@@ -51,6 +51,7 @@ class Game():
             ptn += "\n"
             turn += 1
 
+
 class TextGame(Game):
     def viz(self):
         print(self.board)
@@ -76,10 +77,12 @@ class ViewGame(tk.Tk, Game):
         self.first = True
         self.event = None
 
+        self.run = self.mainloop
         self.viz()
 
-    def exec(self, *event, ai=False):
-        if not ai and not self.vboard.input.get():
+
+    def exec(self, *event, is_ai=False):
+        if not is_ai and not self.vboard.input.get():
             return
         if not self.running:
             return
@@ -100,7 +103,7 @@ class ViewGame(tk.Tk, Game):
         self.viz()
         self.player = (self.player + 1) % 2
         if isinstance(self.players[self.player], BaseAI):
-            self.exec(ai=True)
+            self.exec(is_ai=True)
 
         w = self.board.winner(self.players, t=True)
         if w:
@@ -109,14 +112,14 @@ class ViewGame(tk.Tk, Game):
     def viz(self):
         self.flats.render()
         self.tiles.render()
-        self.vboard.render()  #flip_color(self.players[self.player].color))
+        self.vboard.render()
         self.update_idletasks()
         self.update()
 
     def mainloop(self, n=0):
         self.running = True
         if isinstance(self.players[self.player], BaseAI):
-            self.exec(ai=True)
+            self.exec(is_ai=True)
         super(tk.Tk, self).mainloop(n=n)
 
     def get_color(self):

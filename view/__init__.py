@@ -367,11 +367,11 @@ class TilesCanvas(_Canvas):
         p = (player + 1) % 2
         x2, y2 = self.get_x(p) + 20, self.height
         x1, y1 = x2 - TILE_SIZE, y2 - TILE_SIZE
+        S = TILE_SIZE / 2
         for _ in range(self.calc_stones(p)[1]):
             self.create_rectangle(x1, y1, x2, y2, fill=COLORS[player], outline=COLORS[p])
             y1 -= self.step
             y2 -= self.step
-        S = TILE_SIZE / 2
         for _ in range(self.calc_stones(p)[0]):
             self.create_circle(x2-S, y2-S, S, fill=COLORS[player], outline=COLORS[p])
             y2 -= self.step

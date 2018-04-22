@@ -463,10 +463,10 @@ class Player(object):
             #     print("Parsed move", m)
             #     print("Received error", e)
 
-    def pick_move(self, input_fn=input):
+    def pick_move(self, input_fn=input, out=False):
         return self._pick_move(self.color, input_fn=input_fn)[0]
 
-    def pick_opposing_move(self, input_fn=input):
+    def pick_opposing_move(self, input_fn=input, out=False):
         return self._pick_move(flip_color(self.color), input_fn=input_fn)
 
 
