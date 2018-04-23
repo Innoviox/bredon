@@ -22,7 +22,7 @@ class Game:
         raise NotImplementedError()
 
     def _run(self, player, turn, input_fn=input):
-        # self.viz()
+        self.viz()
         t = time.time()
         if turn <= 1:
             m, c = player.pick_opposing_move(input_fn=input_fn)
