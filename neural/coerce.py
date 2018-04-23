@@ -14,9 +14,11 @@ def gen_classes(size):
 
 classes = list(gen_classes(4))
 
-def board_to_vector(b):
-    #TODO: Board to vector
-    ...
+def board_to_vector(ptn):
+    b = np.zeroes(len(classes))
+    for move in ptn:
+        b[classes.index(move)] += 1 
+    return b
 
 def move_to_vector(m):
     v = np.zeroes(len(classes))
