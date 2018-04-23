@@ -4,9 +4,9 @@ import click
 def validate_type(ctx, param, value):
     t, *n = value.split(":")
     t = t.upper()
-    if t == "HUMAN":
+    if t[0] == "H" and t in "HUMAN":
         return HUMAN
-    elif t == "AI":
+    elif t[0] == "A" and t in "AI":
         try:
             return AI(int(n[0]))
         except ValueError:
@@ -34,9 +34,9 @@ def validate_size(ctx, param, value):
 @click.option("--size",  "-s", callback=validate_size, default=5,
               help="The size of the board", show_default=True)
 @click.option("--white", "-w", callback=validate_type, default="human",
-              help="Type of the white player, [human|ai]:depth", show_default=True)
+              help="Type of the white player, [h(uman)|a(i)]:depth", show_default=True)
 @click.option("--black", "-b", callback=validate_type, default="ai:3",
-              help="Type of the black player, [human|ai]:depth", show_default=True)
+              help="Type of the black player, [h(uman)|a(i)]:depth", show_default=True)
 def run_game(game, size, white, black):
     game(size=size, white=white, black=black).run()
 

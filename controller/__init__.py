@@ -123,7 +123,8 @@ class ViewGame(tk.Tk, Game):
         super(tk.Tk, self).mainloop(n=n)
 
     def get_color(self):
+        print(self.turn, self.player)
         c = self.players[self.player].color
-        if self.turn < 1:
+        if self.turn <= 1: # and self.player == 1:
             c = flip_color(c)
         return c

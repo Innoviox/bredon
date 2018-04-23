@@ -1,12 +1,13 @@
 from .constants import *
 
 from collections   import namedtuple
-from itertools     import combinations, chain, starmap
 from dataclasses   import dataclass, field
-from tabulate      import tabulate
 from functools     import partial
-from string        import ascii_lowercase
+from itertools     import combinations, chain, starmap
 from operator      import sub
+from tabulate      import tabulate
+from string        import ascii_lowercase
+
 
 PseudoBoard = namedtuple("PseudoBoard",
                          ("w", "h", "board", "bool", "err", "type"))
