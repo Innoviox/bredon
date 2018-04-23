@@ -1,7 +1,7 @@
-from .constants import *
+from .notation import *
 
 from collections   import namedtuple
-from dataclasses   import dataclass, field
+from dataclasses   import dataclass
 from functools     import partial
 from itertools     import combinations, chain, starmap
 from operator      import sub
@@ -55,28 +55,6 @@ class Next:
         if direction == LEFT and self.x < size - 1:
             return self.x + 1, self.y
         return self.x, self.y
-
-
-@dataclass
-class Move:
-    total: int = 1
-    stone: str = FLAT
-    col: str = None
-    row: int = None
-    moves: list = field(default_factory=list)
-    direction: str = None
-
-    def get_square(self):
-        return self.col + str(self.row)
-
-    def __repr__(self):
-        return 'Move(' + ', '.join([f"{k}={v!r}" for k, v in self.__dict__.items()]) + ')'
-
-    def __str__(self):
-        if not self.direction:
-            return (self.stone + self.get_square()).strip(FLAT)
-        else:
-            return str(self.total) + self.get_square() + self.direction + ''.join(map(str, self.moves))
 
 
 @dataclass
@@ -405,73 +383,6 @@ class Board:
         return False
 
 
-class Player(object):
-    def __init__(self, board, color, name=None):
-        self.board = board
-        self.color = color
-        self.stones, self.caps = 0, 0
-        self.name = self.color if name is None else name
-
-    def _do(self, m: Move, c, f=True):
-        move = self.board.parse_move(m, c)
-        if isinstance(move, PseudoBoard):
-            if move.bool:
-                stone_type = m.stone
-                stone, cap = False, False
-                if stone_type in [FLAT, STAND]:
-                    self.stones += 1
-                    stone = True
-                else:
-                    self.caps += 1
-                    cap = True
-                caps, _stones = self.caps > self.board.caps, self.stones > self.board.stones
-                if _stones and caps:
-                    self.stones -= stone
-                    self.caps -= cap
-                    # TODO: End the game
-                    self.board.end_game()
-                elif (_stones and stone) or (caps and cap):
-                    self.stones -= stone
-                    self.caps -= cap
-                    raise ValueError(f"Not enough pieces left")
-                    # f"\tStones played: {self.stones}, Total: {self.board.stones}"
-                    # f"\tCaps played: {self.caps}, Total: {self.board.caps}"
-                    # f"Stone: {stone}, Cap: {cap}")
-                elif f:
-                    self.board.force(move)
-            else:
-                # Move is illegal
-                raise ValueError("Illegal Move")
-        elif f:
-            self.board.force(move)
-
-    def do(self, m: Move):
-        return self._do(m, self.color)
-
-    def out_of_tiles(self):
-        return self.caps >= self.board.caps and self.stones >= self.board.stones
-
-    def _pick_move(self, color, input_fn=input):
-        while True:
-            m = str_to_move(input_fn("Enter move: "))
-            # try:
-            v = self.board.valid_move(m, color)
-            if v:
-                return m, color
-            else:
-                print("Parsed move", m)
-                print("Received error", v)
-            # except Exception as e:
-            #     print("Parsed move", m)
-            #     print("Received error", e)
-
-    def pick_move(self, input_fn=input, out=False):
-        return self._pick_move(self.color, input_fn=input_fn)[0]
-
-    def pick_opposing_move(self, input_fn=input, out=False):
-        return self._pick_move(flip_color(self.color), input_fn=input_fn)
-
-
 def str_to_move(move: str) -> Move:
     move_dir = None
     for direction in DIRS:
@@ -493,38 +404,3 @@ def str_to_move(move: str) -> Move:
             total = 1
         c, r = t
         return Move(total=total, col=c, row=r, direction=move_dir, moves=list(map(int, ns)))
-
-
-def load_moves_from_file(filename, out=False):
-    with open(filename) as file:
-        ptn = file.read()
-        _, s = ptn.split("Size")
-        ptn = s.split("\n")
-        size = int(s[2])
-        b = Board(size, size)
-        curr_player = WHITE
-        for iturn, turn in enumerate(ptn[2:]):
-            if 'R' in turn:
-                break
-            for imove, move in enumerate(turn.split(" ")[1:]):  # Exclude the round number
-                if move:
-                    if iturn == 0:
-                        curr_player = [BLACK, WHITE][imove]
-                    elif iturn == 1 and imove == 0:
-                        curr_player = WHITE
-
-                    b.force(b.parse_move(str_to_move(move), curr_player))
-
-                    if out:
-                        print(move)
-                        print(str_to_move(move))
-                        print(b)
-                        print("Road?:", b.road())
-
-                    if curr_player == BLACK:
-                        curr_player = WHITE
-                    else:
-                        curr_player = BLACK
-
-                    yield b, move
-    return b

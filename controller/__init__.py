@@ -10,6 +10,7 @@ class Game:
         self.players = [self.player_1, self.player_2]
 
         self.stones = {i: FLAT for i in COLORS}
+        self.ptn = PTN()
 
     def _init_player(self, color, types) -> Player:
         name, depth = types
@@ -34,21 +35,19 @@ class Game:
                 self.stones[c] = FLAT + STAND
         print(time.time() - t)
         player._do(m, c)
-        return str(m) + " "
+        self.ptn.append(m)
+        return m
 
     def run(self):
-        ptn = ""
+        self.ptn.clear()
         turn = 1
         while True:
-            ptn += str(turn) + ". "
             for player in self.players:
-                ptn += self._run(player, turn)
+                print(self.ptn)
                 w = self.board.winner(self.players, t=True)
-                print(ptn)
                 if w:
                     print(w, "won!")
                     return
-            ptn += "\n"
             turn += 1
 
 
@@ -71,7 +70,6 @@ class ViewGame(tk.Tk, Game):
         self.tiles.grid(row=2, column=6, rowspan=self.board.size)
 
         self.turn = 0
-        self.ptn = ""
         self.running = False
         self.player = 0
         self.first = True
@@ -87,12 +85,11 @@ class ViewGame(tk.Tk, Game):
         if not self.running:
             return
         elif self.player == 0:
-            self.ptn += "\n%d. " % (self.turn + 1)
+            # self.ptn += "\n%d. " % (self.turn + 1)
             self.turn += 1
 
         p = self.players[self.player]
         move = self._run(p, self.turn, input_fn=lambda _: self.vboard.input.get())
-        self.ptn += move
         print(self.ptn)
         self.viz()
         self.vboard.input.delete(0, "end")
@@ -113,7 +110,6 @@ class ViewGame(tk.Tk, Game):
         self.flats.render()
         self.tiles.render()
         self.vboard.render()
-        self.update_idletasks()
         self.update()
 
     def mainloop(self, n=0):
@@ -124,6 +120,6 @@ class ViewGame(tk.Tk, Game):
 
     def get_color(self):
         c = self.players[self.player].color
-        if self.turn <= 1: # and self.player == 1:
+        if self.turn < 2 and self.turn == self.player:
             c = flip_color(c)
         return c

@@ -5,6 +5,73 @@ from .utils import *
 inf = float('inf')
 
 
+class Player(object):
+    def __init__(self, board, color, name=None):
+        self.board = board
+        self.color = color
+        self.stones, self.caps = 0, 0
+        self.name = self.color if name is None else name
+
+    def _do(self, m: Move, c, f=True):
+        move = self.board.parse_move(m, c)
+        if isinstance(move, PseudoBoard):
+            if move.bool:
+                stone_type = m.stone
+                stone, cap = False, False
+                if stone_type in [FLAT, STAND]:
+                    self.stones += 1
+                    stone = True
+                else:
+                    self.caps += 1
+                    cap = True
+                caps, _stones = self.caps > self.board.caps, self.stones > self.board.stones
+                if _stones and caps:
+                    self.stones -= stone
+                    self.caps -= cap
+                    # TODO: End the game
+                    self.board.end_game()
+                elif (_stones and stone) or (caps and cap):
+                    self.stones -= stone
+                    self.caps -= cap
+                    raise ValueError(f"Not enough pieces left")
+                    # f"\tStones played: {self.stones}, Total: {self.board.stones}"
+                    # f"\tCaps played: {self.caps}, Total: {self.board.caps}"
+                    # f"Stone: {stone}, Cap: {cap}")
+                elif f:
+                    self.board.force(move)
+            else:
+                # Move is illegal
+                raise ValueError("Illegal Move")
+        elif f:
+            self.board.force(move)
+
+    def do(self, m: Move):
+        return self._do(m, self.color)
+
+    def out_of_tiles(self):
+        return self.caps >= self.board.caps and self.stones >= self.board.stones
+
+    def _pick_move(self, color, input_fn=input):
+        while True:
+            m = str_to_move(input_fn("Enter move: "))
+            # try:
+            v = self.board.valid_move(m, color)
+            if v:
+                return m, color
+            else:
+                print("Parsed move", m)
+                print("Received error", v)
+            # except Exception as e:
+            #     print("Parsed move", m)
+            #     print("Received error", e)
+
+    def pick_move(self, input_fn=input, out=False):
+        return self._pick_move(self.color, input_fn=input_fn)[0]
+
+    def pick_opposing_move(self, input_fn=input, out=False):
+        return self._pick_move(flip_color(self.color), input_fn=input_fn)
+
+
 class BaseAI(Player):
     def pick_move(self, input_fn=input, out=False):
         raise NotImplementedError()
