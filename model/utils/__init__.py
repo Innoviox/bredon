@@ -377,6 +377,8 @@ class Board:
                sum(map(len, self._compress_left(color, self.board, False)))
 
     def _cl_sq_check(self, r, color, out, sq):
+        if out:
+            print(r, color, sq)
         if sq.tiles and sq.tiles[-1].color == color:
             conns = sq.connections(self.board)
             return conns > 1 or ((r == 0 or r == self.size - 1) and conns > 0)
@@ -398,7 +400,6 @@ class Board:
         #     print(road)
         if road and (all(road) or
                      any(len(road[i]) >= self.size for i in range(self.size))):
-        # if sum(map(len, self._compress_left(color, board, out))) >= self.size:
             return color
         return False
 
