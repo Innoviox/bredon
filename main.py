@@ -26,6 +26,8 @@ def validate_size(ctx, param, value):
     if 3 <= value <= 8:
         return value
     raise click.BadParameter("size must be between 3 and 8")
+
+
 @click.command()
 @click.option("--game",  "-g", callback=validate_game, default="ViewGame",
               help="Type of game to play: [Text|View]Game", show_default=True)

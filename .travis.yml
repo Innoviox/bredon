@@ -8,6 +8,6 @@ install:
 before_script:
   - pip install coveralls
 script:
-  - coverage run --omit=*/site-packages/* main.py TextGame --size 3 --white ai:3
+  - coverage run --omit=*/site-packages/* main.py -g TextGame --size 3 --white ai:3
 after_success:
   - coveralls
