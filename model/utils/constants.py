@@ -8,6 +8,9 @@ class Colors(enum.Enum):
     def flip(self):
         return Colors(1 - self.value)
 
+    def __str__(self):
+        return self.name[0]
+
 # PTN
 MARKS = '?!'
 
