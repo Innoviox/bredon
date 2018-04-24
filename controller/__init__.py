@@ -47,6 +47,8 @@ class Game:
                 self._run(player, turn)
                 w = self.board.winner(self.players, t=True)
                 if w:
+                    print(self.ptn)
+                    self.viz()
                     print(w, "won!")
                     return
             turn += 1

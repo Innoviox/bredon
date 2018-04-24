@@ -1,5 +1,6 @@
 import enum
 
+
 # Colors
 class Colors(enum.Enum):
     WHITE = 0
@@ -10,6 +11,7 @@ class Colors(enum.Enum):
 
     def __str__(self):
         return self.name[0]
+
 
 # PTN
 MARKS = '?!'
@@ -28,7 +30,7 @@ ANIM_STEPS  = 30
 OFFSET_STEP = 3
 PAD_STEP    = 5
 
-## What a great coder
+# What a great coder
 N, S, D = TILE_SIZE / 2, SQUARE_SIZE / 2, PAD_STEP
 
 # AI

@@ -396,7 +396,8 @@ class Board:
         # if out:
         #     print(road)
         if road and (all(road) or
-                     any(len(road[i]) >= self.size for i in range(self.size))):
+                     any(len(road[i]) >= self.size
+                         for i in range(self.size))):
             return color
         return False
 
