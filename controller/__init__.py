@@ -122,5 +122,5 @@ class ViewGame(tk.Tk, Game):
     def get_color(self):
         c = self.players[self.player].color
         if self.turn < 2 and self.turn == self.player:
-            c = flip_color(c)
+            c = c.flip()
         return c

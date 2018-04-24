@@ -7,12 +7,6 @@ class Colors(enum.Enum):
 
     def flip(self):
         return Colors(1 - self.value)
-class TkColors(enum.Enum):
-    WHITE = "white"
-    BLACK = "black"
-
-    def flip(self):
-        return TkColors("white" if self.value == "black" else "black")
 
 # PTN
 MARKS = '?!'

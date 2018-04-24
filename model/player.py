@@ -10,7 +10,7 @@ class Player(object):
         self.board = board
         self.color = color
         self.stones, self.caps = 0, 0
-        self.name = self.color if name is None else name
+        self.name = self.color.name if name is None else name
 
     def _do(self, m: Move, c, f=True):
         move = self.board.parse_move(m, c)
@@ -69,7 +69,7 @@ class Player(object):
         return self._pick_move(self.color, input_fn=input_fn)[0]
 
     def pick_opposing_move(self, input_fn=input, out=False):
-        return self._pick_move(flip_color(self.color), input_fn=input_fn)
+        return self._pick_move(self.color.flip(), input_fn=input_fn)
 
 
 class BaseAI(Player):
@@ -88,10 +88,10 @@ class MinimaxAI(BaseAI):
         self.depth = depth
 
     def pick_opposing_move(self, input_fn=input, out=False):
-        # if self.board.valid_str("a1", flip_color(self.color)):
-        #     return str_to_move("a1"), flip_color(self.color)
-        # return str_to_move(ascii_lowercase[self.board.size - 1] + str(self.board.size)), flip_color(self.color)
-        return self.pick_move(input_fn=input_fn), flip_color(self.color)
+        # if self.board.valid_str("a1", self.color.flip()):
+        #     return str_to_move("a1"), self.color.flip()
+        # return str_to_move(ascii_lowercase[self.board.size - 1] + str(self.board.size)), self.color.flip()
+        return self.pick_move(input_fn=input_fn), self.color.flip()
 
     def pick_move(self, input_fn=None, out=False):
         moves = self.board.generate_valid_moves(self.color, self.caps)
@@ -103,7 +103,7 @@ class MinimaxAI(BaseAI):
         alpha = -inf
         for move in moves:
             self.board.execute(move, self.color)
-            alpha = self.minimax(self.depth - 1, self.board, alpha, inf, True, flip_color(self.color),
+            alpha = self.minimax(self.depth - 1, self.board, alpha, inf, True, self.color.flip(),
                                  self.board.copy_board()) * 4
             ev = self.board.evaluate(self.color)
             alpha -= ev / 2
@@ -129,7 +129,7 @@ class MinimaxAI(BaseAI):
             b_eval = -inf
             for move in moves:
                 board.execute(move, color)
-                b_eval = max(b_eval, self.minimax(depth - 1, board, alpha, beta, not maximising, flip_color(color),
+                b_eval = max(b_eval, self.minimax(depth - 1, board, alpha, beta, not maximising, color.flip(),
                                                   board.copy_board(), out=out))
                 board.set(old_state)
                 alpha = max(alpha, b_eval)
@@ -141,7 +141,7 @@ class MinimaxAI(BaseAI):
             b_eval = inf
             for move in moves:
                 board.execute(move, color)
-                b_eval = min(b_eval, self.minimax(depth - 1, board, alpha, beta, not maximising, flip_color(color),
+                b_eval = min(b_eval, self.minimax(depth - 1, board, alpha, beta, not maximising, color.flip(),
                                                   board.copy_board(), out=out))
                 board.set(old_state)
                 beta = min(beta, b_eval)

@@ -25,9 +25,9 @@ class ViewSquare:
         x1, y1 = offset_x + self.ix + S - N, offset_y + self.jy + S - N - o + D
         x2, y2 = offset_x + self.ix + S + N, offset_y + self.jy + S + N - o + D
         if tile.stone == FLAT:
-            return self.master.canvas.create_rectangle(x1, y1, x2, y2, outline='black', fill=tile.color)
+            return self.master.canvas.create_rectangle(x1, y1, x2, y2, outline='black', fill=tile.color.name)
         elif tile.stone == STAND:
-            if tile.color == WHITE:
+            if tile.color == Colors.WHITE:
                 points = (
                     x1 + N * 1.5, y1,
                     x2, y1 + N * 0.5,
@@ -42,10 +42,10 @@ class ViewSquare:
                     x1, y1 + N * 0.5
                 )
 
-            return self.master.canvas.create_polygon(*points, fill=tile.color, outline='black',
+            return self.master.canvas.create_polygon(*points, fill=tile.color.name, outline='black',
                                                      tags=(self.tags, idx))
         else:
-            return self.create_circle(*self.find_center(idx, offset_x, offset_y), S / 2, fill=tile.color,
+            return self.create_circle(*self.find_center(idx, offset_x, offset_y), S / 2, fill=tile.color.name,
                                       tags=(self.tags, idx))
 
     def find_center(self, idx, offset_x=0.0, offset_y=0.0):
@@ -333,17 +333,17 @@ class FlatCanvas(_Canvas):
 
     def render(self):
         self.delete("all")
-        w, b = self.board.count_flats(WHITE), self.board.count_flats(BLACK)
+        w, b = self.board.count_flats(Colors.WHITE), self.board.count_flats(Colors.BLACK)
         try:
             S = (w / (w + b)) * self.width
         except ZeroDivisionError:
             S = self.width / 2
         if S != 0:
-            self.create_rectangle(0, 0, S, self.height, fill=WHITE, outline=BLACK)
+            self.create_rectangle(0, 0, S, self.height, fill=Colors.WHITE.name, outline=Colors.BLACK.name)
             self.create_text(S/2, self.height / 2, text=w)
         if S != self.width:
-            self.create_rectangle(S, 0, self.width, self.height, fill=BLACK)
-            self.create_text(S + (self.width-S)/2, self.height / 2, text=b, fill=WHITE)
+            self.create_rectangle(S, 0, self.width, self.height, fill=Colors.BLACK.name)
+            self.create_text(S + (self.width-S)/2, self.height / 2, text=b, fill=Colors.WHITE.name)
 
 
 class TilesCanvas(_Canvas):
@@ -370,9 +370,9 @@ class TilesCanvas(_Canvas):
         x1, y1 = x2 - TILE_SIZE, y2 - TILE_SIZE
         S = TILE_SIZE / 2
         for _ in range(self.calc_stones(p)[1]):
-            self.create_rectangle(x1, y1, x2, y2, fill=COLORS[player], outline=COLORS[p])
+            self.create_rectangle(x1, y1, x2, y2, fill=Colors(player).name, outline=Colors(p).name)
             y1 -= self.step
             y2 -= self.step
         for _ in range(self.calc_stones(p)[0]):
-            self.create_circle(x2-S, y2-S, S, fill=COLORS[player], outline=COLORS[p])
+            self.create_circle(x2-S, y2-S, S, fill=Colors(player).name, outline=Colors(p).name)
             y2 -= self.step
