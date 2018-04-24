@@ -28,8 +28,10 @@ def move_to_vector(m):
 def load_features(fn):
     print("Reading:", fn)
     boards, moves = [], []
-    for b, m in load_moves_from_file(fn):
-        boards.append(board_to_vector(b))
+    ptn = PTN()
+    for m in load_moves_from_file(fn):
+        ptn.append(m)
+        boards.append(board_to_vector(ptn))
         moves.append(move_to_vector(m))
     return boards, moves
 
