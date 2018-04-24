@@ -1,4 +1,5 @@
 from view import *  # imports model
+
 import time
 
 
@@ -19,8 +20,9 @@ class Game:
         else:
             return MinimaxAI(self.board, color, depth)
 
+    @abstractmethod
     def viz(self):
-        raise NotImplementedError()
+        return
 
     def _run(self, player, turn, input_fn=input):
         self.viz()

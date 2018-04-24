@@ -7,7 +7,7 @@ from itertools     import combinations, chain, starmap
 from operator      import sub
 from tabulate      import tabulate
 from string        import ascii_lowercase
-
+from abc           import abstractmethod
 
 PseudoBoard = namedtuple("PseudoBoard",
                          ("w", "h", "board", "bool", "err", "type"))

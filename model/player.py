@@ -73,9 +73,9 @@ class Player(object):
 
 
 class BaseAI(Player):
+    @abstractmethod
     def pick_move(self, input_fn=input, out=False):
-        raise NotImplementedError()
-
+        return
 
 class RandomAI(BaseAI):
     def pick_move(self, input_fn=input, out=False):
