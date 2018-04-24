@@ -1,6 +1,5 @@
-from .utils    import *
-from .ai       import *
 from .notation import *
+from .ai       import *
 
 def load_moves_from_file(filename, out=False):
     with open(filename) as file:

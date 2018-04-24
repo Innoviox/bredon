@@ -6,7 +6,7 @@ jobs:
     steps:
       - checkout
       - run: sudo pip install -r requirements.txt
-      - run: python main.py -g TextGame --size 3 --white ai:3
+      - run: python main.py -g TextGame --size 3 --white ai:5
   view:
     docker:
       - image: circleci/python:3.6.4
