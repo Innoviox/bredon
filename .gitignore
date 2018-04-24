@@ -117,3 +117,6 @@ Thumbs.db
 *.DS_Store
 bredon-47617ffdd19a13453cc4217ab45edfd395f322f9/
 taktician/
+logs/
+games/
+img/
