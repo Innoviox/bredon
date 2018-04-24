@@ -1,7 +1,6 @@
 from controller import *
 import click
 
-
 def validate_type(ctx, param, value):
     t, *n = value.split(":")
     t = t.upper()
@@ -39,7 +38,7 @@ def validate_size(ctx, param, value):
 @click.option("--black", "-b", callback=validate_type, default="ai:3",
               help="Type of the black player, [h(uman)|a(i)]:depth", show_default=True)
 def run_game(game, size, white, black):
-    game(size=size, white=white, black=black, should_display=False).run()
+    game(size=size, white=white, black=black).run()
 
 if __name__ == '__main__':
     run_game()

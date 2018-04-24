@@ -3,7 +3,7 @@ import time
 
 
 class Game:
-    def __init__(self, size=5, board=None, white=HUMAN, black=AI(3), should_display=True):
+    def __init__(self, size=5, board=None, white=HUMAN, black=AI(3)):
         self.board = Board(size) if board is None else board
         self.player_1: Player = self._init_player(WHITE, white)
         self.player_2: Player = self._init_player(BLACK, black)
@@ -11,7 +11,6 @@ class Game:
 
         self.stones = {i: FLAT for i in COLORS}
         self.ptn = PTN()
-        self.should_display = should_display
 
     def _init_player(self, color, types) -> Player:
         name, depth = types
@@ -24,7 +23,7 @@ class Game:
         raise NotImplementedError()
 
     def _run(self, player, turn, input_fn=input):
-        if self.should_display: self.viz()
+        self.viz()
         t = time.time()
         if turn <= 1:
             m, c = player.pick_opposing_move(input_fn=input_fn)
@@ -42,16 +41,14 @@ class Game:
     def run(self):
         self.ptn.clear()
         turn = 1
-        won = False
-        while not won:
+        while True:
             for player in self.players:
-                if self.should_display: print(self.ptn)
+                print(self.ptn)
                 w = self.board.winner(self.players, t=True)
                 if w:
                     print(w, "won!")
-                    won = True
+                    return
             turn += 1
-        print(self.ptn)
 
 
 class TextGame(Game):
