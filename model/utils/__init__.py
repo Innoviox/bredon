@@ -1,7 +1,7 @@
-from .notation import *
+from .constants import *
 
 from collections   import namedtuple
-from dataclasses   import dataclass
+from dataclasses   import dataclass, field
 from functools     import partial
 from itertools     import combinations, chain, starmap
 from operator      import sub
@@ -29,6 +29,27 @@ def coords_to_tile(x: int, y: int):
 
 def flip_color(color):
     return COLORS_REV[COLORS.index(color)]
+
+@dataclass
+class Move:
+    total: int = 1
+    stone: str = FLAT
+    col: str = None
+    row: int = None
+    moves: list = field(default_factory=list)
+    direction: str = None
+
+    def get_square(self):
+        return self.col + str(self.row)
+
+    def __repr__(self):
+        return 'Move(' + ', '.join([f"{k}={v!r}" for k, v in self.__dict__.items()]) + ')'
+
+    def __str__(self):
+        if not self.direction:
+            return (self.stone + self.get_square()).strip(FLAT)
+        else:
+            return str(self.total) + self.get_square() + self.direction + ''.join(map(str, self.moves))
 
 
 class Next:

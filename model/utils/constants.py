@@ -1,6 +1,6 @@
 # Colors
-COLORS = ("black", "white")
-BLACK, WHITE = COLORS
+COLORS = ("white", "black")
+WHITE, BLACK = COLORS
 COLORS_REV = tuple(reversed(COLORS))
 
 # PTN
