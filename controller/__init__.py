@@ -44,6 +44,7 @@ class Game:
         while True:
             for player in self.players:
                 print(self.ptn)
+                self._run(player, turn)
                 w = self.board.winner(self.players, t=True)
                 if w:
                     print(w, "won!")
