@@ -7,7 +7,7 @@ def load_moves_from_file(filename, out=False):
         _, s = ptn.split("Size")
         ptn = s.split("\n")
         size = int(s[2])
-        b = Board(size, size)
+        b = Board(size)
         curr_player = WHITE
         for iturn, turn in enumerate(ptn[2:]):
             if 'R' in turn:

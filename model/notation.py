@@ -16,6 +16,9 @@ class PTN:
     def get(self, turn, color):
         return self[turn][COLORS.index(color)]
 
+    def clear(self):
+        self.moves.clear()
+
     def __getitem__(self, turn):
         return self.moves[turn]
 
@@ -26,8 +29,10 @@ class PTN:
         return "\n".join(starmap(lambda i, moves: str(i) + ". " + " ".join(map(str, moves)),
                                  enumerate(self.moves, start=1)))
 
-    def clear(self):
-        self.moves.clear()
+    def __iter__(self):
+        if self.moves:
+            return iter(*self.moves)
+        return iter([])
 
 
 def parse_tps(tps):

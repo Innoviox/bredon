@@ -186,12 +186,13 @@ class ViewBoard(tk.Frame):
                 if not self.direction and len(self.grabbed.get_tiles(self.board)) > self.grabbed.nridx:
                     self.grabbed.nridx += 1
                     self.nridx += 1
-                else:
+                elif sum(self.moves) < len(self.grabbed_first.get_tiles(self.board)):
                     self.moves[-1] += 1
                 self.render()  #flip_color(self.master.players[self.master.player].color))
 
     def clear(self, r=True):
-        self.grabbed.nridx = self.nridx = 0
+        if not isinstance(self.grabbed, bool):
+            self.grabbed.nridx = self.nridx = 0
         self.i = 1
         self.grabbed = self.grabbed_first = self.direction = False
         self.board = self.master.board
