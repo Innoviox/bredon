@@ -27,9 +27,6 @@ def coords_to_tile(x: int, y: int):
     return ascii_lowercase[y] + str(x + 1)
 
 
-def flip_color(color):
-    return COLORS_REV[COLORS.index(color)]
-
 @dataclass
 class Move:
     total: int = 1
@@ -283,14 +280,14 @@ class Board:
         return None
 
     def flat_win(self, t=False, f=False):
-        w, b = self.count_flats(WHITE), self.count_flats(BLACK)
+        w, b = self.count_flats(Colors.WHITE), self.count_flats(Colors.BLACK)
         if f or all(len(sq.tiles) > 0 for row in self.board for sq in row):
-            return ("TIE" if t else False) if w == b else WHITE if w > b else BLACK
+            return ("TIE" if t else False) if w == b else Colors.WHITE if w > b else Colors.BLACK
         return False
 
     def road(self, out=False):
         for board in (self.board, zip(*self.board)):
-            for color in COLORS:
+            for color in Colors:
                 if self._road_check(color, board, out=out):
                     return color
         return False
@@ -311,7 +308,7 @@ class Board:
                         showindex=list(ascii_lowercase[:self.size]))
 
     def evaluate(self, color):
-        return self._evaluate(color) - self._evaluate(flip_color(color)) * 2
+        return self._evaluate(color) - self._evaluate(color.flip()) * 2
 
     def execute(self, move, color):
         self.force_move(move, color)

@@ -5,11 +5,11 @@ import time
 class Game:
     def __init__(self, size=5, board=None, white=HUMAN, black=AI(3)):
         self.board = Board(size) if board is None else board
-        self.player_1: Player = self._init_player(WHITE, white)
-        self.player_2: Player = self._init_player(BLACK, black)
+        self.player_1: Player = self._init_player(Colors.WHITE, white)
+        self.player_2: Player = self._init_player(Colors.BLACK, black)
         self.players = [self.player_1, self.player_2]
 
-        self.stones = {i: FLAT for i in COLORS}
+        self.stones = {i: FLAT for i in Colors}
         self.ptn = PTN()
 
     def _init_player(self, color, types) -> Player:
@@ -122,5 +122,5 @@ class ViewGame(tk.Tk, Game):
     def get_color(self):
         c = self.players[self.player].color
         if self.turn < 2 and self.turn == self.player:
-            c = flip_color(c)
+            c = c.flip()
         return c

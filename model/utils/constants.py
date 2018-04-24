@@ -1,7 +1,12 @@
+import enum
+
 # Colors
-COLORS = ("white", "black")
-WHITE, BLACK = COLORS
-COLORS_REV = tuple(reversed(COLORS))
+class Colors(enum.Enum):
+    WHITE = 0
+    BLACK = 1
+
+    def flip(self):
+        return Colors(1 - self.value)
 
 # PTN
 MARKS = '?!'
