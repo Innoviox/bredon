@@ -73,7 +73,6 @@ class Player(object):
 
 
 class BaseAI(Player):
-    @abstractmethod
     def pick_move(self, input_fn=input, out=False):
         return
 

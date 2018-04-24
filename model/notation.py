@@ -13,8 +13,8 @@ class PTN:
         else:
             self.moves[-1].append(move)
 
-    def get(self, turn, color):
-        return self[turn][COLORS.index(color)]
+    def get(self, turn, color: Colors):
+        return self[turn][color.value]
 
     def clear(self):
         self.moves.clear()
@@ -49,11 +49,11 @@ def parse_tps(tps):
             else:
                 tiles = []
                 for stone in c[:-1]:
-                    tiles.append(Tile(COLORS[int(stone)-1], x=x, y=y))
+                    tiles.append(Tile(Colors(int(stone)-1), x=x, y=y))
                 if c[-1] in STONES:
                     tiles[-1].stone = c[-1]
                 else:
-                    tiles.append(Tile(COLORS[int(c[-1])-1], x=x, y=y))
+                    tiles.append(Tile(Colors(int(c[-1])-1), x=x, y=y))
                 r.append(Square(x, y, tiles=tiles))
         rows[y] = r
 

@@ -20,7 +20,6 @@ class Game:
         else:
             return MinimaxAI(self.board, color, depth)
 
-    @abstractmethod
     def viz(self):
         return
 
