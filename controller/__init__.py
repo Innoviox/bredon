@@ -1,4 +1,4 @@
-from view import *  # imports model
+from model import *  # imports model
 
 import time
 
@@ -58,72 +58,3 @@ class Game:
 class TextGame(Game):
     def viz(self):
         print(self.board)
-
-
-class ViewGame(tk.Tk, Game):
-    def __init__(self, **kw):
-        tk.Tk.__init__(self)
-        Game.__init__(self, **kw)
-        self.wm_title("tak")
-        self.vboard = ViewBoard(self)
-        self.tiles = TilesCanvas(self)
-        self.flats = FlatCanvas(self)
-
-        self.flats.grid(row=0, column=0)
-        self.vboard.grid(row=2, column=0)
-        self.tiles.grid(row=2, column=6, rowspan=self.board.size)
-
-        self.turn = 0
-        self.running = False
-        self.player = 0
-        self.first = True
-        self.event = None
-
-        self.run = self.mainloop
-        self.viz()
-
-
-    def exec(self, *event, is_ai=False):
-        if not is_ai and not self.vboard.input.get():
-            return
-        if not self.running:
-            return
-        elif self.player == 0:
-            # self.ptn += "\n%d. " % (self.turn + 1)
-            self.turn += 1
-
-        p = self.players[self.player]
-        move = self._run(p, self.turn, input_fn=lambda _: self.vboard.input.get())
-        print(self.ptn)
-        self.viz()
-        self.vboard.input.delete(0, "end")
-        self.vboard.i = 0
-        if self.vboard.grabbed:
-            self.vboard.clear(r=False)
-        self.vboard.board = self.board
-        self.viz()
-        self.player = (self.player + 1) % 2
-        if isinstance(self.players[self.player], BaseAI):
-            self.exec(is_ai=True)
-
-        w = self.board.winner(self.players, t=True)
-        if w:
-            print(w, "won!")
-
-    def viz(self):
-        self.flats.render()
-        self.tiles.render()
-        self.vboard.render()
-        self.update()
-
-    def mainloop(self, n=0):
-        self.running = True
-        if isinstance(self.players[self.player], BaseAI):
-            self.exec(is_ai=True)
-        super(tk.Tk, self).mainloop(n=n)
-
-    def get_color(self):
-        c = self.players[self.player].color
-        if self.turn < 2 and self.turn == self.player:
-            c = c.flip()
-        return c
