@@ -7,6 +7,7 @@ from itertools     import combinations, chain, starmap
 from operator      import sub
 from tabulate      import tabulate
 from string        import ascii_lowercase
+from re            import sub
 
 PseudoBoard = namedtuple("PseudoBoard",
                          ("w", "h", "board", "bool", "err", "type"))
@@ -128,6 +129,17 @@ class Square(Next):
 
     def copy(self):
         return Square(self.x, self.y, tiles=self.tiles[:])
+
+    def generate_tps(self):
+        if len(self.tiles) == 0:
+            return 'x'
+        tps = ''
+        for tile in self.tiles:
+            tps += str(tile.color.value + 1)
+        ending = self.tiles[-1].stone
+        if ending in CAP + STAND:
+            tps += ending
+        return tps
 
     def __eq__(self, other):
         if other == EMPTY:
@@ -348,6 +360,16 @@ class Board:
                                                     yield Move(total=i, col=c, row=r, moves=moves, direction=direction)
                             except ValueError:
                                 pass
+
+    def generate_tps(self):
+        i = self.size - 1
+        tps = sub("(x,){%d}x" % i, "x" + str(i + 1),
+                  '/'.join(','.join(map(Square.generate_tps, row)) for row in self.board))
+        for i in range(self.size -1, 1, -1):
+            tps = sub("(x,){%d}x" % i, "x" + str(i + 1), tps)
+            tps = sub("(x,){%d}" % i, "x" + str(i), tps)
+
+        return tps
 
     # STATIC PRIVATE HELPER METHODS
     def _run(self, fn, copy):

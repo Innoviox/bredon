@@ -75,3 +75,4 @@ class Game:
 class TextGame(Game):
     def viz(self):
         print(self.board)
+        print(self.board.generate_tps())
