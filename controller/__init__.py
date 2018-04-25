@@ -1,7 +1,7 @@
 from model import *  # imports model
 
 import time
-
+from itertools import cycle
 
 class Game:
     def __init__(self, size=5, board=None, white=HUMAN, black=AI(3)):
@@ -12,6 +12,7 @@ class Game:
 
         self.stones = {i: FLAT for i in Colors}
         self.ptn = PTN()
+        self.player_order = chain(self.players)
 
     def _init_player(self, color, types) -> Player:
         name, depth = types
@@ -42,17 +43,33 @@ class Game:
     def run(self):
         self.ptn.clear()
         turn = 1
-        while True:
-            for player in self.players:
+        # while True:
+            # for player in self.players:
+        for player in self.player_order:
+            print(self.ptn)
+            self._run(player, turn)
+            w = self.board.winner(self.players, t=True)
+            if w:
                 print(self.ptn)
-                self._run(player, turn)
-                w = self.board.winner(self.players, t=True)
-                if w:
-                    print(self.ptn)
-                    self.viz()
-                    print(w, "won!")
-                    return
-            turn += 1
+                self.viz()
+                print(w, "won!")
+                return
+            turn += 0.5
+
+    def exec_tps(self, board, move, turn):
+        self.board.board = board.board
+        self.board.size = board.size
+        self.ptn = PTN(turn=int(turn))
+        self.turn = int(turn)
+        if int(move) == 2:
+            def _p_o():
+                yield self.player_2
+                yield from chain(self.players)
+            self.player_order = _p_o()
+        else:
+            self.player_order = chain(self.player_order)
+        self.player = int(move) - 1
+        self.viz()
 
 
 class TextGame(Game):

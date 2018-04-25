@@ -4,8 +4,9 @@ from itertools import starmap
 
 
 class PTN:
-    def __init__(self):
+    def __init__(self, turn=1):
         self.moves = []
+        self.turn = turn
 
     def append(self, move):
         if (not self.moves) or len(self.moves[-1]) == 2:
@@ -27,7 +28,7 @@ class PTN:
 
     def __str__(self):
         return "\n".join(starmap(lambda i, moves: str(i) + ". " + " ".join(map(str, moves)),
-                                 enumerate(self.moves, start=1)))
+                                 enumerate(self.moves, start=self.turn)))
 
     def __iter__(self):
         if self.moves:
@@ -57,4 +58,4 @@ def parse_tps(tps):
                 r.append(Square(x, y, tiles=tiles))
         rows[y] = r
 
-    return Board(len(rows[0]), board=zip(*reversed(rows)))
+    return Board(len(rows[0]), board=list(zip(*reversed(rows)))), move, turn

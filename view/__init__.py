@@ -25,7 +25,7 @@ class ViewSquare:
         x1, y1 = offset_x + self.ix + S - N, offset_y + self.jy + S - N - o + D
         x2, y2 = offset_x + self.ix + S + N, offset_y + self.jy + S + N - o + D
         if tile.stone == FLAT:
-            return self.master.canvas.create_rectangle(x1, y1, x2, y2, outline='black', fill=tile.color.name)
+            return self.master.canvas.create_rectangle(x1, y1, x2, y2, outline=tile.color.flip().name, fill=tile.color.name)
         elif tile.stone == STAND:
             if tile.color == Colors.WHITE:
                 points = (
@@ -42,11 +42,11 @@ class ViewSquare:
                     x1, y1 + N * 0.5
                 )
 
-            return self.master.canvas.create_polygon(*points, fill=tile.color.name, outline='black',
+            return self.master.canvas.create_polygon(*points, fill=tile.color.name, outline=tile.color.flip().name,
                                                      tags=(self.tags, idx))
         else:
             return self.create_circle(*self.find_center(idx, offset_x, offset_y), S / 2, fill=tile.color.name,
-                                      tags=(self.tags, idx))
+                                      outline=tile.color.flip().name, tags=(self.tags, idx))
 
     def find_center(self, idx, offset_x=0.0, offset_y=0.0):
         o = OFFSET_STEP * idx
@@ -194,7 +194,8 @@ class ViewBoard(tk.Frame):
         if not isinstance(self.grabbed, bool):
             self.grabbed.nridx = self.nridx = 0
         self.i = 1
-        self.grabbed = self.grabbed_first = self.direction = False
+        self.grabbed: Optional[bool, ViewSquare] = False
+        self.grabbed_first = self.direction = False
         self.board = self.master.board
         self.moves = []
         if r:
@@ -208,7 +209,7 @@ class ViewBoard(tk.Frame):
         self.grabbed.nridx = N
 
     def possibles(self, color):
-        if not self.grabbed:
+        if not bool(self.grabbed):
             for sq in self.squares:
                 t = sq.get_tiles(self.board)
                 if t:
@@ -400,7 +401,8 @@ class ViewGame(tk.Tk, Game):
         self.viz()
 
     def exec(self, *event, is_ai=False):
-        if not is_ai and not self.vboard.input.get():
+        txt = self.vboard.input.get()
+        if not is_ai and not txt:
             return
         if not self.running:
             return
@@ -408,28 +410,37 @@ class ViewGame(tk.Tk, Game):
             # self.ptn += "\n%d. " % (self.turn + 1)
             self.turn += 1
 
-        p = self.players[self.player]
-        move = self._run(p, self.turn, input_fn=lambda _: self.vboard.input.get())
-        print(self.ptn)
-        self.viz()
+        if "TPS" in txt:
+            self.exec_tps(*parse_tps(txt))
+            self.vboard.clear()
+        else:
+            p = self.players[self.player]
+            if not self._run(p, self.turn, input_fn=lambda _: txt):
+                return
+            print(self.ptn)
+            self.viz()
         self.vboard.input.delete(0, "end")
         self.vboard.i = 0
         if self.vboard.grabbed:
             self.vboard.clear(r=False)
+        print(self.board)
         self.vboard.board = self.board
         self.viz()
-        self.player = (self.player + 1) % 2
-        if isinstance(self.players[self.player], BaseAI):
-            self.exec(is_ai=True)
 
         w = self.board.winner(self.players, t=True)
         if w:
             print(w, "won!")
 
+        if "TPS" not in txt:
+            self.player = (self.player + 1) % 2
+            if isinstance(self.players[self.player], BaseAI):
+                self.exec(is_ai=True)
+
     def viz(self):
         self.flats.render()
         self.tiles.render()
         self.vboard.render()
+        self.update_idletasks()
         self.update()
 
     def mainloop(self, n=0):

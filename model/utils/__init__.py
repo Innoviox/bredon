@@ -167,7 +167,7 @@ class Board:
             return PseudoBoard(self.size, self.size, new_board, True, None, "place")
         return PseudoBoard(self.size, self.size, new_board, False, "Tile cannot be placed there", None)
 
-    def move_single(self, old_square, new_square, n_tiles: int, first=False):
+    def move_single(self, old_square, new_square, n_tiles: int, first=False) -> PseudoBoard:
         """
         Move n_tiles from old_square to
         new_square.

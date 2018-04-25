@@ -55,8 +55,8 @@ class Player(object):
         while True:
             m = str_to_move(input_fn("Enter move: "))
             # try:
-            v = self.board.valid_move(m, color)
-            if v:
+            v = self.board.copy().force_move(m, color)
+            if v is None:
                 return m, color
             else:
                 print("Parsed move", m)
