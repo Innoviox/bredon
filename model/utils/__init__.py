@@ -7,7 +7,7 @@ from itertools     import combinations, chain, starmap
 from operator      import sub
 from tabulate      import tabulate
 from string        import ascii_lowercase
-from re            import sub
+import re
 
 PseudoBoard = namedtuple("PseudoBoard",
                          ("w", "h", "board", "bool", "err", "type"))
@@ -367,8 +367,8 @@ class Board:
     def generate_tps(self):
         tps = '/'.join(','.join(map(Square.generate_tps, row)) for row in self.board)
         for i in range(self.size, 1, -1):
-            tps = sub("(x,){%d}x" % i, "x" + str(i + 1), tps)
-            tps = sub("(x,){%d}" % i, "x" + str(i), tps)
+            tps = re.sub("(x,){%d}x" % i, "x" + str(i + 1), tps)
+            tps = re.sub("(x,){%d}" % i, "x" + str(i), tps)
 
         return tps
 
