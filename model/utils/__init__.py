@@ -91,8 +91,11 @@ class Square(Next):
         self.x, self.y = x, y
         self.tiles = [] if tiles is None else tiles
 
-    def fix(self, tile):
-        tile.x, tile.y = self.x, self.y
+    def fix(self, tile, x=None, y=None):
+        if x is None:
+            tile.x, tile.y = self.x, self.y
+        else:
+            tile.x, tile.y, self.x, self.y = x, y, x, y
 
     def add(self, tile: Tile):
         self.tiles.append(tile)
@@ -362,10 +365,8 @@ class Board:
                                 pass
 
     def generate_tps(self):
-        i = self.size - 1
-        tps = sub("(x,){%d}x" % i, "x" + str(i + 1),
-                  '/'.join(','.join(map(Square.generate_tps, row)) for row in self.board))
-        for i in range(self.size -1, 1, -1):
+        tps = '/'.join(','.join(map(Square.generate_tps, row)) for row in self.board)
+        for i in range(self.size, 1, -1):
             tps = sub("(x,){%d}x" % i, "x" + str(i + 1), tps)
             tps = sub("(x,){%d}" % i, "x" + str(i), tps)
 

@@ -56,6 +56,10 @@ def parse_tps(tps):
                 else:
                     tiles.append(Tile(Colors(int(c[-1])-1), x=x, y=y))
                 r.append(Square(x, y, tiles=tiles))
-        rows[y] = r
-
-    return Board(len(rows[0]), board=list(zip(*reversed(rows)))), move, turn
+        rows[y] = r[:]
+    board = list(zip(*reversed(rows)))
+    for x, row in enumerate(board):
+        for y, sq in enumerate(row):
+            for tile in sq.tiles:
+                sq.fix(tile=tile, x=y, y=x)
+    return Board(len(rows[0]), board=board), move, turn

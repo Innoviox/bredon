@@ -57,8 +57,7 @@ class Game:
             turn += 0.5
 
     def exec_tps(self, board, move, turn):
-        self.board.board = board.board
-        self.board.size = board.size
+        self.board = board
         self.ptn = PTN(turn=int(turn))
         self.turn = int(turn)
         if int(move) == 2:

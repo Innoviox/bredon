@@ -242,11 +242,9 @@ class ViewBoard(tk.Frame):
         self.move = move, old_board
 
     def animate(self, move, old_board):
-        print("animating", move)
         m = str_to_move(move)
         sq = int(ascii_lowercase.index(m.col)), int(m.row) - 1
         moves = m.moves if m.moves else [m.total]
-        print("found", sq, moves)
         t = m.total
         for i, move in enumerate(moves):
             stop = -(t - move)
@@ -256,8 +254,6 @@ class ViewBoard(tk.Frame):
             t -= move
 
     def _animate(self, sq, direction, i, N, old_board, idxs):
-        print("\t_animating", sq, direction, i, N, idxs)
-
         vis = self.get_square(sq)
         tiles = vis.get_tiles(old_board)[idxs]
         ids = vis.ids[idxs]
