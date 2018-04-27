@@ -13,6 +13,7 @@ class Game:
         self.stones = {i: FLAT for i in Colors}
         self.ptn = PTN()
         self.player_order = chain(self.players)
+        self.args = white, black
 
     def _init_player(self, color, types) -> Player:
         name, depth = types
@@ -57,8 +58,7 @@ class Game:
             turn += 0.5
 
     def exec_tps(self, board, move, turn, w_stones, b_stones):
-        self.board.board = board.board
-        self.board.size = board.size
+        self.new = self.__class__(size=len(board.board[0]), board=board, white=self.args[0], black=self.args[1])
         self.ptn = PTN(turn=int(turn))
         self.turn = int(turn)
         if int(move) == 2:

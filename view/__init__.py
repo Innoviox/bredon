@@ -394,7 +394,7 @@ class ViewGame(tk.Tk, Game):
         self.flats = FlatCanvas(self)
         self.vptn = PtnCanvas(self)
 
-        self.flats.grid(row=0, column=1)
+        self.flats.grid(row=0, column=1, columnspan=self.board.size)
         self.vboard.grid(row=2, column=1)
         self.btiles.grid(row=2, column=0, rowspan=self.board.size)
         self.wtiles.grid(row=2, column=self.board.size+1, rowspan=self.board.size)
@@ -421,6 +421,7 @@ class ViewGame(tk.Tk, Game):
 
         if "TPS" in txt:
             self.exec_tps(*parse_tps(txt))
+            self = self.new
             self.vboard.clear()
         else:
             p = self.players[self.player]
