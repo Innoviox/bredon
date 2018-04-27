@@ -33,9 +33,8 @@ class PTN:
         return "PTN(%r)" % self.moves
 
     def __str__(self):
-
         return tabulate(self.fill(), tablefmt="plain",
-                        headers=Colors,
+                        headers=[i.name for i in Colors],
                         showindex=range(self.turn, len(self.fill())+self.turn))
 
     def __len__(self):
@@ -73,8 +72,9 @@ def parse_tps(tps):
                 r.append(Square(x, y, tiles=tiles))
         rows[y] = r[:]
     board = list(zip(*reversed(rows)))
-    for x, row in enumerate(board):
-        for y, sq in enumerate(row):
+    for y, row in enumerate(board):
+        for x, sq in enumerate(row):
+            sq.x, sq.y = x, y
             for tile in sq.tiles:
-                sq.fix(tile=tile, x=y, y=x)
+                sq.fix(tile=tile)
     return Board(len(rows[0]), board=board), move, turn, [fs[0], cs[0]], [fs[1], cs[1]]

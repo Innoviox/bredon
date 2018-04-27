@@ -60,7 +60,7 @@ class Player(object):
                 return m, color
             else:
                 print("Parsed move", m)
-                print("Received error", v)
+                input("Received error "+ v)
             # except Exception as e:
             #     print("Parsed move", m)
             #     print("Received error", e)

@@ -152,7 +152,7 @@ class Square(Next):
         return False
 
     def __repr__(self):
-        return ''.join(str(t) for t in self.tiles)  # + f'@{coords_to_tile(self.x, self.y)}'
+        return ''.join(str(t) for t in self.tiles)  + f'@{coords_to_tile(self.x, self.y)}'
 
 
 class Board:
