@@ -387,7 +387,22 @@ class ViewGame(tk.Tk, Game):
     def __init__(self, **kw):
         tk.Tk.__init__(self)
         Game.__init__(self, **kw)
+        self._init_gui()
+
+        self.turn = self.player = 0
+        self.running = False
+
+        self.first = True
+        self.event = None
+
+        self.run = self.mainloop
+        self.viz()
+       
+    def _init_gui(self, **kw):
+        for key, value in kw.items():
+            self.__setattr__(key, value)
         self.wm_title("tak")
+        
         self.vboard = ViewBoard(self)
         self.btiles = TilesCanvas(self, Colors.BLACK)
         self.wtiles = TilesCanvas(self, Colors.WHITE)
@@ -399,15 +414,6 @@ class ViewGame(tk.Tk, Game):
         self.btiles.grid(row=2, column=0, rowspan=self.board.size)
         self.wtiles.grid(row=2, column=self.board.size+1, rowspan=self.board.size)
         self.vptn.grid(row=2, column=self.board.size+2, rowspan=self.board.size)
-
-        self.turn = self.player = 0
-        self.running = False
-
-        self.first = True
-        self.event = None
-
-        self.run = self.mainloop
-        self.viz()
 
     def exec(self, *event, is_ai=False):
         txt = self.vboard.input.get()
