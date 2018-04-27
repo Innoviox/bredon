@@ -56,7 +56,7 @@ class Game:
                 return
             turn += 0.5
 
-    def exec_tps(self, board, move, turn):
+    def exec_tps(self, board, move, turn, w_stones, b_stones):
         self.board = board
         self.ptn = PTN(turn=int(turn))
         self.turn = int(turn)
@@ -68,6 +68,9 @@ class Game:
         else:
             self.player_order = chain(self.player_order)
         self.player = int(move) - 1
+        print(w_stones, b_stones)
+        self.player_1.stones, self.player_1.caps = w_stones
+        self.player_2.stones, self.player_2.caps = b_stones
         self.viz()
 
 

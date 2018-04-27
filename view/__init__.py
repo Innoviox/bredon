@@ -344,7 +344,7 @@ class FlatCanvas(_Canvas):
 
 
 class TilesCanvas(_Canvas):
-    def __init__(self, master):
+    def __init__(self, master, color):
         self.step = TILE_SIZE / 4
         _Canvas.__init__(self, master,
                          width=len(master.players[0].name)*12+10,
@@ -361,16 +361,16 @@ class TilesCanvas(_Canvas):
         return TILE_SIZE
 
     def draw_tiles(self, player):
-        p = (player + 1) % 2
+        p = (player) % 2
         x2, y2 = self.get_x(p) + 20, self.height
         x1, y1 = x2 - TILE_SIZE, y2 - TILE_SIZE
         S = TILE_SIZE / 2
         for _ in range(self.calc_stones(p)[1]):
-            self.create_rectangle(x1, y1, x2, y2, fill=Colors(player).name, outline=Colors(p).name)
+            self.create_rectangle(x1, y1, x2, y2, fill=Colors(player).name, outline=Colors(p).flip().name)
             y1 -= self.step
             y2 -= self.step
         for _ in range(self.calc_stones(p)[0]):
-            self.create_circle(x2-S, y2-S, S, fill=Colors(player).name, outline=Colors(p).name)
+            self.create_circle(x2-S, y2-S, S, fill=Colors(player).name, outline=Colors(p).flip().name)
             y2 -= self.step
 
 

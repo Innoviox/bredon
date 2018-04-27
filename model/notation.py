@@ -36,7 +36,7 @@ class PTN:
 
         return tabulate(self.fill(), tablefmt="plain",
                         headers=Colors,
-                        showindex=range(1, len(self.fill())+1))
+                        showindex=range(self.turn, len(self.fill())+self.turn))
 
     def __len__(self):
         return len(self.moves)
@@ -51,6 +51,7 @@ def parse_tps(tps):
     rows = [i.split(",") for i in tps.strip('[TPS"] ').split("/")]
     last, move, turn = rows[-1][-1].split()
     rows[-1][-1] = last
+    fs, cs = [0, 0], [0, 0]
     for y, row in enumerate(rows):
         r = []
         for x, c in enumerate(row):
@@ -62,8 +63,11 @@ def parse_tps(tps):
                 tiles = []
                 for stone in c[:-1]:
                     tiles.append(Tile(Colors(int(stone)-1), x=x, y=y))
+                    fs[int(stone)-1] += 1
                 if c[-1] in STONES:
                     tiles[-1].stone = c[-1]
+                    if c[-1] == CAP:
+                        cs[int(stone)-1] += 1
                 else:
                     tiles.append(Tile(Colors(int(c[-1])-1), x=x, y=y))
                 r.append(Square(x, y, tiles=tiles))
@@ -73,4 +77,4 @@ def parse_tps(tps):
         for y, sq in enumerate(row):
             for tile in sq.tiles:
                 sq.fix(tile=tile, x=y, y=x)
-    return Board(len(rows[0]), board=board), move, turn
+    return Board(len(rows[0]), board=board), move, turn, [fs[0], cs[0]], [fs[1], cs[1]]

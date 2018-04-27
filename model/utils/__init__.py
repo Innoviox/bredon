@@ -136,9 +136,7 @@ class Square(Next):
     def generate_tps(self):
         if len(self.tiles) == 0:
             return 'x'
-        tps = ''
-        for tile in self.tiles:
-            tps += str(tile.color.value + 1)
+        tps = ''.join(str(tile.color.value + 1) for tile in self.tiles)
         ending = self.tiles[-1].stone
         if ending in CAP + STAND:
             tps += ending
