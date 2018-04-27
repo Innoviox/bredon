@@ -1,7 +1,5 @@
 from .utils import *
 
-from itertools import starmap
-
 
 class PTN:
     def __init__(self, turn=1):
@@ -13,6 +11,14 @@ class PTN:
             self.moves.append([move])
         else:
             self.moves[-1].append(move)
+
+    def fill(self):
+        if len(self.moves) > 1:
+            return self.moves
+        m = [move for ply in self.moves for move in ply]
+        while len(m) < 2:
+            m.append("")
+        return [m]
 
     def get(self, turn, color: Colors):
         return self[turn][color.value]
@@ -27,8 +33,13 @@ class PTN:
         return "PTN(%r)" % self.moves
 
     def __str__(self):
-        return "\n".join(starmap(lambda i, moves: str(i) + ". " + " ".join(map(str, moves)),
-                                 enumerate(self.moves, start=self.turn)))
+
+        return tabulate(self.fill(), tablefmt="plain",
+                        headers=Colors,
+                        showindex=range(1, len(self.fill())+1))
+
+    def __len__(self):
+        return len(self.moves)
 
     def __iter__(self):
         if self.moves:

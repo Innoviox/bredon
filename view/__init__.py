@@ -347,19 +347,18 @@ class TilesCanvas(_Canvas):
     def __init__(self, master):
         self.step = TILE_SIZE / 4
         _Canvas.__init__(self, master,
-                         width=TILE_SIZE+len(master.players[0].name)*24,
-                         height=self.step*(master.board.stones+master.board.caps) + 125)
+                         width=len(master.players[0].name)*12+10,
+                         height=SQUARE_SIZE * master.board.size)
+        self.player = [i for i, p in enumerate(master.players) if p.color == color][0]
 
     def render(self):
         self.delete("all")
-
-        for player in range(2):
-            self.create_text(self.get_x(player), 40, font=("Ubuntu Mono", 24),
-                             text="{}\n{}+{}".format(self.get_name(player), *self.calc_stones(player)))
-            self.draw_tiles(player)
+        self.create_text(self.get_x(self.player), 40, font=("Ubuntu Mono", 24),
+                         text="{}\n{}+{}".format(self.get_name(self.player), *self.calc_stones(self.player)))
+        self.draw_tiles(self.player)
 
     def get_x(self, player):
-        return [TILE_SIZE, len(self.name1) * 24][player]
+        return TILE_SIZE
 
     def draw_tiles(self, player):
         p = (player + 1) % 2
@@ -374,18 +373,32 @@ class TilesCanvas(_Canvas):
             self.create_circle(x2-S, y2-S, S, fill=Colors(player).name, outline=Colors(p).name)
             y2 -= self.step
 
+
+class PtnCanvas(_Canvas):
+    def __init__(self, master):
+        _Canvas.__init__(self, master, width=150, height=SQUARE_SIZE * master.board.size)
+
+    def render(self):
+        self.delete("all")
+        self.create_text(12, 12, anchor=tk.NW, font=("Courier", 12),
+                         text=str(self.master.ptn))
+
 class ViewGame(tk.Tk, Game):
     def __init__(self, **kw):
         tk.Tk.__init__(self)
         Game.__init__(self, **kw)
         self.wm_title("tak")
         self.vboard = ViewBoard(self)
-        self.tiles = TilesCanvas(self)
+        self.btiles = TilesCanvas(self, Colors.BLACK)
+        self.wtiles = TilesCanvas(self, Colors.WHITE)
         self.flats = FlatCanvas(self)
+        self.vptn = PtnCanvas(self)
 
-        self.flats.grid(row=0, column=0)
-        self.vboard.grid(row=2, column=0)
-        self.tiles.grid(row=2, column=6, rowspan=self.board.size)
+        self.flats.grid(row=0, column=1)
+        self.vboard.grid(row=2, column=1)
+        self.btiles.grid(row=2, column=0, rowspan=self.board.size)
+        self.wtiles.grid(row=2, column=self.board.size+1, rowspan=self.board.size)
+        self.vptn.grid(row=2, column=self.board.size+2, rowspan=self.board.size)
 
         self.turn = self.player = 0
         self.running = False
@@ -433,9 +446,9 @@ class ViewGame(tk.Tk, Game):
                 self.exec(is_ai=True)
 
     def viz(self):
-        self.flats.render()
-        self.tiles.render()
-        self.vboard.render()
+        for canvas in [self.flats, self.btiles, self.vboard, self.wtiles, self.vptn]:
+            canvas.render()
+
         self.update_idletasks()
         self.update()
 

@@ -10,7 +10,7 @@ class Colors(enum.Enum):
         return Colors(1 - self.value)
 
     def __str__(self):
-        return self.name[0]
+        return self.name  #[0]
 
 
 # PTN
