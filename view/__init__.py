@@ -432,13 +432,12 @@ class ViewGame(tk.Tk, Game):
         if not self.running:
             return
         elif self.player == 0:
-            # self.ptn += "\n%d. " % (self.turn + 1)
             self.turn += 1
-
         if "TPS" in txt:
             self._clear_gui()
             self._init_gui(**self.exec_tps(*parse_tps(txt)))
             self.vboard.clear()
+            self.running = True
         else:
             p = self.players[self.player]
             if not self._run(p, self.turn, input_fn=lambda _: txt):
