@@ -389,13 +389,6 @@ class ViewGame(tk.Tk, Game):
         Game.__init__(self, **kw)
         self._init_gui()
 
-        self.turn = self.player = 0
-        self.running = False
-
-        self.first = True
-        self.event = None
-
-        self.run = self.mainloop
         self.viz()
        
     def _init_gui(self, **kw):
@@ -415,6 +408,23 @@ class ViewGame(tk.Tk, Game):
         self.wtiles.grid(row=2, column=self.board.size+1, rowspan=self.board.size)
         self.vptn.grid(row=2, column=self.board.size+2, rowspan=self.board.size)
 
+        self.turn = self.player = 0
+        self.running = False
+
+        self.first = True
+        self.event = None
+
+        self.run = self.mainloop
+
+    def _clear_gui(self):
+        for canvas in [self.flats, self.btiles, self.vboard, self.wtiles, self.vptn]:
+            canvas.grid_forget()
+        del self.vboard
+        del self.btiles
+        del self.wtiles
+        del self.flats
+        del self.vptn
+
     def exec(self, *event, is_ai=False):
         txt = self.vboard.input.get()
         if not is_ai and not txt:
@@ -426,8 +436,8 @@ class ViewGame(tk.Tk, Game):
             self.turn += 1
 
         if "TPS" in txt:
-            self.exec_tps(*parse_tps(txt))
-            self = self.new
+            self._clear_gui()
+            self._init_gui(**self.exec_tps(*parse_tps(txt)))
             self.vboard.clear()
         else:
             p = self.players[self.player]

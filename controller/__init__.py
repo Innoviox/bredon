@@ -58,7 +58,7 @@ class Game:
             turn += 0.5
 
     def exec_tps(self, board, move, turn, w_stones, b_stones):
-        self.new = self.__class__(size=len(board.board[0]), board=board, white=self.args[0], black=self.args[1])
+        # self.new = self.__class__(size=len(board.board[0]), board=board, white=self.args[0], black=self.args[1])
         self.ptn = PTN(turn=int(turn))
         self.turn = int(turn)
         if int(move) == 2:
@@ -71,7 +71,8 @@ class Game:
         self.player = int(move) - 1
         self.player_1.stones, self.player_1.caps = w_stones
         self.player_2.stones, self.player_2.caps = b_stones
-        self.viz()
+        # self.viz()
+        return dict(size=len(board.board[0]), board=board, white=self.args[0], black=self.args[1])
 
 
 class TextGame(Game):
