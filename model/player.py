@@ -38,7 +38,7 @@ class Player(object):
                     # f"\tCaps played: {self.caps}, Total: {self.board.caps}"
                     # f"Stone: {stone}, Cap: {cap}")
                 elif f:
-                    self.board.force(move)
+                    return self.board.force(move)
             else:
                 # Move is illegal
                 raise ValueError("Illegal Move")

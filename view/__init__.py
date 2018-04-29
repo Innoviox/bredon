@@ -387,7 +387,15 @@ class ViewGame(tk.Tk, Game):
     def __init__(self, **kw):
         tk.Tk.__init__(self)
         Game.__init__(self, **kw)
+        self._init_gui()
+
+        self.viz()
+       
+    def _init_gui(self, **kw):
+        for key, value in kw.items():
+            self.__setattr__(key, value)
         self.wm_title("tak")
+        
         self.vboard = ViewBoard(self)
         self.btiles = TilesCanvas(self, Colors.BLACK)
         self.wtiles = TilesCanvas(self, Colors.WHITE)
@@ -407,7 +415,15 @@ class ViewGame(tk.Tk, Game):
         self.event = None
 
         self.run = self.mainloop
-        self.viz()
+
+    def _clear_gui(self):
+        for canvas in [self.flats, self.btiles, self.vboard, self.wtiles, self.vptn]:
+            canvas.grid_forget()
+        del self.vboard
+        del self.btiles
+        del self.wtiles
+        del self.flats
+        del self.vptn
 
     def exec(self, *event, is_ai=False):
         txt = self.vboard.input.get()
@@ -416,13 +432,12 @@ class ViewGame(tk.Tk, Game):
         if not self.running:
             return
         elif self.player == 0:
-            # self.ptn += "\n%d. " % (self.turn + 1)
             self.turn += 1
-
         if "TPS" in txt:
-            self.exec_tps(*parse_tps(txt))
-            self = self.new
+            self._clear_gui()
+            self._init_gui(**self.exec_tps(*parse_tps(txt)))
             self.vboard.clear()
+            self.running = True
         else:
             p = self.players[self.player]
             if not self._run(p, self.turn, input_fn=lambda _: txt):
