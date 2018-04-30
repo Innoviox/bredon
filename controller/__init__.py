@@ -29,10 +29,10 @@ class Game:
         self.viz()
         t = time.time()
         if turn <= 1:
-            m, c = player.pick_opposing_move(input_fn=input_fn)
+            m, c = player.pick_opposing_move(turn, input_fn=input_fn)
             self.stones[c] = STONES
         else:
-            m = player.pick_move(input_fn=input_fn)
+            m = player.pick_move(turn, input_fn=input_fn)
             c = player.color
             if CAP in str(m):
                 self.stones[c] = FLAT + STAND

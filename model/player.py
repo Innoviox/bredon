@@ -51,7 +51,7 @@ class Player(object):
     def out_of_tiles(self):
         return self.caps >= self.board.caps and self.stones >= self.board.stones
 
-    def _pick_move(self, color, input_fn=input):
+    def _pick_move(self, turn, color, input_fn=input):
         while True:
             m = str_to_move(input_fn("Enter move: "))
             # try:
@@ -65,19 +65,19 @@ class Player(object):
             #     print("Parsed move", m)
             #     print("Received error", e)
 
-    def pick_move(self, input_fn=input, out=False):
-        return self._pick_move(self.color, input_fn=input_fn)[0]
+    def pick_move(self, turn, input_fn=input, out=False):
+        return self._pick_move(turn, self.color, input_fn=input_fn)[0]
 
-    def pick_opposing_move(self, input_fn=input, out=False):
-        return self._pick_move(self.color.flip(), input_fn=input_fn)
+    def pick_opposing_move(self, turn, input_fn=input, out=False):
+        return self._pick_move(turn, self.color.flip(), input_fn=input_fn)
 
 
 class BaseAI(Player):
-    def pick_move(self, input_fn=input, out=False):
+    def pick_move(self, turn, input_fn=input, out=False):
         return
 
 class RandomAI(BaseAI):
-    def pick_move(self, input_fn=input, out=False):
+    def pick_move(self, turn, input_fn=input, out=False):
         return random.choice(list(self.board.generate_valid_moves(self)))
 
 
@@ -86,14 +86,14 @@ class MinimaxAI(BaseAI):
         super().__init__(board, color)
         self.depth = depth
 
-    def pick_opposing_move(self, input_fn=input, out=False):
+    def pick_opposing_move(self, turn, input_fn=input, out=False):
         # if self.board.valid_str("a1", self.color.flip()):
         #     return str_to_move("a1"), self.color.flip()
         # return str_to_move(ascii_lowercase[self.board.size - 1] + str(self.board.size)), self.color.flip()
-        return self.pick_move(input_fn=input_fn), self.color.flip()
+        return self.pick_move(turn, input_fn=input_fn), self.color.flip()
 
-    def pick_move(self, input_fn=None, out=False):
-        moves = self.board.generate_valid_moves(self.color, self.caps)
+    def pick_move(self, turn, input_fn=None, out=False):
+        moves = self.board.generate_valid_moves(turn, self.color, self.caps)
         best_eval = inf
         if self.depth % 2 == 1:
             best_eval *= -1
@@ -101,20 +101,24 @@ class MinimaxAI(BaseAI):
         old_state = self.board.copy_board()
         alpha = -inf
         for move in moves:
+            if out: print("Running move", move, "current alpha", alpha)
             self.board.execute(move, self.color)
             alpha = self.minimax(self.depth - 1, self.board, alpha, inf, True, self.color.flip(),
-                                 self.board.copy_board()) * 4
+                                 self.board.copy_board(), turn, out=out) * 4
             ev = self.board.evaluate(self.color)
             alpha -= ev / 2
             if abs(alpha) > THRESHOLD:
                 alpha *= -1
             self.board.set(old_state)
+            if out: print("\t", ev, alpha, best_eval, best_move)
             if (self.depth % 2 == 1 and alpha >= best_eval) or (self.depth % 2 == 0 and alpha <= best_eval):
                 best_eval = alpha
                 best_move = move
+                if out: print("\tsetting move")
+        if out: input()
         return best_move
 
-    def minimax(self, depth, board, alpha, beta, maximising, color, old_state, out=False):
+    def minimax(self, depth, board, alpha, beta, maximising, color, old_state, turn, out=False):
         if board.road() or board.flat_win():
             if maximising:
                 return -MAX_N * depth
@@ -123,13 +127,13 @@ class MinimaxAI(BaseAI):
         elif depth == 0:
             return board.evaluate(color)
         
-        moves = board.generate_valid_moves(color, self.caps)
+        moves = board.generate_valid_moves(turn, color, self.caps)
         if maximising:
             b_eval = -inf
             for move in moves:
                 board.execute(move, color)
                 b_eval = max(b_eval, self.minimax(depth - 1, board, alpha, beta, not maximising, color.flip(),
-                                                  board.copy_board(), out=out))
+                                                  board.copy_board(), turn, out=out))
                 board.set(old_state)
                 alpha = max(alpha, b_eval)
                 if beta <= alpha:
@@ -141,7 +145,7 @@ class MinimaxAI(BaseAI):
             for move in moves:
                 board.execute(move, color)
                 b_eval = min(b_eval, self.minimax(depth - 1, board, alpha, beta, not maximising, color.flip(),
-                                                  board.copy_board(), out=out))
+                                                  board.copy_board(), turn, out=out))
                 board.set(old_state)
                 beta = min(beta, b_eval)
                 if beta <= alpha:

@@ -331,10 +331,10 @@ class Board:
     def _valid(self, move, color):
         return self.valid(self.parse_move(move, color))
 
-    def generate_valid_moves(self, color, caps):
-        return filter(lambda move: self._valid(move, color), self.generate_all_moves(color, caps))
+    def generate_valid_moves(self, turn, color, caps):
+        return filter(lambda move: self._valid(move, color), self.generate_all_moves(turn, color, caps))
 
-    def generate_all_moves(self, color, caps):
+    def generate_all_moves(self, turn, color, caps):
         for y in range(self.size):
             for x in range(self.size):
                 c, r = coords_to_tile(x, y)
@@ -342,7 +342,7 @@ class Board:
                 if tile == EMPTY:
                     for stone in FLAT + STAND:
                         yield Move(stone=stone, col=c, row=r)
-                    if caps < self.caps:
+                    if caps < self.caps and turn > 1:
                         yield Move(stone=CAP, col=c, row=r)
                 else:
                     if tile.tiles[-1].color == color:
@@ -385,13 +385,13 @@ class Board:
             t = sq.tiles[-1]
             if t.color == color:
                 e += sum(1 for i in sq.tiles if i.color == color and i.stone in 'CF') ** 1.5
-                e += (sq.connections(self.board) + 1) ** 2
+                e += (sq.connections(self.board) + 1) ** 3
         return e
 
     def _evaluate(self, color):
-        # return sum(map(partial(self._evaluate_sq, color), np.ravel(self.board, 'C')))
-        return sum(sum(map(partial(self._evaluate_sq, color), row)) for row in self.board) + \
-               sum(map(len, self._compress_left(color, self.board, False)))
+        return sum(sum(map(partial(self._evaluate_sq, color), row)) for row in self.board)  # + \
+               # sum(map(len, self._compress_left(color, self.board, False))) + \
+               # sum(map(len, self._compress_left(color, zip(*self.board), False)))
 
     def _cl_sq_check(self, r, color, out, sq):
         if out:
