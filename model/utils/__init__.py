@@ -365,9 +365,7 @@ class Board:
     def generate_tps(self):
         tps = '/'.join(','.join(map(Square.generate_tps, row)) for row in self.board)
         for i in range(self.size, 1, -1):
-            tps = re.sub("(x,){%d}x" % i, "x" + str(i + 1), tps)
-            tps = re.sub("(x,){%d}" % i, "x" + str(i), tps)
-
+            tps = re.sub("(x,){%d}x?" % i, "x" + str(i + 1), tps)
         return tps
 
     # STATIC PRIVATE HELPER METHODS

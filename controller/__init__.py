@@ -12,7 +12,7 @@ class Game:
 
         self.stones = {i: FLAT for i in Colors}
         self.ptn = PTN()
-        self.player_order = chain(self.players)
+        self.player_order = cycle(self.players)
         self.args = white, black
 
     def _init_player(self, color, types) -> Player:
