@@ -92,7 +92,7 @@ class MinimaxAI(BaseAI):
         # return str_to_move(ascii_lowercase[self.board.size - 1] + str(self.board.size)), self.color.flip()
         return self.pick_move(turn, input_fn=input_fn), self.color.flip()
 
-    def pick_move(self, turn, input_fn=None, out=False):
+    def pick_move(self, turn, input_fn=None, out=False) -> Move:
         moves = self.board.generate_valid_moves(turn, self.color, self.caps)
         best_eval = inf
         if self.depth % 2 == 1:
