@@ -1,6 +1,5 @@
 import unittest
 from model import *
-from test_road import exec_road
 from itertools import repeat
 
 
