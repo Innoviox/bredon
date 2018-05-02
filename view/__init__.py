@@ -100,6 +100,7 @@ class ViewBoard(tk.Frame):
 
         self.canvas.bind("<2>", self.master.exec)
         self.canvas.bind("<1>", self.click)
+        self.canvas.bind("<Escape>", self.clear)
 
     def _init_gui(self):
         self.input = tk.Entry(self, font = "Courier 12")  #, width = SQUARE_SIZE * 2 // 12)
