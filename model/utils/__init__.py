@@ -369,13 +369,13 @@ class Board:
                             except ValueError:
                                 pass
 
-    def generate_tps(self):
+    def generate_tps(self, turn=1, move=1):
         tps = '/'.join(','.join(map(Square.generate_tps, row)) for row in self.board)
         for i in range(self.size, 1, -1):
             tps = re.sub("(x,){%d}x" % i, "x" + str(i + 1), tps)
-            tps = re.sub("(x,){%d}" % i, "x" + str(i), tps)
+            tps = re.sub("(x,){%d}" % i, "x" + str(i) + ",", tps)
 
-        return tps
+        return '[TPS "' + tps + '" %d %d]' % (turn, move)
 
     # STATIC PRIVATE HELPER METHODS
     def _run(self, fn, copy):
