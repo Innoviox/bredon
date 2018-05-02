@@ -98,6 +98,7 @@ class ViewBoard(tk.Frame):
         self.nridx = 0
         self.moves = []
 
+        # Canvas bindings
         self.canvas.bind("<2>", self.master.exec)
         self.canvas.bind("<1>", self.click)
         self.canvas.bind("<Escape>", self.clear)

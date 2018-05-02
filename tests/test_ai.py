@@ -5,12 +5,12 @@ from itertools import repeat
 
 class TestAI(unittest.TestCase):
     def test_block(self):
-        b = Board.from_moves(exec_road("a", 4)[:-1], repeat(Colors.WHITE), 4, repeat(FLAT))
+        b = Board.from_moves(*exec_road("a", 4, True)[:-1], repeat(Colors.WHITE), repeat(FLAT))
         ai = MinimaxAI(b, Colors.BLACK)
         self.assertEqual(str(ai.pick_move(4)), "a4", "Error: AI did not block road threat A")
 
     def test_take(self):
-        b = Board.from_moves(exec_road("a", 4)[:-1], repeat(Colors.WHITE), 4, repeat(FLAT))
+        b = Board.from_moves(*exec_road("a", 4, True)[:-1], repeat(Colors.WHITE), repeat(FLAT))
         ai = MinimaxAI(b, Colors.WHITE)
         self.assertEqual(str(ai.pick_move(4)), "a4", "Error: AI did not take road threat A")
 

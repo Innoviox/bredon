@@ -326,7 +326,7 @@ class Board:
         self.force_move(move, color)
 
     @classmethod
-    def from_moves(cls, moves, colors, size, stones):
+    def from_moves(cls, moves, size, colors, stones):
         b = cls(size)
         for m, s, c in zip(moves, stones, colors):
             b.force_str(s + m, c)
