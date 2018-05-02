@@ -325,6 +325,13 @@ class Board:
     def execute(self, move, color):
         self.force_move(move, color)
 
+    @classmethod
+    def from_moves(cls, moves, colors, size, stones):
+        b = cls(size)
+        for m, s, c in zip(moves, stones, colors):
+            b.force_str(s + m, c)
+        return b
+
     def set(self, old_state):
         self.board = old_state
 
@@ -420,7 +427,6 @@ class Board:
                          for i in range(self.size))):
             return color
         return False
-
 
 def str_to_move(move: str) -> Move:
     move_dir = None
