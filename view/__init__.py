@@ -442,8 +442,15 @@ class ViewGame(tk.Tk, Game):
             self.running = True
         else:
             p = self.players[self.player]
-            if not self._run(p, self.turn, input_fn=lambda _: txt):
-                return
+            try:
+                if not self._run(p, self.turn, input_fn=lambda _: txt):
+                    return
+            except Exception as e:
+                print(e)
+                self.board = Board.from_moves(exec_road(txt, self.board.size), self.board.size,
+                                              colors=repeat(self.get_color()),
+                                              board=self.board)
+                self.vboard.board = self.board
             print(self.ptn)
             self.viz()
         self.vboard.input.delete(0, "end")

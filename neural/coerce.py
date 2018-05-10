@@ -3,13 +3,13 @@ from model import *
 import numpy as np
 
 def gen_classes(size):
-    for c in cols[:size]:
+    for c in ascii_lowercase[:size]:
         for r in range(1, size + 1):
-            for s in stones:
+            for s in STONES:
                 yield s + c + str(r)
             for t in range(1, size + 1):
                 for ms in sums(t):
-                    for d in dirs:
+                    for d in DIRS:
                         yield str(t) + c + str(r) + d + ''.join(map(str, ms))
 
 classes = list(gen_classes(4))
