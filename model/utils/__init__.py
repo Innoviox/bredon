@@ -5,9 +5,8 @@ from dataclasses   import dataclass, field
 from functools     import partial
 from itertools     import combinations, chain, starmap, repeat
 from operator      import sub
-from tabulate      import tabulate
+from tabulate      import tabulate, re
 from string        import ascii_lowercase
-import re
 
 PseudoBoard = namedtuple("PseudoBoard",
                          ("w", "h", "board", "bool", "err", "type"))
@@ -327,14 +326,8 @@ class Board:
 
     @classmethod
     def from_moves(cls, moves, size, colors=repeat(Colors.WHITE), stones=repeat(FLAT), board=None):
-        print(cls, moves, size, colors, stones)
-        print(board)
-        if board is None:
-            b = cls(size)
-        else:
-            b = board.copy()
+        b = cls(size) if board is None else board.copy()
         for m, s, c in zip(moves, stones, colors):
-            print("\t", m, s, c)
             b.force_str(s + m, c)
         return b
 

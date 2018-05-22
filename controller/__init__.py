@@ -1,5 +1,4 @@
-from model import *  # imports model
-
+from model import *
 import time
 from itertools import cycle
 

@@ -6,14 +6,9 @@ jobs:
     steps:
       - checkout
       - run: sudo pip install -r requirements.txt
+      - run: sudo pip install codecov
       - run: python main.py -g TextGame --size 5 --white ai:3
-  view:
-    docker:
-      - image: circleci/python:3.6.4
-    steps:
-      - checkout
-      - run: sudo pip install -r requirements.txt
-      - run: python view-test.py
+      - run: codecov --token=e656c624-cbc3-452f-952b-6cb1355c0ab6
 workflows:
   version: 2
   full:

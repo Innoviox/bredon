@@ -445,12 +445,17 @@ class ViewGame(tk.Tk, Game):
             try:
                 if not self._run(p, self.turn, input_fn=lambda _: txt):
                     return
-            except Exception as e:
-                print(e)
-                self.board = Board.from_moves(exec_road(txt, self.board.size), self.board.size,
-                                              colors=repeat(self.get_color()),
-                                              board=self.board)
-                self.vboard.board = self.board
+            except Exception as e1:
+                try:
+                    self.board = Board.from_moves(exec_road(txt, self.board.size), self.board.size,
+                                                  colors=repeat(self.get_color()),
+                                                  board=self.board)
+                    self.vboard.board = self.board
+                except Exception as e2:
+                    print("Unexpected error while parsing")
+                    print(e1)
+                    print("While parsing")
+                    print(e2)
             print(self.ptn)
             self.viz()
         self.vboard.input.delete(0, "end")

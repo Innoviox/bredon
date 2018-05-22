@@ -1,6 +1,6 @@
 from view import *
+from tests import *
 import click
-
 
 def validate_type(ctx, param, value):
     t, *n = value.split(":")
@@ -42,6 +42,8 @@ def validate_size(ctx, param, value):
               help="Type of the black player, [h(uman)|a(i)]:depth", show_default=True)
 def run_game(game, size, white, black):
     game(size=size, white=white, black=black).run()
+    test_notation()
+    # unittest.main(exit=False)
 
 
 def test_notation():
@@ -52,5 +54,4 @@ def test_notation():
 
 
 if __name__ == '__main__':
-    test_notation()
     run_game()
