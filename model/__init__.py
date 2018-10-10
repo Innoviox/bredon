@@ -1,5 +1,6 @@
 from .notation import *
 from .player   import *
+from .utils    import *
 
 def load_moves_from_file(filename, out=False):
     with open(filename) as file:
