@@ -5,9 +5,9 @@ import random
 class TakEnv(gym.Env):
     metadata = {'render.modes': ['ansi']}
 
-    def __init__(self, size=5, player_class=Player):
+    def __init__(self, size=5, player_class=Player, board=None):
         self.size = size
-        self.board = Board(size=size)
+        self.board = Board(size=size, board=board)
         self.players = [player_class(self.board, Colors.WHITE), player_class(self.board, Colors.BLACK)]
         self.turn, self.move = 1, 1
 
@@ -45,3 +45,19 @@ class TakEnv(gym.Env):
     def seed(self, seed=None):
         random.seed(seed)
         return [seed]
+
+class HypoEnv(TakEnv):
+    def __init__(self, **kwargs):
+        TakEnv.__init__(self, **kwargs)
+        self.old_state = self.board.copy()
+        
+    def step(self, action):
+        ret = super().step(action)
+        self.old_state = self.board.copy()
+        return ret
+        
+    def hypo_step(self, action):
+        return super().step(action)
+    
+    def un_step(self):
+        self.state = self.old_state.copy()
