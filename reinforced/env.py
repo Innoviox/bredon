@@ -8,6 +8,7 @@ class TakEnv(gym.Env):
     def __init__(self, size=5, player_class=Player, board=None):
         self.size = size
         self.board = Board(size=size, board=board)
+        self.player_class = player_class
         self.players = [player_class(self.board, Colors.WHITE), player_class(self.board, Colors.BLACK)]
         self.turn, self.move = 1, 1
 
@@ -56,8 +57,11 @@ class HypoEnv(TakEnv):
         self.old_state = self.board.copy()
         return ret
         
-    def hypo_step(self, action):
+    def hypostep(self, action):
         return super().step(action)
     
-    def un_step(self):
+    def unstep(self):
         self.state = self.old_state.copy()
+
+def hypoenv(env: TakEnv):
+    return HypoEnv(size=env.size, player_class=env.player_class, board=env.board.board)
