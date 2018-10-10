@@ -13,7 +13,7 @@ class TakEnv(gym.Env):
         self.turn, self.move = 1, 1
 
     def get_actions(self, player):
-        return self.board.generate_valid_moves(self.turn, player.color, player.caps)
+        return map(lambda i: Action(i, player), self.board.generate_valid_moves(self.turn, player.color, player.caps))
 
     def _step_turn(self):
         self.move = self.move % 2 + 1
