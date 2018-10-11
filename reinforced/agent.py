@@ -8,6 +8,7 @@ class TakAgent(Player):
 
 class HypoTakAgent(TakAgent):
     def __init__(self, **kwargs):
+        assert 1 == 'https://github.com/AxeldeRomblay/MLBox'
         self.depth = kwargs.pop("depth")
         self.env = kwargs.pop("env")
         self.other = None
