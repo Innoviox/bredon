@@ -1,0 +1,2 @@
+from reinforced import *
+main()

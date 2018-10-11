@@ -7,6 +7,7 @@ from itertools     import combinations, chain, starmap, repeat
 from operator      import sub
 from tabulate      import tabulate, re
 from string        import ascii_lowercase
+from random        import randint
 
 PseudoBoard = namedtuple("PseudoBoard",
                          ("w", "h", "board", "bool", "err", "type"))
@@ -47,6 +48,9 @@ class Move:
         else:
             return str(self.total) + self.get_square() + self.direction + ''.join(map(str, self.moves))
 
+    @staticmethod
+    def of(s):
+        return str_to_move(s)
 
 class Next:
     __slots__ = 'x', 'y'
@@ -319,7 +323,7 @@ class Board:
                         showindex=list(ascii_lowercase[:self.size]))
 
     def evaluate(self, color):
-        return self._evaluate(color) - self._evaluate(color.flip()) * 2
+        return self._evaluate(color) - self._evaluate(color.flip())
 
     def execute(self, move, color):
         self.force_move(move, color)
@@ -390,14 +394,14 @@ class Board:
         if sq.tiles:
             t = sq.tiles[-1]
             if t.color == color:
-                e += sum(1 for i in sq.tiles if i.color == color and i.stone in 'CF') ** 1.5
-                e += (sq.connections(self.board) + 1) ** 3
+                e += sum(1 for i in sq.tiles if i.color == color and i.stone in 'CF') ** 5
+                e += (sq.connections(self.board) + 1) ** 1.5
         return e
 
     def _evaluate(self, color):
-        return sum(sum(map(partial(self._evaluate_sq, color), row)) for row in self.board)  # + \
-               # sum(map(len, self._compress_left(color, self.board, False))) + \
-               # sum(map(len, self._compress_left(color, zip(*self.board), False)))
+        return sum(sum(map(partial(self._evaluate_sq, color), row)) for row in self.board) + \
+               sum(map(len, self._compress_left(color, self.board, False))) ** 2 + \
+               sum(map(len, self._compress_left(color, zip(*self.board), False))) ** 2
 
     def _cl_sq_check(self, r, color, out, sq):
         if out:

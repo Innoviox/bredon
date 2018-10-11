@@ -1,16 +1,17 @@
 import gym
 from model import *
+from .actions import Action
 import random
 
 class TakEnv(gym.Env):
     metadata = {'render.modes': ['ansi']}
 
-    def __init__(self, size=5, player_class=Player, board=None):
+    def __init__(self, size=5, players=None, board=None):
         self.size = size
         self.board = Board(size=size, board=board)
-        self.player_class = player_class
-        self.players = [player_class(self.board, Colors.WHITE), player_class(self.board, Colors.BLACK)]
+        self.players = players if players else []
         self.turn, self.move = 1, 1
+        self.done = False
 
     def get_actions(self, player):
         return map(lambda i: Action(i, player), self.board.generate_valid_moves(self.turn, player.color, player.caps))
@@ -24,21 +25,29 @@ class TakEnv(gym.Env):
         move = self.board.parse_move(action.move, action.color)
         if isinstance(move, PseudoBoard) and move.bool:
             self.board.force(move)
-            self._step_turn()
-            return (self.board.board,
-                    self.board.evaluate(action.color),
-                    self.board.winner(self.players),
-                    {} # TODO: implement info
-                    )
         else:
-            raise ValueError("Illegal Move")
+            for m in move:
+                if isinstance(move, PseudoBoard) and move.bool:
+                    self.board.force(m)
+                else:
+                    return False
+
+        self._step_turn()
+        s, r, d, i = (self.board.board,
+                      self.board.evaluate(action.color),
+                      self.board.winner(self.players),
+                      {} # TODO: implement info
+                     )
+        if d:
+            self.done = True
+        return s, r, d, i
 
     def reset(self):
         self.board = Board(size=self.size)
 
     def render(self, mode='ansi'):
         if mode == 'ansi':
-            return str(self.board)
+            print(str(self.board))
 
     def close(self):
         self.board = None
@@ -46,6 +55,9 @@ class TakEnv(gym.Env):
     def seed(self, seed=None):
         random.seed(seed)
         return [seed]
+
+    def add_player(self, p: Player):
+        self.players.append(p)
 
 class HypoEnv(TakEnv):
     def __init__(self, **kwargs):
@@ -61,7 +73,7 @@ class HypoEnv(TakEnv):
         return super().step(action)
     
     def unstep(self):
-        self.state = self.old_state.copy()
+        self.board = self.old_state.copy()
 
 def hypoenv(env: TakEnv):
-    return HypoEnv(size=env.size, player_class=env.player_class, board=env.board.board)
+    return HypoEnv(size=env.size, players=env.players, board=env.board.board)

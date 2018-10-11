@@ -12,6 +12,10 @@ class Colors(enum.Enum):
     def __str__(self):
         return self.name  #[0]
 
+    @staticmethod
+    def of(s):
+        return Colors[s]
+
 
 # PTN
 MARKS = '?!'
