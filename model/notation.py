@@ -42,7 +42,7 @@ class PTN:
 
     def __iter__(self):
         if self.moves:
-            return iter(*self.moves)
+            return iter(self.moves)
         return iter([])
 
 
