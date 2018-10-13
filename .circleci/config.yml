@@ -5,6 +5,7 @@ jobs:
       - image: circleci/python:3.6.4
     steps:
       - checkout
+      - run: cd bredon
       - run: sudo pip install -r requirements.txt
       - run: sudo pip install codecov
       - run: python main.py -g TextGame --size 5 --white ai:3
