@@ -2,9 +2,10 @@ import gym
 from model import *
 from .actions import Action
 import random
+from view import *
 
 class TakEnv(gym.Env):
-    metadata = {'render.modes': ['ansi']}
+    metadata = {'render.modes': ['ansi', 'human']}
 
     def __init__(self, size=5, players=None, board=None):
         self.size = size
@@ -12,6 +13,7 @@ class TakEnv(gym.Env):
         self.players = players if players else []
         self.turn, self.move = 1, 1
         self.done = False
+        self.vg = None
 
     def get_actions(self, player):
         return map(lambda i: Action(i, player), self.board.generate_valid_moves(self.turn, player.color, player.caps))
@@ -48,6 +50,12 @@ class TakEnv(gym.Env):
     def render(self, mode='ansi'):
         if mode == 'ansi':
             print(str(self.board))
+        elif mode == 'human':
+            if not self.vg:
+                self.vg = ViewGame(size=self.board.size, board=self.board, white=HUMAN, black=HUMAN)
+            else:
+                self.vg._init_gui(board=self.board)
+                self.vg.viz()
 
     def close(self):
         self.board = None

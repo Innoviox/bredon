@@ -1,4 +1,5 @@
 from model import *
+import random
 
 class Action:
     def __init__(self, move, player):
@@ -9,10 +10,16 @@ class Action:
             self.color = player
 
     def __repr__(self):
-        return str(self.color) + ":<" + str(self.move) + ">"
+        return str(self.color) + ":" + str(self.move)
 
     @staticmethod
     def of(s):
         c, m = s.split(":")
-        m = m[1:-1]
         return Action(Move.of(m), Colors.of(c))
+
+class Actions:
+    def __init__(self, env):
+        self.env = env
+
+    def sample(self, player):
+        return random.choice(list(self.env.get_actions(player)))

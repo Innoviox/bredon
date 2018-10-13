@@ -427,8 +427,9 @@ class ViewGame(tk.Tk, Game):
         del self.flats
         del self.vptn
 
-    def exec(self, *event, is_ai=False):
-        txt = self.vboard.input.get()
+    def exec(self, *event, txt=None, is_ai=False):
+        if not txt:
+            txt = self.vboard.input.get()
         if not is_ai and not txt:
             return
         if not self.running:

@@ -4,11 +4,13 @@ from random import sample
 from tqdm import *
 
 class TakAgent(Player):
-    pass
+    def __init__(self, **kwargs):
+        self.env = kwargs.pop("env")
+        Player.__init__(self, **kwargs)
 
 class HypoTakAgent(TakAgent):
     def __init__(self, **kwargs):
-        assert 1 == 'https://github.com/AxeldeRomblay/MLBox'
+        # assert 1 == 'https://github.com/AxeldeRomblay/MLBox'
         self.depth = kwargs.pop("depth")
         self.env = kwargs.pop("env")
         self.other = None
@@ -71,7 +73,7 @@ class HypoTakAgent(TakAgent):
         if c != 0:
             self.rewards[super_move] += n / c
 
-def make_agent(env, color, class_=HypoTakAgent, **kwargs):
+def make_agent(env, color, class_=TakAgent, **kwargs):
     return class_(env=env, color=color, board=env.board, **kwargs)
 
 def main():
