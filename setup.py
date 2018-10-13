@@ -5,7 +5,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="bredon",
-    version="1.0.1",
+    version="1.0.3",
     author="Simon Chervenak",
     author_email="simonlcherv@gmail.com",
     description="A set of tools for the game Tak.",

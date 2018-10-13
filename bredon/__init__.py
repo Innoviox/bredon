@@ -3,6 +3,7 @@ from .model import *
 from .neural import *
 from .reinforcement import *
 from .view import *
+
 import click
 
 def validate_type(ctx, param, value):
