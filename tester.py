@@ -1,14 +1,4 @@
-from reinforcement import *
+from bredon.reinforcement import *
+import gym
 
-env = TakEnv()
-actions = Actions(env)
-
-env.add_player(make_agent(env, Colors.WHITE))
-env.add_player(make_agent(env, Colors.BLACK))
-for i in range(20):
-    for p in env.players:
-        act = actions.sample(p)
-        print(act)
-        env.step(act)
-        env.render("human")
-        input()
+k = gym.make("Tak3x3-v0")
