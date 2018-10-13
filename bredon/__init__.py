@@ -1,5 +1,8 @@
-from bredon.view import *
-from tests import *
+from .controller import *
+from .model import *
+from .neural import *
+from .reinforcement import *
+from .view import *
 import click
 
 def validate_type(ctx, param, value):

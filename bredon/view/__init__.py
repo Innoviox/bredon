@@ -1,7 +1,7 @@
 import tkinter as tk
 from typing import Optional
 
-from controller import *
+from bredon.controller import *
 
 
 tk.Canvas.create_circle = lambda self, x, y, r, **kwargs: self.create_oval(x - r, y - r, x + r, y + r, **kwargs)

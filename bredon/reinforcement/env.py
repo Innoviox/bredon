@@ -1,8 +1,8 @@
 import gym
-from model import *
+from bredon.model import *
 from .actions import Action
 import random
-from view import *
+from bredon.view import *
 
 class TakEnv(gym.Env):
     metadata = {'render.modes': ['ansi', 'human']}

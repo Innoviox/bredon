@@ -1,5 +1,5 @@
-from bredon.view import *
-from tests import *
+from .view import *
+
 import click
 
 def validate_type(ctx, param, value):

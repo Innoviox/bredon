@@ -1,5 +1,5 @@
 from .env import *
-from model import *
+from ..model import *
 from random import sample
 from tqdm import *
 
