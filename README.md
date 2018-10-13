@@ -6,4 +6,10 @@
 
 UI and AI for the game Tak in python.
 
-Note: run `pip install -r requirements.txt` to install necessary packages.
+## Local installation
+ - `git clone https://github.com/Innoviox/bredon.git`
+ - `cd bredon`
+ - `pip install -r requirements.txt`
+
+## System installation
+ - `pip3 install bredon`
