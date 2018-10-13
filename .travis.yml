@@ -3,6 +3,7 @@ python:
   - "3.6.4"
 # command to install dependencies
 install:
+  - cd bredon
   - pip install -r requirements.txt
 # command to run tests
 before_script:
