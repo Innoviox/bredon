@@ -14,7 +14,7 @@ setuptools.setup(
     url="https://github.com/Innoviox/bredon",
     packages=setuptools.find_packages(),
     license="GNU General Public License v3.0",
-    install_requires=['dataclasses==0.4',
+    install_requires=['dataclasses==0.6',
                       'tabulate==0.8.2',
                       'click==7.0',
                       'gym==0.10.8',
