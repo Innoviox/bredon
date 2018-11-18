@@ -1,10 +1,12 @@
 import gym
 from bredon.model import *
-from .actions import Action
+from .actions import *
 import random
 from bredon.view import *
+import numpy as np
+from rl.core import Env as RlEnv
 
-class TakEnv(gym.Env):
+class TakEnv(gym.Env, RlEnv):
     metadata = {'render.modes': ['ansi', 'human']}
 
     def __init__(self, size=5, players=None, board=None):
@@ -25,6 +27,7 @@ class TakEnv(gym.Env):
 
     def step(self, action):
         move = self.board.parse_move(action.move, action.color)
+        # print(action)
         if isinstance(move, PseudoBoard) and move.bool:
             self.board.force(move)
         else:
@@ -32,10 +35,10 @@ class TakEnv(gym.Env):
                 if isinstance(move, PseudoBoard) and move.bool:
                     self.board.force(m)
                 else:
-                    return False
+                    return (self.get_state(), 0, False, {})
 
         self._step_turn()
-        s, r, d, i = (self.board.board,
+        s, r, d, i = (self.get_state(),
                       self.board.evaluate(action.color),
                       self.board.winner(self.players),
                       {} # TODO: implement info
@@ -44,11 +47,28 @@ class TakEnv(gym.Env):
             self.done = True
         return s, r, d, i
 
+    def get_state(self):
+        arr = []
+        for row in self.board.board:
+            k = []
+            for c in map(str, row):
+                i = 0
+                if len(c) > 6:
+                    stone = c[6]
+                    color = Colors.WHITE if c[0] == 'W' else Colors.BLACK
+                    i = STONES.index(stone) + 1
+                    if color == Colors.WHITE:
+                        i += 3
+                k.append(i)
+            arr.append(k)
+        return np.array(arr)
+
     def reset(self):
         self.board = Board(size=self.size)
+        return self.get_state()
 
     def render(self, mode='ansi'):
-        if mode == 'ansi':
+        if True or mode == 'ansi':
             print(str(self.board))
         elif mode == 'human':
             if not self.vg:
@@ -66,6 +86,41 @@ class TakEnv(gym.Env):
 
     def add_player(self, p: Player):
         self.players.append(p)
+
+    def make_agent(self, color, class_, **kwargs):
+        p = class_(env=self, color=color, board=self.board, **kwargs)
+        self.add_player(p)
+        return p
+
+class ActTakEnv(TakEnv):
+    def __init__(self, player, **kwargs):
+        TakEnv.__init__(self, **kwargs)
+        self.actions = Actions(self, player)
+        self.players = [player]
+
+    def step(self, n):
+        action = Action.of(self.actions.get_at_idx(n))
+        move = self.board.parse_move(action.move, action.color)
+        # print(action)
+        if isinstance(move, PseudoBoard) and move.bool:
+            self.board.force(move)
+        else:
+            for m in move:
+                if isinstance(move, PseudoBoard) and move.bool:
+                    self.board.force(m)
+                else:
+                    return (self.get_state(), 0, False, {})
+
+        self._step_turn()
+        s, r, d, i = (self.get_state(),
+                      self.board.evaluate(action.color),
+                      self.board.winner(self.players),
+                      {} # TODO: implement info
+                     )
+        if d:
+            self.done = True
+        return s, r, d, i
+
 
 class HypoEnv(TakEnv):
     def __init__(self, **kwargs):
