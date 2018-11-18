@@ -60,7 +60,7 @@ class Player(object):
                 return m, color
             else:
                 print("Parsed move", m)
-                input("Received error "+ v)
+                input("Received error " + v)
             # except Exception as e:
             #     print("Parsed move", m)
             #     print("Received error", e)
@@ -75,6 +75,7 @@ class Player(object):
 class BaseAI(Player):
     def pick_move(self, turn, input_fn=input, out=False):
         return
+
 
 class RandomAI(BaseAI):
     def pick_move(self, turn, input_fn=input, out=False):
@@ -101,7 +102,8 @@ class MinimaxAI(BaseAI):
         old_state = self.board.copy_board()
         alpha = -inf
         for move in moves:
-            if out: print("Running move", move, "current alpha", alpha)
+            if out:
+                print("Running move", move, "current alpha", alpha)
             self.board.execute(move, self.color)
             alpha = self.minimax(self.depth - 1, self.board, alpha, inf, True, self.color.flip(),
                                  self.board.copy_board(), turn, out=out) * 4
@@ -110,12 +112,15 @@ class MinimaxAI(BaseAI):
             if abs(alpha) > THRESHOLD:
                 alpha *= -1
             self.board.set(old_state)
-            if out: print("\t", ev, alpha, best_eval, best_move)
+            if out:
+                print("\t", ev, alpha, best_eval, best_move)
             if (self.depth % 2 == 1 and alpha >= best_eval) or (self.depth % 2 == 0 and alpha <= best_eval):
                 best_eval = alpha
                 best_move = move
-                if out: print("\tsetting move")
-        if out: input()
+                if out:
+                    print("\tsetting move")
+        if out:
+            input()
         return best_move
 
     def minimax(self, depth, board, alpha, beta, maximising, color, old_state, turn, out=False):
@@ -126,7 +131,7 @@ class MinimaxAI(BaseAI):
                 return MAX_N * depth
         elif depth == 0:
             return board.evaluate(color)
-        
+
         moves = board.generate_valid_moves(turn, color, self.caps)
         if maximising:
             b_eval = -inf

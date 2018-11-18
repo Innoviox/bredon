@@ -1,13 +1,13 @@
 from .constants import *
 
-from collections   import namedtuple
-from dataclasses   import dataclass, field
-from functools     import partial
-from itertools     import combinations, chain, starmap, repeat
-from operator      import sub
-from tabulate      import tabulate, re
-from string        import ascii_lowercase
-from random        import randint
+from collections import namedtuple
+from dataclasses import dataclass, field
+from functools import partial
+from itertools import combinations, chain, starmap, repeat
+from operator import sub
+from tabulate import tabulate, re
+from string import ascii_lowercase
+from random import randint
 
 PseudoBoard = namedtuple("PseudoBoard",
                          ("w", "h", "board", "bool", "err", "type"))
@@ -52,6 +52,7 @@ class Move:
     def of(s):
         return str_to_move(s)
 
+
 class Next:
     __slots__ = 'x', 'y'
 
@@ -86,7 +87,8 @@ class Tile(Next):
     y: int = None
 
     def __repr__(self):
-        return '%s{%s}' % (self.color, self.stone)  # + f'@{coords_to_tile(self.x, self.y)}'
+        # + f'@{coords_to_tile(self.x, self.y)}'
+        return '%s{%s}' % (self.color, self.stone)
 
 
 class Square(Next):
@@ -155,7 +157,7 @@ class Square(Next):
         return False
 
     def __repr__(self):
-        return ''.join(str(t) for t in self.tiles)  + f'@{coords_to_tile(self.x, self.y)}'
+        return ''.join(str(t) for t in self.tiles) + f'@{coords_to_tile(self.x, self.y)}'
 
 
 class Board:
@@ -201,12 +203,14 @@ class Board:
                 new_square = self.get(*new_square)
             elif isinstance(new_square, str):
                 try:
-                    new_square = self.get(*old_square.next(new_square, self.size))
+                    new_square = self.get(
+                        *old_square.next(new_square, self.size))
                 except ValueError:
                     return PseudoBoard(self.size, self.size, self.board, False,
                                        f"{old_square.x}, {old_square.y} is out of bounds for {new_square}", None)
             else:
-                raise TypeError("new_square must be Square, tuple, or str, got: %s" % new_square.__class__)
+                raise TypeError(
+                    "new_square must be Square, tuple, or str, got: %s" % new_square.__class__)
         else:
             new_square = self.get(new_square.x, new_square.y)
 
@@ -373,7 +377,8 @@ class Board:
                                 pass
 
     def generate_tps(self, turn=1, move=1):
-        tps = '/'.join(','.join(map(Square.generate_tps, row)) for row in self.board)
+        tps = '/'.join(','.join(map(Square.generate_tps, row))
+                       for row in self.board)
         for i in range(self.size, 1, -1):
             tps = re.sub("(x,){%d}x" % i, "x" + str(i + 1), tps)
             tps = re.sub("(x,){%d}" % i, "x" + str(i) + ",", tps)
@@ -394,14 +399,15 @@ class Board:
         if sq.tiles:
             t = sq.tiles[-1]
             if t.color == color:
-                e += sum(1 for i in sq.tiles if i.color == color and i.stone in 'CF') ** 5
+                e += sum(1 for i in sq.tiles if i.color ==
+                         color and i.stone in 'CF') ** 5
                 e += (sq.connections(self.board) + 1) ** 1.5
         return e
 
     def _evaluate(self, color):
         return sum(sum(map(partial(self._evaluate_sq, color), row)) for row in self.board) + \
-               sum(map(len, self._compress_left(color, self.board, False))) ** 2 + \
-               sum(map(len, self._compress_left(color, zip(*self.board), False))) ** 2
+            sum(map(len, self._compress_left(color, self.board, False))) ** 2 + \
+            sum(map(len, self._compress_left(color, zip(*self.board), False))) ** 2
 
     def _cl_sq_check(self, r, color, out, sq):
         if out:
@@ -430,6 +436,7 @@ class Board:
                          for i in range(self.size))):
             return color
         return False
+
 
 def str_to_move(move: str) -> Move:
     move_dir = None

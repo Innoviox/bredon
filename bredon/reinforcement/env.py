@@ -6,6 +6,7 @@ from bredon.view import *
 import numpy as np
 from rl.core import Env as RlEnv
 
+
 class TakEnv(gym.Env, RlEnv):
     metadata = {'render.modes': ['ansi', 'human']}
 
@@ -41,8 +42,8 @@ class TakEnv(gym.Env, RlEnv):
         s, r, d, i = (self.get_state(),
                       self.board.evaluate(action.color),
                       self.board.winner(self.players),
-                      {} # TODO: implement info
-                     )
+                      {}  # TODO: implement info
+                      )
         if d:
             self.done = True
         return s, r, d, i
@@ -72,7 +73,8 @@ class TakEnv(gym.Env, RlEnv):
             print(str(self.board))
         elif mode == 'human':
             if not self.vg:
-                self.vg = ViewGame(size=self.board.size, board=self.board, white=HUMAN, black=HUMAN)
+                self.vg = ViewGame(size=self.board.size,
+                                   board=self.board, white=HUMAN, black=HUMAN)
             else:
                 self.vg._init_gui(board=self.board)
                 self.vg.viz()
@@ -91,6 +93,7 @@ class TakEnv(gym.Env, RlEnv):
         p = class_(env=self, color=color, board=self.board, **kwargs)
         self.add_player(p)
         return p
+
 
 class ActTakEnv(TakEnv):
     def __init__(self, player, **kwargs):
@@ -115,8 +118,8 @@ class ActTakEnv(TakEnv):
         s, r, d, i = (self.get_state(),
                       self.board.evaluate(action.color),
                       self.board.winner(self.players),
-                      {} # TODO: implement info
-                     )
+                      {}  # TODO: implement info
+                      )
         if d:
             self.done = True
         return s, r, d, i
@@ -126,17 +129,18 @@ class HypoEnv(TakEnv):
     def __init__(self, **kwargs):
         TakEnv.__init__(self, **kwargs)
         self.old_state = self.board.copy()
-        
+
     def step(self, action):
         ret = super().step(action)
         self.old_state = self.board.copy()
         return ret
-        
+
     def hypostep(self, action):
         return super().step(action)
-    
+
     def unstep(self):
         self.board = self.old_state.copy()
+
 
 def hypoenv(env: TakEnv):
     return HypoEnv(size=env.size, players=env.players, board=env.board.board)

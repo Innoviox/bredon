@@ -2,6 +2,7 @@ from bredon.model import *
 from rl.core import Space as RlSpace
 import random
 
+
 class Action:
     def __init__(self, move, player):
         self.move = move
@@ -17,6 +18,7 @@ class Action:
     def of(s):
         c, m = s.split(":")
         return Action(Move.of(m), Colors.of(c))
+
 
 class Actions(RlSpace):
     def __init__(self, env, player):

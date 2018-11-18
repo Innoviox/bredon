@@ -2,6 +2,7 @@ from bredon.model import *
 import time
 from itertools import cycle
 
+
 class Game:
     def __init__(self, size=5, board=None, white=HUMAN, black=AI(3)):
         self.board = Board(size) if board is None else board
@@ -44,7 +45,7 @@ class Game:
         self.ptn.clear()
         turn = 1
         # while True:
-            # for player in self.players:
+        # for player in self.players:
         for player in self.player_order:
             print(self.ptn)
             self._run(player, turn)

@@ -10,7 +10,7 @@ class Colors(enum.Enum):
         return Colors(1 - self.value)
 
     def __str__(self):
-        return self.name  #[0]
+        return self.name  # [0]
 
     @staticmethod
     def of(s):
@@ -28,11 +28,11 @@ FLAT, CAP, STAND = STONES
 EMPTY = ' '
 
 # Graphics
-TILE_SIZE   = 40
+TILE_SIZE = 40
 SQUARE_SIZE = 75
-ANIM_STEPS  = 30
+ANIM_STEPS = 30
 OFFSET_STEP = 3
-PAD_STEP    = 5
+PAD_STEP = 5
 
 # What a great coder
 N, S, D = TILE_SIZE / 2, SQUARE_SIZE / 2, PAD_STEP
@@ -43,7 +43,10 @@ THRESHOLD = 10000
 
 # Controller
 HUMAN = "human", None
-AI = lambda n: ("AI", n)
+
+
+def AI(n): return ("AI", n)
+
 
 # Misc
 SIZES = {

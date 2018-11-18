@@ -4,6 +4,7 @@ from model import load_moves_from_file
 if not os.path.exists("games-csv/"):
     os.makedirs("games-csv/")
 
+
 def convert(infile):
     with open(infile) as f:
         with open("games-csv/" + infile.split("/")[1][:-4] + ".csv", "w") as o:

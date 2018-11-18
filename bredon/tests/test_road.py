@@ -31,6 +31,7 @@ def test_straight_roads():
     for c in "abcd":
         _test(c, "1234")
     for d in "1234":
-         _test("abcd", d * TEST_SIZE)
+        _test("abcd", d * TEST_SIZE)
+
 
 test_straight_roads()

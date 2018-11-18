@@ -3,6 +3,8 @@ import os
 URL = "playtak.com/games/{}.ptn"
 DIR = "/Users/chervjay/Documents/GitHub/Bredon/neural/games/"
 CMD = "wget -P {} {}"
+
+
 def get(i):
     if os.path.exists(DIR + str(i) + ".ptn"):
         print("File exists")

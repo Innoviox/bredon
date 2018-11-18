@@ -1,6 +1,7 @@
 from .notation import *
-from .player   import *
-from .utils    import *
+from .player import *
+from .utils import *
+
 
 def load_moves_from_file(filename, out=False):
     with open(filename) as file:
@@ -14,7 +15,8 @@ def load_moves_from_file(filename, out=False):
         for iturn, turn in enumerate(ptn_str[2:]):
             if 'R' in turn:
                 break
-            for imove, move in enumerate(turn.split(" ")[1:]):  # Exclude the round number
+            # Exclude the round number
+            for imove, move in enumerate(turn.split(" ")[1:]):
                 if move:
                     if iturn == 0:
                         curr_player = [Colors.BLACK, Colors.WHITE][imove]
@@ -36,6 +38,7 @@ def load_moves_from_file(filename, out=False):
                     ptn.append(move)
                     yield b, move
     yield b, ptn
+
 
 def exec_road(threat, size, return_size=False):
     """

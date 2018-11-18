@@ -4,7 +4,8 @@ from typing import Optional
 from bredon.controller import *
 
 
-tk.Canvas.create_circle = lambda self, x, y, r, **kwargs: self.create_oval(x - r, y - r, x + r, y + r, **kwargs)
+tk.Canvas.create_circle = lambda self, x, y, r, **kwargs: self.create_oval(
+    x - r, y - r, x + r, y + r, **kwargs)
 
 
 class ViewSquare:
@@ -19,7 +20,8 @@ class ViewSquare:
         self.nridx = None
 
     def render_tile(self, tile, idx, offset_x=0.0, offset_y=0.0):
-        if tile is None: return
+        if tile is None:
+            return
         o = OFFSET_STEP * idx
 
         x1, y1 = offset_x + self.ix + S - N, offset_y + self.jy + S - N - o + D
@@ -56,12 +58,14 @@ class ViewSquare:
         self.rect = self.master.canvas.create_rectangle(self.ix, self.jy, self.ix + SQUARE_SIZE, self.jy + SQUARE_SIZE,
                                                         fill="green" if active else "white")
         if possible:
-            self.circle = self.create_circle(self.ix + S, self.jy + S, S - 5, outline="blue", width=5)
+            self.circle = self.create_circle(
+                self.ix + S, self.jy + S, S - 5, outline="blue", width=5)
         self.ids = []
         tiles = self.get_tiles(self.master.board)[:]
         if self.nridx is not None:
             tiles.insert(self.nridx, None)
-        self.ids = [self.render_tile(tile, idx) for idx, tile in enumerate(self.get_tiles(self.master.board), start=1)]
+        self.ids = [self.render_tile(tile, idx) for idx, tile in enumerate(
+            self.get_tiles(self.master.board), start=1)]
 
     def create_circle(self, x, y, r, **kwargs):
         return self.master.canvas.create_circle(x, y, r, **kwargs)
@@ -82,9 +86,11 @@ class ViewBoard(tk.Frame):
         self.size = master.board.size
         self.squares = []
 
-        tk.Frame.__init__(self, master, width=(self.size + 2) * SQUARE_SIZE, height=(self.size + 2) * SQUARE_SIZE)
+        tk.Frame.__init__(self, master, width=(self.size + 2)
+                          * SQUARE_SIZE, height=(self.size + 2) * SQUARE_SIZE)
         self.pack_propagate(0)
-        self.canvas = tk.Canvas(self, width=self.size * SQUARE_SIZE, height=self.size * SQUARE_SIZE)
+        self.canvas = tk.Canvas(
+            self, width=self.size * SQUARE_SIZE, height=self.size * SQUARE_SIZE)
         # self.canvas.pack()
         self._init_gui()
         self.actives = [False for _ in range(self.size ** 2)]
@@ -104,12 +110,16 @@ class ViewBoard(tk.Frame):
         self.canvas.bind("<Escape>", self.clear)
 
     def _init_gui(self):
-        self.input = tk.Entry(self, font = "Courier 12")  #, width = SQUARE_SIZE * 2 // 12)
+        # , width = SQUARE_SIZE * 2 // 12)
+        self.input = tk.Entry(self, font="Courier 12")
         self.input.bind("<Return>", self.master.exec)
-        self.exec_button = tk.Button(self, text="Exec", font="Courier 12", command=self.master.exec, width=7)
-        self.clear_button = tk.Button(self, text="Clear", font="Courier 12", command=self.clear, width=7)
+        self.exec_button = tk.Button(
+            self, text="Exec", font="Courier 12", command=self.master.exec, width=7)
+        self.clear_button = tk.Button(
+            self, text="Clear", font="Courier 12", command=self.clear, width=7)
 
-        self.canvas.grid(row=1, column=1, columnspan=self.size, rowspan=self.size)
+        self.canvas.grid(
+            row=1, column=1, columnspan=self.size, rowspan=self.size)
 
         self.input.grid(row=6, column=1, columnspan=2)
         self.exec_button.grid(row=6, column=4)
@@ -119,13 +129,12 @@ class ViewBoard(tk.Frame):
         self.row_labels = tk.Label(self, text=spaces+(spaces*2).join(ascii_lowercase[:self.size])+spaces,
                                    font="Courier 12", height=1).grid(column=1, row=0, columnspan=self.size)
 
-        self.col_labels = [tk.Label(self, text=i + 1, font="Courier 12", height=1, width=1)  #, bd=5, relief=tk.GROOVE)
+        self.col_labels = [tk.Label(self, text=i + 1, font="Courier 12", height=1, width=1)  # , bd=5, relief=tk.GROOVE)
                            # .grid(column=0, row=i + 1)
                            for i in range(self.size)]
         for i, l in enumerate(self.col_labels, start=1):
             l.place_configure(x=i*SQUARE_SIZE)
             l.grid(column=0, row=i)
-
 
         for i in range(self.size):
             for j in range(self.size):
@@ -138,14 +147,16 @@ class ViewBoard(tk.Frame):
             self.input.delete(0, tk.END)
             self.input.insert(0, S)
             self.move = None
-            self.render()  #flip_color(self.master.get_color()))
+            self.render()  # flip_color(self.master.get_color()))
             self.b = self.board.copy()
             self.board = self.master.board.copy()
             self.board.force_str(self.input.get(), self.master.get_color())
-            self.execute(self.input.get().strip(), self.master.players[self.master.player], self.b)
-            self.render()  #flip_color(self.master.get_color()))
+            self.execute(self.input.get().strip(),
+                         self.master.players[self.master.player], self.b)
+            self.render()  # flip_color(self.master.get_color()))
             self.move = None
-            if not f: self.board = self.b
+            if not f:
+                self.board = self.b
 
         stones = self.master.stones[self.master.get_color()]
         self.i = (self.i + 1) % len(stones)
@@ -159,7 +170,8 @@ class ViewBoard(tk.Frame):
                 self.grabbed = sq
                 self.grabbed_first = self.grabbed
                 self.grabbed.nridx = self.nridx = 1
-                self.render()  #flip_color(self.master.players[self.master.player].color))
+                # flip_color(self.master.players[self.master.player].color))
+                self.render()
         else:
             x1, y1 = sq.i, sq.j
             x, y = self.grabbed.i, self.grabbed.j
@@ -175,7 +187,8 @@ class ViewBoard(tk.Frame):
                     return
                 x, y = self.grabbed_first.i, self.grabbed_first.j
                 self.moves.append(1)
-                S = str(self.nridx) + ascii_lowercase[x] + str(y + 1) + direction
+                S = str(self.nridx) + \
+                    ascii_lowercase[x] + str(y + 1) + direction
                 if self.moves:
                     S += ''.join(map(str, self.moves))
                 _run(S, f=True)
@@ -183,14 +196,16 @@ class ViewBoard(tk.Frame):
                 if self.grabbed.nridx > 1:
                     self.grabbed.nridx -= 1
                     self.switch_g()
-                    self.render()  #flip_color(self.master.players[self.master.player].color))
+                    # flip_color(self.master.players[self.master.player].color))
+                    self.render()
             elif a == 0 and b == 0:
                 if not self.direction and len(self.grabbed.get_tiles(self.board)) > self.grabbed.nridx:
                     self.grabbed.nridx += 1
                     self.nridx += 1
                 elif sum(self.moves) < len(self.grabbed_first.get_tiles(self.board)):
                     self.moves[-1] += 1
-                self.render()  #flip_color(self.master.players[self.master.player].color))
+                # flip_color(self.master.players[self.master.player].color))
+                self.render()
 
     def clear(self, r=True):
         if not isinstance(self.grabbed, bool):
@@ -201,7 +216,8 @@ class ViewBoard(tk.Frame):
         self.board = self.master.board
         self.moves = []
         if r:
-            self.render()  #flip_color(self.master.players[self.master.player].color))
+            # flip_color(self.master.players[self.master.player].color))
+            self.render()
 
     def switch_g(self):
         N = self.grabbed.nridx
@@ -287,7 +303,7 @@ class ViewBoard(tk.Frame):
     def get_square(self, sq) -> ViewSquare:
         return self.squares[sq[0] * self.size + sq[1]]
 
-    def render(self):  #, color):
+    def render(self):  # , color):
         color = self.master.get_color()
         if self.move is not None:
             if str_to_move(self.move[0]).direction is not None:
@@ -310,7 +326,8 @@ class _Canvas(tk.Canvas):
         self.height = height
         self.name1, self.name2 = self.get_name(0), self.get_name(1)
 
-        tk.Canvas.__init__(self, master, bd=bd, relief=relief, width=width, height=height)
+        tk.Canvas.__init__(self, master, bd=bd, relief=relief,
+                           width=width, height=height)
 
     def get_player(self, player):
         return self.players[player]
@@ -328,21 +345,26 @@ class _Canvas(tk.Canvas):
 
 class FlatCanvas(_Canvas):
     def __init__(self, master):
-        _Canvas.__init__(self, master, master.board.size * SQUARE_SIZE, 30, bd=0)
+        _Canvas.__init__(self, master, master.board.size *
+                         SQUARE_SIZE, 30, bd=0)
 
     def render(self):
         self.delete("all")
-        w, b = self.board.count_flats(Colors.WHITE), self.board.count_flats(Colors.BLACK)
+        w, b = self.board.count_flats(
+            Colors.WHITE), self.board.count_flats(Colors.BLACK)
         try:
             S = (w / (w + b)) * self.width
         except ZeroDivisionError:
             S = self.width / 2
         if S != 0:
-            self.create_rectangle(0, 0, S, self.height, fill=Colors.WHITE.name, outline=Colors.BLACK.name)
+            self.create_rectangle(
+                0, 0, S, self.height, fill=Colors.WHITE.name, outline=Colors.BLACK.name)
             self.create_text(S/2, self.height / 2, text=w)
         if S != self.width:
-            self.create_rectangle(S, 0, self.width, self.height, fill=Colors.BLACK.name)
-            self.create_text(S + (self.width-S)/2, self.height / 2, text=b, fill=Colors.WHITE.name)
+            self.create_rectangle(
+                S, 0, self.width, self.height, fill=Colors.BLACK.name)
+            self.create_text(S + (self.width-S)/2, self.height /
+                             2, text=b, fill=Colors.WHITE.name)
 
 
 class TilesCanvas(_Canvas):
@@ -351,7 +373,8 @@ class TilesCanvas(_Canvas):
         _Canvas.__init__(self, master,
                          width=len(master.players[0].name)*12+10,
                          height=SQUARE_SIZE * master.board.size)
-        self.player = [i for i, p in enumerate(master.players) if p.color == color][0]
+        self.player = [i for i, p in enumerate(
+            master.players) if p.color == color][0]
 
     def render(self):
         self.delete("all")
@@ -368,22 +391,26 @@ class TilesCanvas(_Canvas):
         x1, y1 = x2 - TILE_SIZE, y2 - TILE_SIZE
         S = TILE_SIZE / 2
         for _ in range(self.calc_stones(p)[1]):
-            self.create_rectangle(x1, y1, x2, y2, fill=Colors(player).name, outline=Colors(p).flip().name)
+            self.create_rectangle(x1, y1, x2, y2, fill=Colors(
+                player).name, outline=Colors(p).flip().name)
             y1 -= self.step
             y2 -= self.step
         for _ in range(self.calc_stones(p)[0]):
-            self.create_circle(x2-S, y2-S, S, fill=Colors(player).name, outline=Colors(p).flip().name)
+            self.create_circle(
+                x2-S, y2-S, S, fill=Colors(player).name, outline=Colors(p).flip().name)
             y2 -= self.step
 
 
 class PtnCanvas(_Canvas):
     def __init__(self, master):
-        _Canvas.__init__(self, master, width=150, height=SQUARE_SIZE * master.board.size)
+        _Canvas.__init__(self, master, width=150,
+                         height=SQUARE_SIZE * master.board.size)
 
     def render(self):
         self.delete("all")
         self.create_text(12, 12, anchor=tk.NW, font=("Courier", 12),
                          text=str(self.master.ptn))
+
 
 class ViewGame(tk.Tk, Game):
     def __init__(self, **kw):
@@ -392,12 +419,12 @@ class ViewGame(tk.Tk, Game):
         self._init_gui()
 
         self.viz()
-       
+
     def _init_gui(self, **kw):
         for key, value in kw.items():
             self.__setattr__(key, value)
         self.wm_title("tak")
-        
+
         self.vboard = ViewBoard(self)
         self.btiles = TilesCanvas(self, Colors.BLACK)
         self.wtiles = TilesCanvas(self, Colors.WHITE)
@@ -407,8 +434,10 @@ class ViewGame(tk.Tk, Game):
         self.flats.grid(row=0, column=1, columnspan=self.board.size)
         self.vboard.grid(row=2, column=1)
         self.btiles.grid(row=2, column=0, rowspan=self.board.size)
-        self.wtiles.grid(row=2, column=self.board.size+1, rowspan=self.board.size)
-        self.vptn.grid(row=2, column=self.board.size+2, rowspan=self.board.size)
+        self.wtiles.grid(row=2, column=self.board.size +
+                         1, rowspan=self.board.size)
+        self.vptn.grid(row=2, column=self.board.size +
+                       2, rowspan=self.board.size)
 
         self.turn = self.player = 0
         self.running = False
@@ -449,7 +478,8 @@ class ViewGame(tk.Tk, Game):
             except Exception as e1:
                 try:
                     self.board = Board.from_moves(exec_road(txt, self.board.size), self.board.size,
-                                                  colors=repeat(self.get_color()),
+                                                  colors=repeat(
+                                                      self.get_color()),
                                                   board=self.board)
                     self.vboard.board = self.board
                 except Exception as e2:
