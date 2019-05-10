@@ -2,9 +2,7 @@ import pickle
 from .model import *
 import numpy as np
 
-def board_to_vector(ptn: PTN):
-    m, s, c = ptn.to_moves()
-    board = Board.from_moves(m, 8, c, s)
+def board_to_vector(board: Board):
     b = [0] * 512
     for i, row in enumerate(board.board):
         for j, sq in enumerate(row):
@@ -60,13 +58,23 @@ def vector_to_move(v):
         pass
     return m
 
+def color_iterator():
+    yield Colors.BLACK
+    yield Colors.WHITE
+    while 1:
+        yield Colors.WHITE
+        yield Colors.BLACK
+
 def load_features(fn):
     print("Reading:", fn)
     boards, moves = [], []
-    ptn = PTN()
+    # ptn = PTN()
+    b = Board(8)
+    c = color_iterator()
     for m in load_moves_from_file(fn):
-        ptn.append(m)
-        boards.append(board_to_vector(ptn))
+        # ptn.append(m)
+        b.force_move(m, next(c))
+        boards.append(board_to_vector(b))
         moves.append(move_to_vector(m))
     return boards, moves
 
@@ -106,7 +114,7 @@ if __name__ == '__main__':
     print(vector_to_move(move_to_vector(move)))
 
 
-    #files = []
-    #train_x, train_y, test_x, test_y = create_feature_sets_and_labels(files)
-    #with open('note_features.pickle', 'wb') as f:
-    #    pickle.dump([train_x, train_y, test_x, test_y], f)
+    files = os.listdir("/Volumes/External Hard Drive/tak_games/")
+    train_x, train_y, test_x, test_y = create_feature_sets_and_labels(files)
+    with open('note_features.pickle', 'wb') as f:
+        pickle.dump([train_x, train_y, test_x, test_y], f)
