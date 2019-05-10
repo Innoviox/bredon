@@ -1,5 +1,5 @@
 import pickle
-from ..model import *
+from model import *
 import numpy as np
 
 def board_to_vector(ptn):
@@ -18,21 +18,37 @@ def move_to_vector(m: Move):
     Next 8 slots: what column
     Next 8 slots: what row
     Next 64 slots: how much the player is moving
+    Last 4 slots: what direction
     ---
     Total: 80 slots
     :param m:
     :return:
     '''
-    v = np.zeros(80)
+    v = [0] * 84
     i = -1
     for k in [m.total, m.get_col_n(), m.row, *m.moves]:
-        v[k + i] = 1
+        v[int(k) + i] = 1
         i += 8
+    if m.direction:
+        v[-DIRS.index(m.direction)-1] = 1
     return v
 
 
 def vector_to_move(v):
-    
+    m = Move()
+    print(v)
+    m.total = v.index(1) + 1
+    m.col = ascii_lowercase[v.index(1, 7) - 7]
+    m.row = v.index(1, 15) - 15
+    for i in range(23, 79, 8):
+        if 1 in v[i:i+8]:
+            m.moves.append(v[i:i+8].index(1))
+    try:
+        m.direction = DIRS[3 - (v.index(1, 80) - 80)]
+    except ValueError:
+        # move is a placement
+        pass
+    return m
 
 def load_features(fn):
     print("Reading:", fn)
@@ -70,7 +86,17 @@ def create_feature_sets_and_labels(files, test_size=0.1):
 
 
 if __name__ == '__main__':
-    files = []
-    train_x, train_y, test_x, test_y = create_feature_sets_and_labels(files)
-    with open('note_features.pickle', 'wb') as f:
-        pickle.dump([train_x, train_y, test_x, test_y], f)
+    move = Move.of('a1')
+    print(vector_to_move(move_to_vector(move)))
+
+    move = Move.of('8b4+2213')
+    print(vector_to_move(move_to_vector(move)))
+
+    move = Move.of('2b4>2')
+    print(vector_to_move(move_to_vector(move)))
+
+
+    #files = []
+    #train_x, train_y, test_x, test_y = create_feature_sets_and_labels(files)
+    #with open('note_features.pickle', 'wb') as f:
+    #    pickle.dump([train_x, train_y, test_x, test_y], f)
