@@ -26,6 +26,16 @@ class PTN:
     def clear(self):
         self.moves.clear()
 
+    def to_moves(self):
+        moves = [move for ply in self.moves for move in ply]
+        stones = [move.stone for move in moves]
+        colors = [Colors.BLACK, Colors.WHITE]
+        c = Colors.WHITE
+        for m in moves:
+            colors.append(c)
+            c = Colors.WHITE if c == Colors.BLACK else Colors.BLACK
+        return moves, stones, colors
+
     def __getitem__(self, turn):
         return self.moves[turn]
 

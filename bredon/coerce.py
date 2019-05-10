@@ -1,12 +1,22 @@
 import pickle
-from model import *
+from .model import *
 import numpy as np
 
-def board_to_vector(ptn):
-    b = np.zeroes(len(classes))
-    for move in ptn:
-        b[classes.index(move)] += 1
+def board_to_vector(ptn: PTN):
+    m, s, c = ptn.to_moves()
+    board = Board.from_moves(m, 8, c, s)
+    b = [0] * 512
+    for i, row in enumerate(board.board):
+        for j, sq in enumerate(row):
+            for k, tile in enumerate(sq.tiles[-8:]):
+                idx = k + j * 8 + i * 64
+                i = STONES.index(tile.stone) + 1
+                if tile.color == Colors.WHITE:
+                    i += 3
+                b[idx] = i
     return b
+
+
 
 
 def move_to_vector(m: Move):
