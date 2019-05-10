@@ -39,6 +39,9 @@ class Move:
     def get_square(self):
         return self.col + str(self.row)
 
+    def get_col_n(self):
+        return ascii_lowercase.index(self.col)
+
     def __repr__(self):
         return 'Move(' + ', '.join([f"{k}={v!r}" for k, v in self.__dict__.items()]) + ')'
 

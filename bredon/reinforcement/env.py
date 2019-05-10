@@ -115,11 +115,17 @@ class ActTakEnv(TakEnv):
                     return (self.get_state(), 0, False, {})
 
         self._step_turn()
+
+        p = Player(self.board, Colors.BLACK)
+        self.board.force_move(p.pick_move(2), p.color)
+
         s, r, d, i = (self.get_state(),
                       self.board.evaluate(action.color),
                       self.board.winner(self.players),
                       {}  # TODO: implement info
                       )
+
+
         if d:
             self.done = True
         return s, r, d, i

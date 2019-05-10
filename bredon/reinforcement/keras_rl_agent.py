@@ -27,7 +27,7 @@ model.add(Dense(16))
 model.add(Activation('relu'))
 model.add(Dense(n_actions))
 model.add(Activation('linear'))
-print(model.summary())
+model.summary()
 
 # Finally, we configure and compile our agent. You can use every built-in Keras optimizer and
 # even the metrics!

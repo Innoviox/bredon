@@ -1,21 +1,6 @@
 import pickle
-from model import *
+from ..model import *
 import numpy as np
-
-
-def gen_classes(size):
-    for c in ascii_lowercase[:size]:
-        for r in range(1, size + 1):
-            for s in STONES:
-                yield s + c + str(r)
-            for t in range(1, size + 1):
-                for ms in sums(t):
-                    for d in DIRS:
-                        yield str(t) + c + str(r) + d + ''.join(map(str, ms))
-
-
-classes = list(gen_classes(4))
-
 
 def board_to_vector(ptn):
     b = np.zeroes(len(classes))
@@ -24,11 +9,30 @@ def board_to_vector(ptn):
     return b
 
 
-def move_to_vector(m):
-    v = np.zeroes(len(classes))
-    v[classes.index(m)] = 1
+def move_to_vector(m: Move):
+    '''
+    Converts a move to a vector of 1s and 0s.
+
+    The 1s and 0s are in the following format:
+    First 8 slots: if the person is moving tiles, how many
+    Next 8 slots: what column
+    Next 8 slots: what row
+    Next 64 slots: how much the player is moving
+    ---
+    Total: 80 slots
+    :param m:
+    :return:
+    '''
+    v = np.zeros(80)
+    i = -1
+    for k in [m.total, m.get_col_n(), m.row, *m.moves]:
+        v[k + i] = 1
+        i += 8
     return v
 
+
+def vector_to_move(v):
+    
 
 def load_features(fn):
     print("Reading:", fn)

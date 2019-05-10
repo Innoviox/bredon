@@ -1,7 +1,7 @@
 import os
 
 URL = "playtak.com/games/{}.ptn"
-DIR = "/Users/chervjay/Documents/GitHub/Bredon/neural/games/"
+DIR = "/Volumes/External\ Hard\ Drive/tak_games/"
 CMD = "wget -P {} {}"
 
 
