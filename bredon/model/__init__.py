@@ -37,7 +37,7 @@ def load_moves_from_file(filename, out=False):
                         curr_player = Colors.BLACK
                     ptn.append(move)
                     yield b, move
-    yield b, ptn
+    # yield b, ptn
 
 
 def exec_road(threat, size, return_size=False):

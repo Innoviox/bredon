@@ -1,6 +1,7 @@
 import pickle
-from .model import *
+from model import *
 import numpy as np
+import os
 
 def board_to_vector(board: Board):
     b = [0] * 512
@@ -12,7 +13,7 @@ def board_to_vector(board: Board):
                 if tile.color == Colors.WHITE:
                     i += 3
                 b[idx] = i
-    return b
+    return np.array(b)
 
 
 
@@ -39,7 +40,7 @@ def move_to_vector(m: Move):
         i += 8
     if m.direction:
         v[-DIRS.index(m.direction)-1] = 1
-    return v
+    return np.array(v)
 
 
 def vector_to_move(v):
@@ -58,6 +59,26 @@ def vector_to_move(v):
         pass
     return m
 
+def non_normal_vtm(v):
+    max_idx = lambda l: l.index(max(l))
+    total = v[:8]
+    col = v[8:16]
+    row = v[16:24]
+    moves = v[24:-4]
+    moves = [moves[i:i+8] for i in range(0, len(moves), 8)]
+    dire = v[-4:]
+
+    m = Move()
+    m.total = max_idx(total)
+    m.col = ascii_lowercase[max_idx(col)]
+    m.row = max_idx(row)
+    for i in moves:
+        m.moves.append(max_idx(i))
+    m.direction = DIRS[3 - max_idx(dire)]
+
+    return m
+
+
 def color_iterator():
     yield Colors.BLACK
     yield Colors.WHITE
@@ -69,13 +90,18 @@ def load_features(fn):
     print("Reading:", fn)
     boards, moves = [], []
     # ptn = PTN()
-    b = Board(8)
-    c = color_iterator()
-    for m in load_moves_from_file(fn):
+    for b, m in load_moves_from_file(fn):
+        # print(b, m)
+        # print(m)
         # ptn.append(m)
-        b.force_move(m, next(c))
-        boards.append(board_to_vector(b))
-        moves.append(move_to_vector(m))
+        # b.force_move(m, next(c))
+        try:
+            boards.append(board_to_vector(b))
+            moves.append(move_to_vector(str_to_move(m)))
+        except Exception as e:
+            print(e)
+            # input()
+
     return boards, moves
 
 
@@ -88,33 +114,30 @@ def handle_features(fn):
 
 def create_feature_sets_and_labels(files, test_size=0.1):
     features = []
-    for file in files:
-        features.extend(zip(*handle_features(file)))
+    try:
+        for file in files:
+            features.extend(zip(*handle_features(file)))
+    except KeyboardInterrupt:
+        print("reading terminated")
+    except:
+        print("reading terminated b/c suck :)")
     random.shuffle(features)
     features = np.array(features)
 
     testing_size = int(test_size*len(features))
 
-    train_x = list(features[:, 0][:-testing_size])
-    train_y = list(features[:, 1][:-testing_size])
-    test_x = list(features[:, 0][-testing_size:])
-    test_y = list(features[:, 1][-testing_size:])
+    train_x = np.array(list(features[:, 0][:-testing_size]))
+    train_y = np.array(list(features[:, 1][:-testing_size]))
+    test_x = np.array(list(features[:, 0][-testing_size:]))
+    test_y = np.array(list(features[:, 1][-testing_size:]))
 
     return train_x, train_y, test_x, test_y
 
 
 if __name__ == '__main__':
-    move = Move.of('a1')
-    print(vector_to_move(move_to_vector(move)))
-
-    move = Move.of('8b4+2213')
-    print(vector_to_move(move_to_vector(move)))
-
-    move = Move.of('2b4>2')
-    print(vector_to_move(move_to_vector(move)))
-
-
-    files = os.listdir("/Volumes/External Hard Drive/tak_games/")
+    os.chdir("/Volumes/External Hard Drive/tak_games/")
+    files = os.listdir()
     train_x, train_y, test_x, test_y = create_feature_sets_and_labels(files)
-    with open('note_features.pickle', 'wb') as f:
+    with open('../tak.pickle', 'wb') as f:
         pickle.dump([train_x, train_y, test_x, test_y], f)
+        print("dumped")
