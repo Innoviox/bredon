@@ -17,9 +17,8 @@ def normalized(a, axis=-1, order=2):
 def train():
     model = Sequential()
 
-    model.add(Dense(16, input_dim=512, activation='relu'))
-    model.add(Dense(16, activation='relu'))
-    model.add(Dense(16, activation='relu'))
+    model.add(Dense(50, input_dim=512, activation='relu'))
+    model.add(Dense(25, activation='relu'))
     model.add(Dense(84, activation='sigmoid'))
 
     model.summary()
@@ -34,15 +33,9 @@ def train():
 
 def test():
     model = load_model("/Volumes/External Hard Drive/tak.h5")
-
-    b = Board(5)
-    c = color_iterator()
-    while 1:
-        print(b)
-        move = model.predict(np.array([board_to_vector(b)]))[0]
-        m = list(map(lambda i: round(i * 10, 2), move))
-        print(non_normal_vtm(m))
-        b.force_str(input("hi: "), next(c))
+    for a, b in zip(model.predict(xtest), ytest):
+        print(non_normal_vtm(list(a)))
+        print(vector_to_move(list(b)))
 
 
-test()
+train()

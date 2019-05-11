@@ -45,7 +45,6 @@ def move_to_vector(m: Move):
 
 def vector_to_move(v):
     m = Move()
-    print(v)
     m.total = v.index(1) + 1
     m.col = ascii_lowercase[v.index(1, 7) - 7]
     m.row = v.index(1, 15) - 15
