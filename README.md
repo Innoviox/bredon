@@ -13,3 +13,7 @@ UI and AI for the game Tak in python.
 
 ## System installation
  - `pip3 install bredon`
+
+## Sample Usage
+ - `python3.7 -m bredon`
+ - `python3.7 -m bredon --white human --black ai:5 --game View`
