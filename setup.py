@@ -15,7 +15,7 @@ setuptools.setup(
     packages=setuptools.find_packages(),
     license="GNU General Public License v3.0",
     install_requires=['dataclasses==0.4',
-                      'tabulate==0.8.2',
+                      'tabulate==0.8.4',
                       'click==7.0',
                       'gym==0.10.8',
                       'tqdm==4.26.0',
