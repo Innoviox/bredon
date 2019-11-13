@@ -1,7 +1,7 @@
 from .notation import *
 from .player import *
 from .utils import *
-
+from .monte import *
 
 def load_moves_from_file(filename, out=False):
     with open(filename) as file:

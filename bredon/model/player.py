@@ -1,6 +1,7 @@
 import random
 
 from .utils import *
+from .monte import State, mcts
 
 inf = float('inf')
 
@@ -158,3 +159,17 @@ class MinimaxAI(BaseAI):
                         return beta
                     return -beta
         return b_eval
+
+class MonteAI(Player):
+    def __init__(self, size, color, time=1000):
+        self.state = State(size=size)
+        self.time = time
+        self.mcts = mcts(timeLimit=self.time)
+
+        super(Player, self).__init__(self.state, self.color)
+
+    def pick(self):
+        return self.mcts.search(self.state)
+
+    def act(self, action, color):
+        self.state.step(action, color)

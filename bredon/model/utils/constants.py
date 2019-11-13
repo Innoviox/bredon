@@ -46,6 +46,7 @@ HUMAN = "human", None
 
 
 def AI(n): return ("AI", n)
+def Monte(t): return ("Monte", t)
 
 
 # Misc
