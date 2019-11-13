@@ -166,7 +166,7 @@ class MonteAI(Player):
         self.time = time
         self.mcts = mcts(timeLimit=self.time)
 
-        super(Player, self).__init__(self.state, self.color)
+        super(Player, self).__init__(self.state, color)
 
     def pick(self):
         return self.mcts.search(self.state)
