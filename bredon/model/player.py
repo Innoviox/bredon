@@ -16,6 +16,7 @@ class Player(object):
     def _do(self, m: Move, c, f=True):
         move = self.board.parse_move(m, c)
         if isinstance(move, PseudoBoard):
+            print(move)
             if move.bool:
                 stone_type = m.stone
                 stone, cap = False, False
@@ -197,7 +198,12 @@ class State(Board):
 
     def step_current(self, action):
        p = self.cp
-       p._do(action, p.color)
+       try:
+           p._do(action, p.color)
+       except ValueError as e:
+           print(action)
+           print(self)
+           raise e
        return self
 
     def step(self, action, color):
