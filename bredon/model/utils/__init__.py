@@ -51,6 +51,9 @@ class Move:
         else:
             return str(self.total) + self.get_square() + self.direction + ''.join(map(str, self.moves))
 
+    def __hash__(self):
+        return int(f"{self.total}{self.get_col_n()}{self.row}{'-+<>'.index(self.direction)}")
+
     @staticmethod
     def of(s):
         return str_to_move(s)

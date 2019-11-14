@@ -1,4 +1,4 @@
-from .view import *
+from controller import *
 
 import click
 
