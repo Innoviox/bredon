@@ -17,7 +17,7 @@ setuptools.setup(
     install_requires=['dataclasses==0.4',
                       'tabulate==0.8.2',
                       'click==7.0',
-                      'gym==0.10.8',
+                      'gym==0.17.2',
                       'tqdm==4.26.0',
                       'keras-rl==0.4.2']
 )
