@@ -18,6 +18,6 @@ setuptools.setup(
                       'tabulate==0.8.2',
                       'click==7.0',
                       'gym==0.10.8',
-                      'tqdm==4.26.0',
+                      'tqdm==4.61.2',
                       'keras-rl==0.4.2']
 )
